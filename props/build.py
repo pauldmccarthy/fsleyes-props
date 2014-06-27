@@ -2,33 +2,104 @@
 #
 # build.py - Automatically build a wx GUI for a props.HasProperties
 #            object.
-#
-# This module provides functionality to automatically build a GUI
-# containing widgets which allow the user to change the properties
-# (props.PropertyBase objects) of a specified props.HasProperties
-# object.
 
-# The sole entry point for this module is the buildGUI function, which
-# accepts as parameters a GUI object to be used as the parent (e.g. a
-# wx.Frame object), a props.HasProperties object, an optional
-# ViewItem object, which specifies how the interface is to be laid
-# out, and two optional dictionaries for passing in labels and
-# tooltips.
-#
-# The view parameter allows the layout of the generated interface to
-# be customised.  Property widgets may be grouped together by embedding
-# them within a HGroup or VGroup object; they will then respectively be
-# laid out horizontally or verticaly.  Groups may be embedded within a
-# NotebookGroup object, which will result in an interface containing a
-# tab for each child Group.  The label for, and behaviour of, the widget
-# for an individual property may be customised with a Widget object.
-#
-# As an alternative to passing in a view, labels, and tooltips, they
-# may be specified as class attributes of the HasProperties object,
-# with respective names '_view', '_labels', and '_tooltips'.
-#
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+
+"""Automatically build a :mod:`wx` GUI for a
+:class:`~props.properties.HasProperties` object.
+
+This module provides functionality to automatically build a :mod:`wx` GUI
+containing widgets which allow the user to change the property values
+(:class:`~props.properties.PropertyBase` objects) of a specified
+:class:`~props.properties.HasProperties` object.
+
+
+The sole entry point for this module is the :func:`buildGUI` function, which
+accepts as parameters a GUI object to be used as the parent (e.g. a
+:class:`wx.Panel` object), a :class:`~props.properties.HasProperties` object,
+an optional :class:`ViewItem` object, which specifies how the interface is to
+be laid out, and two optional dictionaries for passing in labels and tooltips.
+
+
+The :class:`ViewItem` class allows the layout of the generated interface to be
+customised.  Property widgets may be grouped together by embedding them within
+a :class:`HGroup` or :class:`VGroup` object; they will then respectively be
+laid out horizontally or verticaly.  Groups may be embedded within a
+:class:`NotebookGroup` object, which will result in an interface containing a
+tab for each child :class:`Group`.  The label for, and behaviour of, the
+widget for an individual property may be customised with a :class:`Widget`
+object. As an example::
+
+    import wx
+    import props
+
+    class MyObj(props.HasProperties):
+        myint  = props.Int()
+        mybool = props.Boolean()
+
+    # A reasonably complex view specification
+    view = props.VGroup(
+      label='MyObj properties',
+      children=(
+          props.Widget('mybool',
+                       label='MyObj Boolean',
+                       tooltip='If this is checked, you can '
+                               'edit the MyObj Integer'),
+          props.Widget('myint',
+                       label='MyObj Integer',
+                       enabledWhen=lambda mo: mo.mybool)))
+
+    # A simpler view specification
+    view = props.VGroup(('mybool', 'myint'))
+
+    # The simplest view specification - a
+    # default one will be generated
+    view = None
+
+    myobj = MyObj()
+ 
+    app   = wx.App()
+    frame = wx.Frame(None)
+
+    myObjPanel = props.buildGUI(frame, myobj, view)
+
+You may also pass in widget labels and tooltips to the :func:`buildGUI`
+function::
+
+    labels = {
+        'myint':  'MyObj Integer value',
+        'mybool': 'MyObj Boolean value'
+    }
+
+    tooltips = {
+        'myint' : 'MyObj Integer tooltip'
+    }
+
+    props.buildGUI(frame, myobj, view=view, labels=labels, tooltips=tooltips)
+
+As an alternative to passing in a view, labels, and tooltips to the
+:func:`buildGUI` function, they may be specified as class attributes of the
+HasProperties object, with respective names ``_view``, ``_labels``, and
+``_tooltips``::
+
+    class MyObj(props.HasProperties):
+        myint  = props.Int()
+        mybool = props.Boolean()
+
+        _view = props.HGroup(('myint', 'mybool'))
+        _labels = {
+            'myint':  'MyObj integer',
+            'mybool': 'MyObj boolean'
+        }
+        _tooltips = {
+            'myint':  'MyObj integer tooltip',
+            'mybool': 'MyObj boolean tooltip'
+        }
+
+    props.buildGUI(frame, myobj)
+
+"""
 
 import sys
 import wx
@@ -37,43 +108,39 @@ import widgets
 
 import pwidgets.notebook as nb
 
+
 class ViewItem(object):
-    """
-    Superclass for Widgets, Buttons, Labels  and Groups. Represents an
-    item to be displayed.
+    """Superclass for :class:`Widget`, :class:`Button`, :class:`Label` and
+    :class:`Group`. Represents an item to be displayed.
     """
 
     def __init__(self, key=None, label=None, tooltip=None,
                  visibleWhen=None, enabledWhen=None):
-        """
-        Parameters:
+        """Define a :class:`ViewItem`.
 
-          - key:         An identifier for this item. If this item is a
-                         Widget, this should be the property name that
-                         the widget edits. This key is used to look up
-                         labels and tooltips, if they are passed in as
-                         dicts (see the buildGUI function).
+        :param str key:     An identifier for this item. If this item is a
+                            :class:`Widget`, this should be the property
+                            name that the widget edits. This key is used to
+                            look up labels and tooltips, if they are passed
+                            in as dicts (:func:`buildGUI`).
         
-          - label:       A label for this item, which may be used in the
-                         GUI.
+        :param str label:   A label for this item, which may be used in the
+                            GUI.
 
-          - tooltip:     A tooltip, which may be displayed when the user
-                         hovers the mouse over the widget for this
-                         ViewItem.
+        :param str tooltip: A tooltip, which may be displayed when the user
+                            hovers the mouse over the widget for this
+                            :class:`ViewItem`.
         
-          - visibleWhen: A 2-tuple which contains the name of a property
-                         of the HasProperties object, or a list of
-                         property names, and a reference to a function
-                         which takes one argument, and returns a
-                         boolean.  When the specified property changes,
-                         the function is called, and the HasProperties
-                         instance passed to it. The return value is used
-                         to determine whether this item should be made
-                         visible or invisible.
+        :param visibleWhen: A function which takes one argument, the
+                            :class:`HasProperties` instance, and returns a
+                            ``bool``. When any property values change,
+                            the function is called. The return value is used
+                            to determine whether this item should be made
+                            visible or invisible.
         
-          - enabledWhen: Same as the visibleWhen parameter, except the
-                         state of the item (or its children) is changed
-                         between enabled and disabled.
+        :param enabledWhen: Same as the visibleWhen parameter, except the
+                            state of the item (and its children) is changed
+                            between enabled and disabled.
         """
 
         self.key         = key
@@ -84,9 +151,11 @@ class ViewItem(object):
 
 
 class Button(ViewItem):
-    """
-    Represents a button which, when clicked, will call a specified
-    callback function.
+    """Represents a button which, when clicked, will call a specified callback
+    function.
+
+    When the button is clicked, it is passed two arguemnts - the
+    :class:`HasProperties` instance, and the :class:`wx.Button` instance.
     """
 
     def __init__(self, key=None, text=None, callback=None, **kwargs):
@@ -96,14 +165,14 @@ class Button(ViewItem):
 
 
 class Label(ViewItem):
-    """
-    Represents a static text label.
-    """
+    """Represents a static text label."""
+
+    
     def __init__(self, viewItem=None, **kwargs):
-        """
-        A Label object may either be created in the same way as any other
-        ViewItem object, or it may be created from another ViewItem object,
-        the object to be labelled.
+        """Define a label.
+
+        :class:`Label` objects are automatically created for other
+        :class:`ViewItem` objects, which are to be labelled.
         """
 
         if viewItem is not None:
@@ -117,17 +186,16 @@ class Label(ViewItem):
 
 
 class Widget(ViewItem):
-    """
-    Represents a widget which is used to modify a property value.
-    """
+    """Represents a widget which is used to modify a property value. """
+
+    
     def __init__(self, propName, **kwargs):
-        """
-        Parameters:
+        """Define a :class:`Widget`.
         
-          - propName: The name of the property which this widget can
-                      modify.
+        :param str propName: The name of the property which this widget can
+                             modify.
         
-          - kwargs:   Passed to the ViewItem constructor.
+        :param kwargs:       Passed to the :class:`ViewItem` constructor.
         """
         
         kwargs['key'] = propName
@@ -135,28 +203,36 @@ class Widget(ViewItem):
 
 
 class Group(ViewItem):
+    """Represents a collection of other :class:`ViewItem` objects.
+
+    This class is not to be used directly - use one of the subclasses:
+      - :class:`VGroup`
+      - :class:`HGroup`
+      - :class:`NotebookGroup`
     """
-    Represents a collection of other ViewItems.
-    """
+
+    
     def __init__(self, children, showLabels=True, border=False, **kwargs):
-        """
+        """Define a :class:`Group`.
+        
         Parameters:
         
-          - children:   List of ViewItem objects, the children of this
-                        Group.
+        :param children:        List of :class:`ViewItem` objects, the
+                                children of this :class:`Group`.
         
-          - showLabels: Whether labels should be displayed for each of
-                        the children. If this is true, an attribute will
-                        be added to this Group object in the _prepareView
-                        function, called 'childLabels', and containing a
-                        Label object for each child.
+        :param bool showLabels: Whether labels should be displayed for each of
+                                the children. If this is ``True``, an attribute
+                                will be added to this :class:`Group` object in
+                                the :func:`_prepareView` function, called
+                                ``childLabels``, which contains a
+                                :class:`Label` object for each child.
 
-          - border:     If True, this group will be drawn with a border
-                        around it. If this group is a child of another
-                        VGroup, it will be laid out a bit differently,
-                        too.
+        :param bool border:     If ``True``, this group will be drawn with a 
+                                border around it. If this group is a child of
+                                another :class:`VGroup`, it will be laid out
+                                a bit differently, too.
         
-          - kwargs:     Passed to the ViewItem constructor.
+        :param kwargs:          Passed to the :class:`ViewItem` constructor.
         """
         ViewItem.__init__(self, **kwargs)
         self.children   = children
@@ -165,25 +241,27 @@ class Group(ViewItem):
 
 
 class NotebookGroup(Group):
-    """
-    A Group representing a GUI Notebook. Children are added as notebook
-    pages.
+    """A :class:`Group` representing a GUI Notebook. Children are added as
+    notebook pages.
     """
     def __init__(self, children, **kwargs):
+        """Define a :class:`NotebookGroup`.
+
+        :param children: List of :class:`ViewItem` objects - a tab in the
+                         notebook is added for each child.
+        """
         Group.__init__(self, children, **kwargs)
 
 
 class HGroup(Group):
-    """
-    A group representing a GUI panel, whose children are laid out
+    """A group representing a GUI panel, whose children are laid out
     horizontally.
     """
     pass
 
 
 class VGroup(Group): 
-    """
-    A group representing a GUI panel, whose children are laid out
+    """A group representing a GUI panel, whose children are laid out
     vertically.
     """
     def __init__(self, children, **kwargs):
@@ -192,10 +270,9 @@ class VGroup(Group):
 
 
 class PropGUI(object):
-    """
-    A container class used for convenience. Stores references to
-    all wx objects that are created, and to all conditional
-    callbacks (which control visibility/state).
+    """An internal container class used for convenience. Stores references to
+    all :mod:`wx` objects that are created, and to all conditional callbacks
+    (which control visibility/state).
     """
     
     def __init__(self):
@@ -205,14 +282,12 @@ class PropGUI(object):
  
 
 def _configureEnabledWhen(viewItem, guiObj, hasProps):
-    """
-    Returns a reference to a callback function for this view item,
-    if its enabledWhen attribute was set.
-    Parameters:
+    """Returns a reference to a callback function for this view item,
+    if its ``enabledWhen`` attribute was set.
 
-      - viewItem: The ViewItem object
-      - guiObj:   The GUI object created from the ViewItem
-      - hasProps: The HasProperties instance
+    :param viewItem: The :class:`ViewItem` object
+    :param guiObj:   The GUI object created from the :class:`ViewItem`
+    :param hasProps: The :class:`~props.properties.HasProperties` instance
     """
 
     if viewItem.enabledWhen is None: return None
@@ -228,8 +303,7 @@ def _configureEnabledWhen(viewItem, guiObj, hasProps):
             toggleAll(child, state)
 
     def _toggleEnabled():
-        """
-        Calls the viewItem.enabledWhen function and
+        """Calls the viewItem.enabledWhen function and
         enables/disables the GUI object, depending
         upon the result.
         """
@@ -248,9 +322,8 @@ def _configureEnabledWhen(viewItem, guiObj, hasProps):
 
 
 def _configureVisibleWhen(viewItem, guiObj, hasProps):
-    """
-    Returns a reference to a callback function for this view item,
-    if its visibleWhen attribute was set.
+    """Returns a reference to a callback function for this view item,
+    if its visibleWhen attribute was set. See :func:`_configureEnabledWhen`.
     """ 
 
     if viewItem.visibleWhen is None: return None
@@ -274,19 +347,16 @@ def _configureVisibleWhen(viewItem, guiObj, hasProps):
 
 
 def _createLabel(parent, viewItem, hasProps, propGui):
+    """Creates a :class:`wx.StaticText` object containing a label for the
+    given class:`ViewItem`.
     """
-    Creates a GUI static text label object containing a label for the
-    given viewItem.
-    """
-
     label = wx.StaticText(parent, label=viewItem.label)
     return label
 
 
 def _createButton(parent, viewItem, hasProps, propGui):
-    """
-    Creates a GUI Button object for the given ViewItem (assumed to be a
-    Button).
+    """Creates a :class:`wx.Button` object for the given :class:`Button`
+    object.
     """
 
     btnText = None
@@ -301,10 +371,9 @@ def _createButton(parent, viewItem, hasProps, propGui):
 
 
 def _createWidget(parent, viewItem, hasProps, propGui):
-    """
-    Creates a widget for the given Widget object, using the
-    props.makeWidget function (see the props.widgets module
-    for more details).
+    """Creates a widget for the given :class:`Widget` object, using the
+    :func:`~props.widgets.makeWidget` function (see the :mod:`props.widgets`
+    module for more details).
     """
 
     widget = widgets.makeWidget(parent, hasProps, viewItem.key)
@@ -312,17 +381,19 @@ def _createWidget(parent, viewItem, hasProps, propGui):
 
 
 def _makeGroupBorder(parent, group, ctr, *args, **kwargs):
-    """
-    If a the border attribute of a Group object has been set to True,
-    this function is called. It creates a parent panel with a border
-    and title, then creates and embeds the GUI object representing
-    the group (via the ctr argument). Returns the parent border panel,
-    and the group GUI object. Parameters:
-      - parent:   Parent GUI object
-      - group:    VGroup, HGroup or NotebookGroup
-      - ctr:      Constructor for a wx.Window object.
-      - *args:    Passed to ctr. You don't need to pass in the parent.
-      - **kwargs: Passed to ctr.
+    """Makes a border for a :class:`Group`.
+    
+    If a the ``border`` attribute of a :class:`Group` object has been set to
+    ``True``, this function is called. It creates a parent :class:`wx.Panel`
+    with a border and title, then creates and embeds the GUI object
+    representing the group (via the ctr argument). Returns the parent border
+    panel, and the group GUI object. Parameters:
+    
+    :param parent:   Parent GUI object
+    :param group:    :class:`VGroup`, :class:`HGroup` or :class:`NotebookGroup`
+    :param ctr:      Constructor for a :class:`wx.Window` object.
+    :param *args:    Passed to ctr. You don't need to pass in the parent.
+    :param **kwargs: Passed to ctr.
     """
     
     borderPanel = wx.Panel(parent, style=wx.SUNKEN_BORDER)
@@ -351,10 +422,11 @@ def _makeGroupBorder(parent, group, ctr, *args, **kwargs):
     
 
 def _createNotebookGroup(parent, group, hasProps, propGui):
-    """
-    Creates a GUI Notebook object for the given NotebookGroup object.
-    The children of the group object are also created via recursive
-    calls to the _create function.
+    """Creates a :class:`pwidgets.Notebook` object :class:`NotebookGroup`
+    object.
+
+    The children of the group object are also created via recursive calls to
+    the :func:`_create` function.
     """
 
     if group.border:
@@ -384,18 +456,17 @@ def _createNotebookGroup(parent, group, hasProps, propGui):
 
 
 def _layoutHGroup(group, parent, children, labels):
-    """
-    Lays out the children (and labels, if not None) of the
-    given HGroup object. Parameters:
+    """Lays out the children (and labels, if not ``None``) of the given
+    :class:`HGroup` object. Parameters:
     
-      - group:    HGroup object
+    :param group:    :class:`HGroup` object
     
-      - parent:   GUI object which represents the group
+    :param parent:   GUI object which represents the group
     
-      - children: List of GUI objects, the children of the group.
+    :param children: List of GUI objects, the children of the group.
 
-      - labels:   None if no labels, otherwise a list of GUI Label
-                  objects, one for each child.
+    :param labels:   ``None`` if no labels, otherwise a list of GUI Label
+                     objects, one for each child.
     """
 
     sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -414,9 +485,8 @@ def _layoutHGroup(group, parent, children, labels):
 
     
 def _layoutVGroup(group, parent, children, labels):
-    """
-    Lays out the children (and labels, if not None) of the
-    given VGroup object. Parameters the same as _layoutHGroup.
+    """Lays out the children (and labels, if not ``None``) of the
+    given :class:`VGroup` object. Parameters the same as :func:`_layoutHGroup`.
     """
 
     sizer = wx.GridBagSizer(1, 1)
@@ -474,10 +544,11 @@ def _layoutVGroup(group, parent, children, labels):
 
 
 def _createGroup(parent, group, hasProps, propGui):
-    """
-    Creates a GUI panel object for the given HGroup or VGroup. Children
-    of the group are recursively created via calls to _create, and laid
-    out on the Frame via the _layoutGroup function.
+    """Creates a GUI panel object for the given :class:`HGroup` or
+    :class:`VGroup`.
+
+    Children of the group are recursively created via calls to
+    :func:`_create`, and laid out via the :class:`_layoutGroup` function.
     """
 
     if group.border:
@@ -526,9 +597,8 @@ _createVGroup = _createGroup
 
 
 def _create(parent, viewItem, hasProps, propGui):
-    """
-    Creates the given ViewItem object and, if it is a group, all of its
-    children.
+    """Creates a GUI object for the given `ViewItem` object and, if it is a
+    group, all of its children.
     """
 
     cls = viewItem.__class__.__name__
@@ -566,11 +636,10 @@ def _create(parent, viewItem, hasProps, propGui):
 
 
 def _defaultView(hasProps):
-    """
-    Creates a default view specification for the given HasProperties
-    object, with all properties laid out vertically. This function is
-    only called if a view specification was not provided in the call
-    to the buildGUI function (defined below).
+    """Creates a default view specification for the given
+    :class:`~props.properties.HasProperties` object, with all properties
+    laid out vertically. This function is only called if a view specification
+    was not provided in the call to the :func:`buildGUI` function
     """
 
     propNames, propObjs = hasProps.getAllProperties()
@@ -581,13 +650,14 @@ def _defaultView(hasProps):
 
 
 def _prepareView(viewItem, labels, tooltips):
-    """
-    Recursively steps through the given viewItem and its children (if
-    any). If the viewItem is a string, it is assumed to be a property
-    name, and it is turned into a Widget object. If the viewItem does
-    not have a label/tooltip, and there is a label/tooltip for it in
-    the given labels/tooltips dict, then its label/tooltip is set.
-    Returns a reference to the updated/newly created ViewItem.
+    """Recursively steps through the given ``viewItem`` and its children (if
+    any).
+
+    If the ``viewItem`` is a string, it is assumed to be a property name, and
+    it is turned into a :class:`Widget` object. If the ``viewItem`` does not
+    have a label/tooltip, and there is a label/tooltip for it in the given
+    labels/tooltips dict, then its label/tooltip is set.  Returns a reference
+    to the updated/newly created :class:`ViewItem.
     """
 
     if isinstance(viewItem, str):
@@ -634,11 +704,10 @@ def _prepareView(viewItem, labels, tooltips):
 
     
 def _prepareEvents(hasProps, propGui):
-    """
-    If the visibleWhen or enabledWhen conditional attributes were set
-    for any ViewItem objects, a callback function is set on all
-    properties. When any property value changes, the visibleWhen/
-    enabledWhen callback functions are called.
+    """If the ``visibleWhen`` or ``enabledWhen`` conditional attributes were
+    set for any :class:`ViewItem` objects, a callback function is set on all
+    properties. When any property value changes, the
+    ``visibleWhen``/``enabledWhen`` callback functions are called.
     """
 
     if len(propGui.onChangeCallbacks) == 0:
@@ -675,22 +744,20 @@ def buildGUI(parent,
              view=None,
              labels=None,
              tooltips=None):
-    """
-    Builds a GUI interface which allows the properties of the given
-    hasProps object (a props.HasProperties instance) to be edited.
+    """Builds a GUI interface which allows the properties of the given
+    :class:`props.properties.HasProperties` object to be edited.
+    
     Returns a reference to the top level GUI object (typically a
-    wx.Frame or wx.Notebook).
+    :class:`wx.Panel` or :class:`pwidgets.Notebook`).
 
     Parameters:
     
-     - parent:   parent GUI object
-     - hasProps: props.HasProperties object
-    
-    Optional:
-    
-     - view:     ViewItem object, specifying the interface layout
-     - labels:   Dict specifying labels
-     - tooltips: Dict specifying tooltips
+    :param parent:   parent GUI object
+    :param hasProps: :class:`props.properties.HasProperties` object
+    :param view:     :class:`ViewItem` object, specifying the interface layout
+    :param labels:   Dict specifying labels
+    :param tooltips: Dict specifying tooltips
+
     """
 
     if view is None:
