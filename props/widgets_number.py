@@ -15,7 +15,7 @@ import wx
 import properties as props
 import widgets
 
-import fsl.gui.floatslider  as floatslider
+import pwidgets.floatslider as floatslider
 
 def _makeSpinBox(parent, hasProps, propObj, propVal):
     """

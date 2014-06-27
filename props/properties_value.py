@@ -8,11 +8,11 @@
 """Definitions of the :class:`PropertyValue` and :class:`PropertyValueList`
 classes.
 
-These definitions are really a part of the :mod:`fsl.props.properties` module,
+These definitions are really a part of the :mod:`props.properties` module,
 and are intended to be created and managed by
-:class:`~fsl.props.properties.PropertyBase` objects. However, the
+:class:`~props.properties.PropertyBase` objects. However, the
 :class:`PropertyValue` class definitions have absolutely no dependencies upon
-the :class:`~fsl.props.properties.PropertyBase` definitions. The same can't be
+the :class:`~props.properties.PropertyBase` definitions. The same can't be
 said for the other way around though.
 
 """
@@ -48,7 +48,7 @@ class PropertyValue(object):
                                ``postNotifyFunc``, and any registered
                                listeners. Can be anything, but will nearly
                                always be a
-                               :class:`~fsl.props.properties.HasProperties`
+                               :class:`~props.properties.HasProperties`
                                instance.
 
         :param str name:       Value name - if not provided, a default, unique
@@ -97,8 +97,8 @@ class PropertyValue(object):
                                :class:`PropertyValue` or
                                :class:`PropertyValueList` classes, however
                                they are used by the
-                               :class:`~fsl.props.properties.ListPropertyBase`
-                               and :class:`~fsl.props.properties.PropertyBase`
+                               :class:`~props.properties.ListPropertyBase`
+                               and :class:`~props.properties.PropertyBase`
                                classes to store per-instance property
                                constraints. Listeners may register to be
                                notified when attribute values change.
@@ -432,7 +432,7 @@ class PropertyValueList(PropertyValue):
 
 
     When a :class:`PropertyValueList` is accessed as an attribute of a
-    :class:`~fsl.props.properties.HasProperties` instance (by far the most
+    :class:`~props.properties.HasProperties` instance (by far the most
     common use-case), there is an important semantic difference between
     an assignment like this::
 
@@ -461,11 +461,11 @@ class PropertyValueList(PropertyValue):
     There are some interesting type-specific subclasses of the
     :class:`PropertyValueList`, which provide additional functionality:
 
-      - The :class:`~fsl.props.properties_types.PointValueList`, for
-        :class:`~fsl.props.properties_types.Point` properties.
+      - The :class:`~props.properties_types.PointValueList`, for
+        :class:`~props.properties_types.Point` properties.
 
-      - The :class:`~fsl.props.properties_types.BoundsValueList`, for
-        :class:`~fsl.props.properties_types.Bounds` properties.
+      - The :class:`~props.properties_types.BoundsValueList`, for
+        :class:`~props.properties_types.Bounds` properties.
     """
 
     def __init__(self,

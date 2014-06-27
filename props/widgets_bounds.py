@@ -10,7 +10,7 @@
 
 import wx
 
-import fsl.gui.rangeslider as rangeslider
+import pwidgets.rangeslider as rangeslider
 
 def _boundBind(hasProps, propObj, sliderPanel, propVal, axis):
     """

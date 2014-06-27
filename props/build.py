@@ -35,7 +35,7 @@ import wx
 
 import widgets
 
-import fsl.gui.notebook as nb
+import pwidgets.notebook as nb
 
 class ViewItem(object):
     """

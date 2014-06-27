@@ -8,8 +8,8 @@
 
 This module defines the :class:`PropertyBase`, :class:`ListPropertyBase`, and
 :class:`HasProperties` classes, which form the basis for defining class
-properties. See also the :mod:`~fsl.props.properties_value` and
-:mod:`~fsl.props.properties_types` modules.
+properties. See also the :mod:`~props.properties_value` and
+:mod:`~props.properties_types` modules.
 """
 
 import logging
@@ -38,7 +38,7 @@ class PropertyBase(object):
     One important point to note is that a :class:`PropertyBase` object may
     exist without being bound to a :class:`HasProperties` object (in which
     case it will not create or manage any
-    :class:`~fsl.props.properties_value.PropertyValue` objects). This is
+    :class:`~props.properties_value.PropertyValue` objects). This is
     useful if you just want validation functionality via the :meth:`validate`,
     :meth:`getConstraint` and :meth:`setConstraint` methods, passing in
     ``None`` for the instance parameter. Nothing else will work properly
@@ -53,7 +53,7 @@ class PropertyBase(object):
         is called first.
 
       - Override the :meth:`cast` method for implicit casting/conversion logic
-        (see :class:`~fsl.props.properties_types.Boolean` for an example).
+        (see :class:`~props.properties_types.Boolean` for an example).
 
     """
 
@@ -85,14 +85,14 @@ class PropertyBase(object):
 
         :param preNotifyFunc:     Function to be called whenever the property
                                   value(s) changes. See
-                            :class:`~fsl.props.properties_value.PropertyValue`.
+                            :class:`~props.properties_value.PropertyValue`.
 
         :param bool allowInvalid: If ``False``, a :exc:`ValueError` will be
                                   raised on all attempts to set this property
                                   to an invalid value. This does not guarantee
                                   that the property value will never be
                                   invalid - see caveats in the
-                             :class:`~fsl.props.properties_value.PropertyValue`.
+                             :class:`~props.properties_value.PropertyValue`.
                                   documentation.
         
         :param constraints:       Type specific constraints used to test
@@ -112,9 +112,9 @@ class PropertyBase(object):
         
     def addListener(self, instance, name, callback):
         """Register a listener with the
-        :class:`~fsl.props.properties_value.PropertyValue` object managed by
+        :class:`~props.properties_value.PropertyValue` object managed by
         this property. See
-        :meth:`~fsl.props.properties_value.PropertyValue.addListener`.
+        :meth:`~props.properties_value.PropertyValue.addListener`.
 
         :param instance: The :class:`HasProperties` instance on which the
                          listener is to be registered.
@@ -126,7 +126,7 @@ class PropertyBase(object):
         
     def removeListener(self, instance, name):
         """De-register the named listener from the
-        :class:`~fsl.props.properties_value.PropertyValue` object managed by
+        :class:`~props.properties_value.PropertyValue` object managed by
         this property.
         """
         instData = self._getInstanceData(instance)
@@ -149,7 +149,7 @@ class PropertyBase(object):
         
     def addConstraintListener(self, instance, name, listener):
         """Add a listener which will be notified whenever any constraint on the
-        :class:`~fsl.props.properties_value.PropertyValue` object bound to the
+        :class:`~props.properties_value.PropertyValue` object bound to the
         given instance change. An :exc:`AttributeError` will be raised if
         instance is ``None``.  The listener function must accept the following
         parameters:
@@ -203,7 +203,7 @@ class PropertyBase(object):
 
 
     def getPropVal(self, instance):
-        """Return the :class:`~fsl.props.properties_value.PropertyValue`
+        """Return the :class:`~props.properties_value.PropertyValue`
         object(s) for this property, associated with the given
         :class:`HasProperties` instance, or ``None`` if there is no value
         for the given instance.
@@ -226,7 +226,7 @@ class PropertyBase(object):
         
     def _makePropVal(self, instance):
         """Creates and returns a
-        :class:`~fsl.props.properties_value.PropertyValue object for the given
+        :class:`~props.properties_value.PropertyValue object for the given
         :class:HasProperties` instance.  
         """
         return PropertyValue(instance,
@@ -346,7 +346,7 @@ class PropertyBase(object):
         """If called on the :class:`HasProperties` class, and not on an
         instance, returns this :class:`PropertyBase` object. Otherwise,
         returns the value contained in the
-        :class:`~fsl.props.properties_value.PropertyValue` object which is
+        :class:`~props.properties_value.PropertyValue` object which is
         attached to the instance.
         """
 
@@ -386,7 +386,7 @@ class ListPropertyBase(PropertyBase):
         
     def _makePropVal(self, instance):
         """Creates and returns a
-        :class:`~fsl.props.properties_value.PropertyValueList` object to be
+        :class:`~props.properties_value.PropertyValueList` object to be
         associated with the given :class:`HasProperties` instance.
         """
 
@@ -416,7 +416,7 @@ class ListPropertyBase(PropertyBase):
         
     def getPropValList(self, instance):
         """Returns the list of
-        :class:`~fsl.props.properties_value.PropertyValue` objects which
+        :class:`~props.properties_value.PropertyValue` objects which
         represent the items stored in this list.
         """
         propVal = self.getPropVal(instance)
@@ -565,7 +565,7 @@ class HasProperties(object):
 
 
     def getPropVal(self, propName):
-        """Return the :class:`~fsl.props.properties_value.PropertyValue`
+        """Return the :class:`~props.properties_value.PropertyValue`
         object(s) for the given property.
         """
         return self.getProp(propName).getPropVal(self)

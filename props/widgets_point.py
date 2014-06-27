@@ -10,7 +10,7 @@
 
 import wx
 
-import fsl.gui.floatslider as floatslider
+import pwidgets.floatslider as floatslider
 
 import widgets
 

@@ -6,7 +6,7 @@
 #
 """Definitions for different property types.
 
-This module provides a number of :class:`~fsl.props.properties.PropertyBase`
+This module provides a number of :class:`~props.properties.PropertyBase`
 subclasses which define properties of different types.
 """
 
@@ -29,7 +29,7 @@ class Boolean(props.PropertyBase):
         ``False`` is used.
 
         :param kwargs: All passed through to the
-                       :class:`~fsl.props.properties.PropertyBase`
+                       :class:`~props.properties.PropertyBase`
                        constructor.
         """
 
@@ -38,7 +38,7 @@ class Boolean(props.PropertyBase):
 
         
     def cast(self, instance, attributes, value):
-        """Overrides :class:`~fsl.props.properties.PropertyBase.cast`.
+        """Overrides :class:`~props.properties.PropertyBase.cast`.
         Casts the given value to a ``bool``.
         """
         return bool(value)
@@ -70,7 +70,7 @@ class Number(props.PropertyBase):
                                 to change the min/max values.
         
         :param kwargs:          Passed through to the
-                                :class:`~fsl.props.properties.PropertyBase`
+                                :class:`~props.properties.PropertyBase`
                                 constructor. If a ``default`` value is not
                                 provided, it is set to something sensible.
         """
@@ -96,16 +96,16 @@ class Number(props.PropertyBase):
 
         
     def validate(self, instance, attributes, value):
-        """Overrides :meth:`~fsl.props.properties.PropertyBase.validate`.
+        """Overrides :meth:`~props.properties.PropertyBase.validate`.
         Validates the given number.
 
-        Calls the :meth:`~fsl.props.properties.PropertyBase.validate` method.
+        Calls the :meth:`~props.properties.PropertyBase.validate` method.
         Then, if the ``minval`` and/or ``maxval`` constraints have been set,
         and the given value is not within those values, a :exc:`ValueError` is
         raised.
 
         :param instance:        The owning
-                                :class:`~fsl.props.properties.HasProperties`
+                                :class:`~props.properties.HasProperties`
                                 instance (or ``None``.
         
         :param dict attributes: Dictionary containing property constraints.
