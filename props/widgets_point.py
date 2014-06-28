@@ -19,7 +19,7 @@ import widgets
 
 def _pointBind(hasProps, propObj, propVal, slider, dim):
     """Binds the given :class:`~pwidgets.floatslider.SliderSpinPanel` to
-    one dimension of the given :class:`props.properties_types.PointValueList`
+    one dimension of the given :class:`~props.properties_types.PointValueList`
     so that changes in one are propagated to the other.
 
     :param hasProps:    The owning :class:`~props.properties.HasProperties`
@@ -30,7 +30,7 @@ def _pointBind(hasProps, propObj, propVal, slider, dim):
     :param sliderPanel: The :class:`~pwidgets.floatslider.SliderSpinPanel`
                         instance.
     
-    :param propVal:     The :class:`props.properties_types.PointValueList`
+    :param propVal:     The :class:`~props.properties_types.PointValueList`
                         instance.
     
     :param dim:         The 0-indexed dimension of the

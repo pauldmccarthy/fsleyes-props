@@ -18,7 +18,7 @@ import pwidgets.rangeslider as rangeslider
 
 def _boundBind(hasProps, propObj, sliderPanel, propVal, axis):
     """Binds the given :class:`~pwidgets.rangeslider.RangeSliderSpinPanel` to
-    one axis of the given :class:`props.properties_types.BoundValueList` so
+    one axis of the given :class:`~props.properties_types.BoundsValueList` so
     that changes in one are propagated to the other.
 
     :param hasProps:    The owning :class:`~props.properties.HasProperties`
@@ -29,7 +29,7 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis):
     :param sliderPanel: The :class:`~pwidgets.rangeslider.RangeSliderSpinPanel`
                         instance.
     
-    :param propVal:     The :class:`props.properties_types.BoundValueList`
+    :param propVal:     The :class:`~props.properties_types.BoundsValueList`
                         instance.
     
     :param axis:        The 0-indexed axis of the

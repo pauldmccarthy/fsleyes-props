@@ -159,7 +159,7 @@ class Int(Number):
 
         
     def cast(self, instance, attributes, value):
-        """Overrides :meth:`Number.cast`. Casts the given value to an `int`,
+        """Overrides :meth:`Number.cast`. Casts the given value to an ``int``,
         and then passes the value to :meth:`Number.cast`.
         """
         return Number.cast(self, instance, attributes, int(value))
@@ -176,7 +176,7 @@ class Real(Number):
 
 
     def cast(self, instance, attributes, value):
-        """Overrides :meth:`Number.cast`. Casts the given value to a `float`,
+        """Overrides :meth:`Number.cast`. Casts the given value to a ``float``,
         and then passes the value to :meth:`Number.cast`.
         """ 
         return Number.cast(self, instance, attributes, float(value))
@@ -432,7 +432,7 @@ class ColourMap(props.PropertyBase):
     """A property which encapsulates a :class:`matplotlib.colors.Colormap`.
 
     ColourMap values may be specified either as a
-    :class:`matplotlib.colors.Colormap` instance, os as a string containing
+    :class:`matplotlib.colors.Colormap` instance, or as a string containing
     the name of a registered colour map instance.
     """
 
@@ -687,7 +687,7 @@ class Bounds(List):
     :class:`Bound` values may also have bounds of their own,
     i.e. minimium/maximum values that the bound values can take. These
     bound-limits are referred to as 'min' and 'max', and can be set via the
-    :meth:`BoundValueList.setMin` and :meth:`BoundValueList.setMax`
+    :meth:`BoundsValueList.setMin` and :meth:`BoundsValueList.setMax`
     methods. The advantage to using these methods, instead of using, for
     example, :meth:`~props.properties.HasProperties.setItemConstraint`, is
     that if you use the latter you will have to set the constraints on both

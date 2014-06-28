@@ -98,8 +98,8 @@ perform implicit casts when the property value is set.
 
 The default validation logic of most :class:`~props.properties.PropertyBase`
 objects can be configured via 'constraints'. For example, the
-:class:~props.properties_types.Number` property allows 'minval' and 'maxval'
-constraints to be set.  These may be set via
+:class:`~props.properties_types.Number` property allows ``minval`` and
+``maxval`` constraints to be set.  These may be set via
 :class:`~props.properties.PropertyBase` constructors, (i.e. when it is defined
 as a class attribute of a :class:`~props.properties.HasProperties`
 definition), and may be queried and changed on individual

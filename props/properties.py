@@ -16,10 +16,11 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class InstanceData(object):
-    """An :class:`InstanceData` object is created for every :class:`PropertyBase`
-    object of a :class:`HasProperties` instance. It stores references to the
-    the instance and the associated property value(s).
+class _InstanceData(object):
+    """An :class:`_InstanceData` object is created for every
+    :class:`PropertyBase` object of a :class:`HasProperties` instance. It
+    stores references to the the instance and the associated property
+    value(s).
     """
     
     def __init__(self, instance, propVal):
@@ -31,7 +32,7 @@ class PropertyBase(object):
     """The base class for properties.
 
     For every :class:`HasProperties` object which has this
-    :class:`PropertyBase` object as a property, one :class:`InstanceData`
+    :class:`PropertyBase` object as a property, one :class:`_InstanceData`
     object is created and attached as an attribute of the
     :class:`HasProperties` object.
 
@@ -54,7 +55,6 @@ class PropertyBase(object):
 
       - Override the :meth:`cast` method for implicit casting/conversion logic
         (see :class:`~props.properties_types.Boolean` for an example).
-
     """
 
     def __init__(self,
@@ -83,16 +83,16 @@ class PropertyBase(object):
                                   if the property value is valid, ``False``
                                   otherwise.
 
-        :param preNotifyFunc:     Function to be called whenever the property
-                                  value(s) changes. See
-                            :class:`~props.properties_value.PropertyValue`.
+        :param preNotifyFunc: Function to be called whenever the property
+                              value(s) changes. See
+                              :class:`~props.properties_value.PropertyValue`.
 
         :param bool allowInvalid: If ``False``, a :exc:`ValueError` will be
                                   raised on all attempts to set this property
                                   to an invalid value. This does not guarantee
                                   that the property value will never be
                                   invalid - see caveats in the
-                             :class:`~props.properties_value.PropertyValue`.
+                                  :class:`~props.properties_value.PropertyValue`
                                   documentation.
         
         :param constraints:       Type specific constraints used to test
@@ -214,9 +214,9 @@ class PropertyBase(object):
 
 
     def _getInstanceData(self, instance):
-        """Returns the :class:`InstanceData` object for the given instance, or
-        ``None`` if there is no :class:`InstanceData` for the given
-        instance. An :class:`InstanceData` object, which provides a binding
+        """Returns the :class:`_InstanceData` object for the given instance, or
+        ``None`` if there is no :class:`_InstanceData` for the given
+        instance. An :class:`_InstanceData` object, which provides a binding
         between a :class:`PropertyBase` object and a :class:`HasProperties`
         instance, is created by that :class:`HasProperties` instance when it
         is created (see :meth:`HasProperties.__new__`).
@@ -226,8 +226,8 @@ class PropertyBase(object):
         
     def _makePropVal(self, instance):
         """Creates and returns a
-        :class:`~props.properties_value.PropertyValue object for the given
-        :class:HasProperties` instance.  
+        :class:`~props.properties_value.PropertyValue` object for the given
+        :class:`HasProperties` instance.  
         """
         return PropertyValue(instance,
                              name=self._label,
@@ -241,9 +241,11 @@ class PropertyBase(object):
 
         
     def _valChanged(self, value, valid, instance):
-        """This function is called by PropertyValue objects which are managed
-        by this PropertyBase object. It notifies any listeners which have been
-        registered to this property of any value changes.
+        """This function is called by
+        :class:`~props.properties_value.PropertyValue` objects which are
+        managed by this :class:`PropertyBase` object. It notifies any
+        listeners which have been registered to this property of any
+        value changes.
         """
 
         instData = self._getInstanceData(instance)
@@ -272,11 +274,11 @@ class PropertyBase(object):
         """Called when an attempt is made to set the property value on the
         given instance.
 
-        Called by :class:`PropertyValue` objects when their value changes. The
-        sole purpose of :meth:`validate` is to determine whether a given value
-        is valid or invalid; it should not do anything else. In particular, it
-        should not modify any other property values on the instance, as bad
-        things will probably happen.
+        Called by :class:`~props.properties_value.PropertyValue` objects when
+        their value changes. The sole purpose of :meth:`validate` is to
+        determine whether a given value is valid or invalid; it should not do
+        anything else. In particular, it should not modify any other property
+        values on the instance, as bad things will probably happen.
         
         If the given value is invalid, subclass implementations should raise a
         :exc:`ValueError` containing a useful message as to why the value is
@@ -296,12 +298,14 @@ class PropertyBase(object):
                                 owns this :class:`PropertyBase` instance,
                                 or ``None`` for an unbound property value.
         
-        :param dict attributes: Attributes of the :class:`PropertyValue`
+        :param dict attributes: Attributes of the
+                                :class:`~props.properties_value.PropertyValue`
                                 object, which are used to store type-specific
                                 constraints for :class:`PropertyBase`
                                 subclasses.
         
         :param value:           The value to be validated.
+
         """
 
         # a value is required
@@ -441,7 +445,9 @@ class ListPropertyBase(PropertyBase):
 
     def addItemConstraintListener(self, instance, index, name, listener):
         """Convenience method which adds a constraint listener (actually an
-        attribute listener) to the PropertyValue object at the given index.
+        attribute listener) to the
+        :class:`~props.properties_value.PropertyValue` object at the given
+        index.
         """
         self.getPropValList(instance)[index].addAttributeListener(
             name, listener)
@@ -457,10 +463,10 @@ class ListPropertyBase(PropertyBase):
         
     def getItemConstraint(self, instance, index, constraint):
         """Convenience method which returns the specified constraint for the
-        property value at the given index. If instance is ``None``, the index
-        is ignored, and the default list type constraint value is returned.
-        If no list type was specified for this list, an :exc:AttributeError`
-        is raised.
+        property value at the given index. If ``instance`` is ``None``, the
+        index is ignored, and the default list type constraint value is
+        returned. If no list type was specified for this list, an
+        :exc:AttributeError` is raised.
         """
 
         propVal = self.getPropVal(instance)
@@ -520,13 +526,13 @@ class HasProperties(object):
             prop = getattr(instance.__class__, propName)
             if not isinstance(prop, PropertyBase): continue
 
-            # Create a PropertyValue and an InstanceData
+            # Create a PropertyValue and an _InstanceData
             # object, which bind the PropertyBase object
             # to this HasProperties instance.
             propVal  = prop._makePropVal(instance)
-            instData = InstanceData(instance, propVal)
+            instData = _InstanceData(instance, propVal)
 
-            # Store the InstanceData object
+            # Store the _InstanceData object
             # on the instance itself
             instance.__dict__[propName] = instData
 

@@ -10,24 +10,21 @@
 
 This module provides two functions:
 
- - :func:`addParserArguments`: Given an :class:`argparse.ArgumentParser` and a
-                               :class:`~props.properties.HasProperties` class
-                               (or instance), adds arguments to the parser for
-                               each :class:`~props.properties.PropertyBase
-                               attribute of the
-                               :class:`~props.properties.HasProperties` class.
+:func:`addParserArguments`:
+    Given an :class:`argparse.ArgumentParser` and a
+    :class:`~props.properties.HasProperties` class (or instance), adds
+    arguments to the parser for each :class:`~props.properties.PropertyBase`
+    attribute of the :class:`~props.properties.HasProperties` class.
 
- - :func:`applyArguments`: Given a :class:`~props.properties.HasProperties`
-                               instance and an :class:`argparse.Namespace`
-                               object assumed to have been created by the
-                               parser mentioned above, sets the property
-                               values of the
-                               :class:`~props.properties.HasProperties`
-                               instance from the values stored in the
-                               :class:`~argparse.Namespace` object.
+:func:`applyArguments`:
+    Given a :class:`~props.properties.HasProperties` instance and an
+    :class:`argparse.Namespace` object assumed to have been created by the
+    parser mentioned above, sets the property values of the
+    :class:`~props.properties.HasProperties` instance from the values stored
+    in the :class:`~argparse.Namespace` object.
 
-The :func:`addParserArguments` funcion is used to add arguments to a
-`argparse.ArgumentParser` object for the properties of a
+The :func:`addParserArguments` function is used to add arguments to a
+:class:`argparse.ArgumentParser` object for the properties of a
 :class:`~props.properties.HasProperties` class. The simplest way to do so is
 to allow the :func:`addParserArguments` function to automatically generate
 short and long arguments from the property names::
@@ -121,6 +118,7 @@ named class attributes of your :class:`~props.properties.HasProperties` class::
 
 Not all property types are supported at the moment. The ones which are
 supported:
+
   - :class:`~props.properties_types.String`
   - :class:`~props.properties_types.Choice`
   - :class:`~props.properties_types.Int`
@@ -152,7 +150,7 @@ def _String(parser, propCls, propName, propHelp, shortArg, longArg):
     
     :param parser:       An :class:`argparse.ArgumentParser` instance.
     
-    :param propCls:      A :class:`props.properties.HasProperties` class.
+    :param propCls:      A :class:`~props.properties.HasProperties` class.
     
     :param str propName: Name of the property.
     

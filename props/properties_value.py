@@ -147,8 +147,10 @@ class PropertyValue(object):
         listener callback function must accept the following arguments:
         
           - ``context``:   The context associated with this
-                           :class:`PropertyValue`.
+            :class:`PropertyValue`.
+        
           - ``attribute``: The name of the attribute that changed.
+        
           - ``value``:     The new attribute value.
 
         :param str name: A unique name for the listener. If a listener with

@@ -11,8 +11,9 @@
 """Generate wx GUI widgets for :class:`~props.properties.PropertyBase` objects.
 
 The sole entry point for this module is the :func:`makeWidget` function, which
-is called via the :mod:`props.build` module when it automatically builds a GUI
-for the properties of a :class:`~props.properties.HasProperties` instance.
+is called via functions in the :mod:`props.build` module when they
+automatically builds a GUI for the properties of a
+:class:`~props.properties.HasProperties` instance.
 """
 
 import sys
@@ -46,10 +47,10 @@ def _propBind(hasProps, propObj, propVal, guiObj, evType, labelMap=None):
     you may pass in a list of event types) occurs, the property value will be
     set to the value controlled by the GUI widget.
 
-    If ``labelMap`` is provided, it should be a dictionary of value->label
-    pairs where the label is what is displayed to the user, and the value is
-    what is assigned to the property value when a corresponding label is
-    selected. It is basically here to support
+    If ``labelMap`` is provided, it should be a dictionary of ``{value :
+    label}`` pairs where the label is what is displayed to the user, and the
+    value is what is assigned to the property value when a corresponding label
+    is selected. It is basically here to support
     :class:`~props.properties_types.Choice` properties.
 
     :param hasProps: The owning :class:`~props.properties.HasProperties`
@@ -66,6 +67,7 @@ def _propBind(hasProps, propObj, propVal, guiObj, evType, labelMap=None):
                      listened for on the ``guiObj``.
     
     :param dict      labelMap: Dictionary of ``{value : label}`` pairs
+
     """
 
     if not isinstance(evType, Iterable): evType = [evType]
@@ -124,6 +126,11 @@ def _setupValidation(widget, hasProps, propObj, propVal):
     Any changes to the property value are validated and, if the new value is
     invalid, the widget background colour is changed to a light red, so that
     the user is aware of the invalid-ness.
+
+    This function is only used for a few different property types, namely
+    :class:`~props.properties_types.String`,
+    :class:`~props.properties_types.FilePath`, and
+    :class:`~props.properties_types.Number` properties.
 
     :param widget:   The :mod:`wx` GUI widget.
     
@@ -306,7 +313,7 @@ def _String(parent, hasProps, propObj, propVal):
 def _Real(parent, hasProps, propObj, propVal):
     """Creates and returns a widget allowing the user to edit the given
     :class:`~props.properties_types.Real` property value. See the
-    :mod:`widgets_number` module.
+    :mod:`props.widgets_number` module.
 
     See the :func:`_String` documentation for details on the parameters.
     """
@@ -316,7 +323,7 @@ def _Real(parent, hasProps, propObj, propVal):
 def _Int(parent, hasProps, propObj, propVal):
     """Creates and returns a widget allowing the user to edit the given
     :class:`~props.properties_types.Int` property value. See the
-    :mod:`widgets_number` module.
+    :mod:`props.widgets_number` module.
 
     See the :func:`_String` documentation for details on the parameters.
     """ 
@@ -326,7 +333,7 @@ def _Int(parent, hasProps, propObj, propVal):
 def _Percentage(parent, hasProps, propObj, propVal):
     """Creates and returns a widget allowing the user to edit the given
     :class:`~props.properties_types.Percentage` property value. See the
-    :mod:`widgets_number` module.
+    :mod:`props.widgets_number` module.
 
     See the :func:`_String` documentation for details on the parameters.
     """ 
@@ -336,7 +343,7 @@ def _Percentage(parent, hasProps, propObj, propVal):
 
 def _Boolean(parent, hasProps, propObj, propVal):
     """Creates and returns a :class:`wx.CheckBox`, allowing the user to set the
-    given :class:`~props.properties_types.Boolean`) property value.
+    given :class:`~props.properties_types.Boolean` property value.
 
     See the :func:`_String` documentation for details on the parameters.
     """
@@ -349,7 +356,7 @@ def _Boolean(parent, hasProps, propObj, propVal):
 def _makeColourMapComboBox(parent, cmapDict, selected=None):
     """Makes a :class:`wx.combo.BitmapComboBox` which allows the user to
     select a colour map from the given dictionary of
-    (name -> :class:`matplotlib.colors.Colormap`) mappings.
+    ``{name : matplotlib.colors.Colormap}`` mappings.
 
     The name of each colour map is shown in the combo box, along with a
     little image for each colour map, showing the colour range.
@@ -422,7 +429,7 @@ def _ColourMap(parent, hasProps, propObj, propVal):
 def makeWidget(parent, hasProps, propName):
     """Given ``hasProps`` (a :class:`~props.properties.HasProperties` object),
     ``propName`` (the name of a property of ``hasProps``), and ``parent``, a
-    GUI object, creates and returns a widget, or a frame containing widgets,
+    GUI object, creates and returns a widget, or a panel containing widgets,
     which may be used to edit the property.
 
     :param parent:       A :mod:`wx` object to be used as the parent for the
