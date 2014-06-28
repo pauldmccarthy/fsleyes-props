@@ -8,6 +8,12 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+"""Generate wx GUI widgets for :class:`~props.properties.PropertyBase` objects.
+
+The sole entry point for this module is the :func:`makeWidget` function, which
+is called via the :mod:`props.build` module when it automatically builds a GUI
+for the properties of a :class:`~props.properties.HasProperties` instance.
+"""
 
 import sys
 
@@ -32,17 +38,34 @@ from widgets_number import _Number
 
 
 def _propBind(hasProps, propObj, propVal, guiObj, evType, labelMap=None):
-    """
+    """Binds a :class:`~props.properties_value.PropertyValue` to a widget.
+    
     Sets up event callback functions such that, on a change to the given
     property value, the value displayed by the given GUI widget will be
-    updated. Similarly, whenever a GUI event of the specified type (or
-    types - you may pass in a list of event types) occurs, the property
-    value will be set to the value controlled by the GUI widget. 
+    updated. Similarly, whenever a GUI event of the specified type (or types -
+    you may pass in a list of event types) occurs, the property value will be
+    set to the value controlled by the GUI widget.
 
-    If labelMap is provided, it should be a dictionary of value->label pairs
-    where the label is what is displayed to the user, and the value is what is
-    assigned to the property value when a corresponding label is selected. It
-    is basically here to support Choice properties.
+    If ``labelMap`` is provided, it should be a dictionary of value->label
+    pairs where the label is what is displayed to the user, and the value is
+    what is assigned to the property value when a corresponding label is
+    selected. It is basically here to support
+    :class:`~props.properties_types.Choice` properties.
+
+    :param hasProps: The owning :class:`~props.properties.HasProperties`
+                     instance.
+    
+    :param propObj:  The :class:`~props.properties.PropertyBase` property type.
+    
+    :param propVal:  The :class:`~props.properties_value.PropertyValue` to be
+                     bound.
+    
+    :param guiObj:   The :mod:`wx` GUI widget
+    
+    :param evType:   The event type (or list of event types) which should be
+                     listened for on the ``guiObj``.
+    
+    :param dict      labelMap: Dictionary of ``{value : label}`` pairs
     """
 
     if not isinstance(evType, Iterable): evType = [evType]
@@ -94,12 +117,23 @@ def _propBind(hasProps, propObj, propVal, guiObj, evType, labelMap=None):
 
 
 def _setupValidation(widget, hasProps, propObj, propVal):
-    """
-    Configures input validation for the given widget, which is assumed
-    to be managing the given prop (props.PropertyBase) object.  Any
-    changes to the property value are validated and, if the new value
-    is invalid, the widget background colour is changed to a light
-    red, so that the user is aware of the invalid-ness.
+    """Configures input validation for the given widget, which is assumed to be
+    bound to the given ``propVal`` (a
+    :class:`~props.properties_value.PropertyValue` object).
+
+    Any changes to the property value are validated and, if the new value is
+    invalid, the widget background colour is changed to a light red, so that
+    the user is aware of the invalid-ness.
+
+    :param widget:   The :mod:`wx` GUI widget.
+    
+    :param hasProps: The owning :class:`~props.properties.HasProperties`
+                     instance.
+    
+    :param propObj:  The :class:`~props.properties.PropertyBase` property type.
+    
+    :param propVal:  The :class:`~props.properties_value.PropertyValue`
+                     instance.
     """
 
     invalidBGColour = '#ff9999'
@@ -140,23 +174,25 @@ def _setupValidation(widget, hasProps, propObj, propVal):
     _changeBGOnValidate(None, propVal.isValid(), None)
     
 
-# The _lastFilePathDir variable is used to retain the
-# most recentlyvisited directory in file dialogs. New
-# file dialogs are initialised to display this
-# directory.
-#
-# This is currently a global setting, but it may be
-# more appropriate to make it a per-widget setting.
-# Easily done, just make this a dict, with the widget
-# (or property name) as the key.
 _lastFilePathDir = None
+"""The _lastFilePathDir variable is used to retain the most recently visited
+directory in file dialogs. New file dialogs are initialised to display this
+directory.
+
+This is currently a global setting, but it may be more appropriate to make it
+a per-widget setting.  Easily done, just make this a dict, with the widget (or
+property name) as the key.
+"""
+
+
 def _FilePath(parent, hasProps, propObj, propVal):
-    """
-    Creates and returns a panel containing a text field and a
-    Button. The button, when clicked, opens a file dialog
-    allowing the user to choose a file/directory to open, or
-    a location to save (this depends upon how the propObj
-    [props.FilePath] object was configured).
+    """Creates and returns a panel containing a :class:`wx.TextCtrl` and a
+    :class:`wx.Button`. The button, when clicked, opens a file dialog allowing
+    the user to choose a file/directory to open, or a location to save (this
+    depends upon how the ``propObj`` [a
+    :class:`~props.properties_types.FilePath`] object was configured).
+
+    See the :func:`_String` documentation for details on the parameters.
     """
 
     global _lastFilePathDir
@@ -220,9 +256,10 @@ def _FilePath(parent, hasProps, propObj, propVal):
     
 
 def _Choice(parent, hasProps, propObj, propVal):
-    """
-    Creates and returns a ttk Combobox allowing the
-    user to set the given propObj (props.Choice) object.
+    """Creates and returns a :class:`wx.Combobox` allowing the user to set the
+    given ``propObj`` (props.Choice) object.
+
+    See the :func:`_String` documentation for details on the parameters.
     """
 
     choices = propObj._choices
@@ -239,10 +276,22 @@ def _Choice(parent, hasProps, propObj, propVal):
 
 
 def _String(parent, hasProps, propObj, propVal):
-    """
-    Creates and returns a ttk Entry object, allowing
-    the user to edit the given propObj (props.String)
-    object.
+    """Creates and returns a :class:`wx.TextCtrl` object, allowing the user to
+    edit the given ``propVal`` (managed by a
+    :class:`~props.properties_types.String`) object.
+
+    :param parent:   The :mod:`wx` parent object.
+    
+    :param hasProps: The owning :class:`~props.properties.HasProperties`
+                     instance.
+
+    :param propObj:  The :class:`~props.properties.PropertyBase` instance
+                     (assumed to be a
+                     :class:`~props.properties_types.String`).
+    
+    :param propVal:  The :class:`~props.properties_value.PropertyValue`
+                     instance.
+
     """
 
     widget = wx.TextCtrl(parent)
@@ -255,22 +304,41 @@ def _String(parent, hasProps, propObj, propVal):
 
 
 def _Real(parent, hasProps, propObj, propVal):
+    """Creates and returns a widget allowing the user to edit the given
+    :class:`~props.properties_types.Real` property value. See the
+    :mod:`widgets_number` module.
+
+    See the :func:`_String` documentation for details on the parameters.
+    """
     return _Number(parent, hasProps, propObj, propVal)
 
 
 def _Int(parent, hasProps, propObj, propVal):
+    """Creates and returns a widget allowing the user to edit the given
+    :class:`~props.properties_types.Int` property value. See the
+    :mod:`widgets_number` module.
+
+    See the :func:`_String` documentation for details on the parameters.
+    """ 
     return _Number(parent, hasProps, propObj, propVal)
 
 
 def _Percentage(parent, hasProps, propObj, propVal):
+    """Creates and returns a widget allowing the user to edit the given
+    :class:`~props.properties_types.Percentage` property value. See the
+    :mod:`widgets_number` module.
+
+    See the :func:`_String` documentation for details on the parameters.
+    """ 
     # TODO Add '%' signs to Scale labels.
     return _Number(parent, hasProps, propObj, propVal) 
         
 
 def _Boolean(parent, hasProps, propObj, propVal):
-    """
-    Creates and returns a check box, allowing the user
-    to set the given propObj (props.Boolean) object.
+    """Creates and returns a :class:`wx.CheckBox`, allowing the user to set the
+    given :class:`~props.properties_types.Boolean`) property value.
+
+    See the :func:`_String` documentation for details on the parameters.
     """
 
     checkBox = wx.CheckBox(parent)
@@ -279,12 +347,12 @@ def _Boolean(parent, hasProps, propObj, propVal):
 
 
 def _makeColourMapComboBox(parent, cmapDict, selected=None):
-    """
-    Makes a wx.combo.BitmapComboBox which allows the user to select a
-    colour map from the given dictionary of
-    (name -> matplotlib.colors.Colormap) mappings. The name of each
-    colour map is shown in the combo box,, along with a little image
-    for each colour map, showing the colour range.
+    """Makes a :class:`wx.combo.BitmapComboBox` which allows the user to
+    select a colour map from the given dictionary of
+    (name -> :class:`matplotlib.colors.Colormap`) mappings.
+
+    The name of each colour map is shown in the combo box, along with a
+    little image for each colour map, showing the colour range.
     """
     
     bitmaps          = []
@@ -331,9 +399,10 @@ def _makeColourMapComboBox(parent, cmapDict, selected=None):
 
 
 def _ColourMap(parent, hasProps, propObj, propVal):
-    """
-    Creates and returns a combobox, allowing the user to change
-    the value of the given ColourMap property.
+    """Creates and returns a combobox, allowing the user to change the value of
+    the given :class:`~props.properties_types.ColourMap` property value.
+
+    See also the :func:`_makeColourMapComboBox` function.
     """
 
     cmapNames = sorted(mplcm.datad.keys())
@@ -351,11 +420,18 @@ def _ColourMap(parent, hasProps, propObj, propVal):
 
 
 def makeWidget(parent, hasProps, propName):
-    """
-    Given hasProps (a props.HasProperties object), propName (the name
-    of a property of hasProps), and parent GUI object, creates and
-    returns a widget, or a frame containing widgets, which may be
-    used to edit the property.
+    """Given ``hasProps`` (a :class:`~props.properties.HasProperties` object),
+    ``propName`` (the name of a property of ``hasProps``), and ``parent``, a
+    GUI object, creates and returns a widget, or a frame containing widgets,
+    which may be used to edit the property.
+
+    :param parent:       A :mod:`wx` object to be used as the parent for the
+                         generated widget(s).
+    
+    :param hasProps:     A :class:`~props.properties.HasProperties` instance.
+    
+    :param str propName: Name of the :class:`~props.properties.PropertyBase`
+                         property to generate a widget for.
     """
 
     propObj = hasProps.getProp(propName)
