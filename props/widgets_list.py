@@ -2,26 +2,30 @@
 #
 # widgets_list.py - A widget for editing a props.List property.
 #
-# The code in this file really belongs in widgets.py, but it is
-# large and complex enough to warrent its own module.
-#
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+"""A widget for editing a :class:`~props.properties_types.List` property.
+
+This module is not intended to be used directly - it is imported into the
+:mod:`props.widgets` namespace.
+"""
 
 import wx
 
 import widgets
 
 def _pasteDataDialog(parent, hasProps, propObj):
-    """
-    Displays a dialog containing an editable text field, allowing the
+    """Displays a dialog containing an editable text field, allowing the
     user to type/paste bulk data which will be used to populate the list
     (one line per item).
     
-    Parameters:
-      - parent:   parent GUI object 
-      - hasProps: The props.HasProperties object which owns propObj. 
-      - propObj:  The props.List property object
+    :param parent:   parent GUI object
+    
+    :param hasProps: The :class:`~props.propeties.HasProperties` object
+                     which owns the ``propObj``.
+    
+    :param propObj:  The :class:`~props.properties_types.List` property
+                     object.
     """
 
     listObj  = getattr(hasProps, propObj._label)
@@ -77,9 +81,10 @@ def _pasteDataDialog(parent, hasProps, propObj):
 
 
 def _editListDialog(parent, hasProps, propObj):
-    """
-    A dialog which displays a widget for every item in the list, and
+    """A dialog which displays a widget for every item in the list, and
     which allows the user to adjust the number of items in the list.
+
+    See the :func:`_pasteDataDialog` for details on the parameters.
     """
 
     # listObj is a properties_values.PropertyValueList object
@@ -193,10 +198,11 @@ def _editListDialog(parent, hasProps, propObj):
 
     
 def _List(parent, hasProps, propObj, propVal):
-    """
-    Creates and returns a GUI panel containing two buttons which,
-    when pushed, display dialogs allowing the user to edit the
-    values contained in the list.
+    """Creates and returns a GUI panel containing two buttons which, when
+    pushed, display dialogs allowing the user to edit the values contained
+    in the list.
+
+    See the :func:`_pasteDataDialog` and :func:`_editListDialog` functions.
     """
 
     panel = wx.Panel(parent)

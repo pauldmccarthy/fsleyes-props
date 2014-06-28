@@ -2,11 +2,13 @@
 #
 # widgets_number.py - Create widgets for modifying Number properties.
 #
-# The code in this file really belongs in widgets.py, but it is
-# large and complex enough to warrent its own module.
-#
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+"""A widget for editing a :class:`~props.properties_types.Number` property.
+
+This module is not intended to be used directly - it is imported into the
+:mod:`props.widgets` namespace.
+"""
 
 import sys
 
@@ -17,9 +19,10 @@ import widgets
 
 import pwidgets.floatslider as floatslider
 
+
 def _makeSpinBox(parent, hasProps, propObj, propVal):
-    """
-    Creates a spinbox bound to given PropertyValue object.
+    """Creates a :class:`wx.SpinCtrl` or :class:`wx.SpinCtrlDouble` bound to
+    the given :class:`~props.properties_value.PropertyValue` object.
     """
 
     def getMinVal(val):
@@ -85,11 +88,8 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
 
 
 def _makeSlider(parent, hasProps, propObj, propVal):
-    """
-    Creates a slider bound to the given PropertyValue object.
-    The slider is contained within a wx.Panel, which also contains
-    min/max labels (or buttons if the property value bounds are
-    editable).
+    """Creates a :class:`~pwidgets.floatslider.SliderSpinPanel` bound to the
+    given :class:`~props.properties_value.PropertyValue` object.
     """
 
     value      = propVal.get()
@@ -143,9 +143,11 @@ def _makeSlider(parent, hasProps, propObj, propVal):
 
 
 def _Number(parent, hasProps, propObj, propVal):
-    """
-    Creates and returns a widget allowing the user to edit
-    the given property (a props.Int or props.Real).
+    """Creates and returns a widget allowing the user to edit the given
+    :class:`~props.properties_types.Number` property value.
+
+    See the :func:`~props.widgets._String` documentation for details on the
+    parameters.
     """
 
     minval  = propObj.getConstraint(hasProps, 'minval')

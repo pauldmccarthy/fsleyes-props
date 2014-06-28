@@ -2,11 +2,14 @@
 #
 # widgets_point.py - Create widgets for modifying Point properties.
 #
-# This module is not intended to be used directly - it is imported
-# into the props.widgets namespace.
-#
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+"""Create widgets for modifying :class:`~props.properties_types.Point`
+properties.
+
+This module is not intended to be used directly - it is imported into the
+:mod:`props.widgets` namespace.
+"""
 
 import wx
 
@@ -15,6 +18,24 @@ import pwidgets.floatslider as floatslider
 import widgets
 
 def _pointBind(hasProps, propObj, propVal, slider, dim):
+    """Binds the given :class:`~pwidgets.floatslider.SliderSpinPanel` to
+    one dimension of the given :class:`props.properties_types.PointValueList`
+    so that changes in one are propagated to the other.
+
+    :param hasProps:    The owning :class:`~props.properties.HasProperties`
+                        instance.
+    
+    :param propObj:     The :class:`~props.properties_types.Point` instance.
+    
+    :param sliderPanel: The :class:`~pwidgets.floatslider.SliderSpinPanel`
+                        instance.
+    
+    :param propVal:     The :class:`props.properties_types.PointValueList`
+                        instance.
+    
+    :param dim:         The 0-indexed dimension of the
+                        :class:`~props.properties_types.Point` value.
+    """
 
     pvl        = propVal.getPropertyValueList()
     editLimits = propObj.getConstraint(hasProps, 'editLimits') 
@@ -53,9 +74,9 @@ def _pointBind(hasProps, propObj, propVal, slider, dim):
 
 
 def _Point(parent, hasProps, propObj, propVal):
-    """
-    Creates and returns a widget allowing the user to edit the given Point
-    property.
+    """Creates and returns a widget allowing the user to edit the values for
+    each dimension of the given :class:`~props.properties_types.Point`
+    property value.
     """
     panel = wx.Panel(parent)
     sizer = wx.BoxSizer(wx.VERTICAL)

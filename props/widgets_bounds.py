@@ -2,20 +2,38 @@
 #
 # widgets_bounds.py - Create widgets for modifying Bounds properties.
 #
-# This module is not intended to be used directly - it is imported
-# into the props.widgets namespace.
-#
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+
+"""Create widgets for modifying :class:`~props.properties_types.Bounds`
+properties.
+
+This module is not intended to be used directly - it is imported into the
+:mod:`props.widgets` namespace.
+"""
 
 import wx
 
 import pwidgets.rangeslider as rangeslider
 
 def _boundBind(hasProps, propObj, sliderPanel, propVal, axis):
-    """
-    Binds the given RangeSliderSpinPanel to the given BoundValueList
-    so that changes in one are propagated to the other.
+    """Binds the given :class:`~pwidgets.rangeslider.RangeSliderSpinPanel` to
+    one axis of the given :class:`props.properties_types.BoundValueList` so
+    that changes in one are propagated to the other.
+
+    :param hasProps:    The owning :class:`~props.properties.HasProperties`
+                        instance.
+    
+    :param propObj:     The :class:`~props.properties_types.Bounds` instance.
+    
+    :param sliderPanel: The :class:`~pwidgets.rangeslider.RangeSliderSpinPanel`
+                        instance.
+    
+    :param propVal:     The :class:`props.properties_types.BoundValueList`
+                        instance.
+    
+    :param axis:        The 0-indexed axis of the
+                        :class:`~props.properties_types.Bounds` value.
     """
 
     lName      = 'BoundBind_{}'.format(id(sliderPanel))
@@ -72,10 +90,9 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis):
 
 
 def _Bounds(parent, hasProps, propObj, propVal):
-    """
-    Creates and returns a panel containing sliders/spinboxes which allow
-    the user to edit the low/high values along each dimension of the
-    given Bounds property.
+    """Creates and returns a panel containing sliders/spinboxes which
+    allow the user to edit the low/high values along each dimension of the
+    given :class:`~props.properties_types.Bounds` value.
     """
 
     ndims    = propObj._ndims
