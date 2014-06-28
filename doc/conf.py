@@ -332,7 +332,11 @@ epub_exclude_files = ['search.html']
 #epub_use_index = True
 
 # ensure that class __init__ docstring is included.
-autoclass_content = "both"
+autoclass_content = 'both'
 
 # Document private members
 autodoc_default_flags = ['private-members']
+
+# Documentation for python modules is in the same order
+# as the source code.
+autodoc_member_order = 'bysource'

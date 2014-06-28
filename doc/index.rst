@@ -1,5 +1,5 @@
 .. props documentation master file, created by
-   sphinx-quickstart on Fri Jun 27 13:33:53 2014.
+   sphinx-quickstart on Sat Jun 28 16:22:39 2014.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 4
 
    props
+   pwidgets
 
 
 Indices and tables
