@@ -6,28 +6,118 @@
 #
 
 """Generate command line arguments for a
-:class:`~props.properties.HasProperties object.
+:class:`~props.properties.HasProperties` object.
 
 This module provides two functions:
 
  - :func:`addParserArguments`: Given an :class:`argparse.ArgumentParser` and a
-                               :class:`~fsl.props.properties.`HasProperties`
-                               class (or instance), adds arguments
-                               to the parser for each
-                               :class:`~fsl.props.properties.PropertyBase
+                               :class:`~props.properties.HasProperties` class
+                               (or instance), adds arguments to the parser for
+                               each :class:`~props.properties.PropertyBase
                                attribute of the
-                               :class:`~fsl.props.properties.`HasProperties`
-                               class.
+                               :class:`~props.properties.HasProperties` class.
 
- - :func:`applyArguments`:     Given a
-                               :class:`~fsl.props.properties.`HasProperties`
+ - :func:`applyArguments`: Given a :class:`~props.properties.HasProperties`
                                instance and an :class:`argparse.Namespace`
                                object assumed to have been created by the
                                parser mentioned above, sets the property
                                values of the
-                               :class:`~fsl.props.properties.`HasProperties`
+                               :class:`~props.properties.HasProperties`
                                instance from the values stored in the
                                :class:`~argparse.Namespace` object.
+
+The :func:`addParserArguments` funcion is used to add arguments to a
+`argparse.ArgumentParser` object for the properties of a
+:class:`~props.properties.HasProperties` class. The simplest way to do so is
+to allow the :func:`addParserArguments` function to automatically generate
+short and long arguments from the property names::
+
+    >>> import argparse
+    >>> import props
+
+    >>> class MyObj(props.HasProperties):
+            intProp  = props.Int()
+            boolProp = props.Boolean()
+
+    >>> parser = argparse.ArgumentParser('MyObj')
+    >>> props.addParserArguments(MyObj, parser)
+
+    >>> parser.print_help()
+    usage: MyObj [-h] [-b] [-i INT]
+
+    optional arguments:
+        -h, --help            show this help message and exit
+        -b, --boolProp
+        -i INT, --intProp INT
+
+Now, if we have a :class:`MyObj` instance, and some arguments::
+
+    >>> myobj = MyObj()
+
+    >>> args = parser.parse_args(['-b', '--intProp', '52'])
+
+    >>> print myobj
+    MyObj
+      boolProp = False
+       intProp = 0
+
+    >>> props.applyArguments(myobj, args)
+    >>> print myobj
+    MyObj
+      boolProp = True
+       intProp = 52
+
+If you want to customise the short and long argument tags, and the help text,
+for each property, you can pass them in to the :func:`addParserArguments`
+function::
+
+    >>> shortArgs = {'intProp' : 'r',              'boolProp' : 't'}
+    >>> longArgs  = {'intProp' : 'TheInt',         'boolProp' : 'someBool'}
+    >>> propHelp  = {'intProp' : 'Sets int value', 'boolProp' : 'Toggles bool'}
+
+    >>> parser = argparse.ArgumentParser('MyObj')
+    >>> props.addParserArguments(MyObj, 
+                                 parser,
+                                 shortArgs=shortArgs,
+                                 longArgs=longArgs,
+                                 propHelp=propHelp)
+    >>> parser.print_help()
+    usage: MyObj [-h] [-t] [-r INT]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -t, --someBool        Toggles bool
+      -r INT, --TheInt INT  Sets int value
+
+Or, you can add the short and long arguments, and the help text, as specially
+named class attributes of your :class:`~props.properties.HasProperties` class::
+
+    >>> class MyObj(props.HasProperties):
+            intProp  = props.Int()
+            boolProp = props.Boolean()
+            _shortArgs = {
+                'intProp'  : 'r',
+                'boolProp' : 't'
+            }
+            _longArgs = {
+                'intProp'  : 'TheInt',
+                'boolProp' : 'someBool'
+            }
+            _propHelp = {
+                'intProp' : 'Sets int value',
+                'boolProp' : 'Toggles bool'
+            }
+
+    >>> parser = argparse.ArgumentParser('MyObj')
+    >>> props.addParserArguments(MyObj, parser)
+
+    >>> parser.print_help()
+    usage: MyObj [-h] [-t] [-r INT]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -t, --someBool        Toggles bool
+      -r INT, --TheInt INT  Sets int value
 """
 
 import logging
@@ -49,7 +139,7 @@ def _String(parser, propCls, propName, propHelp, shortArg, longArg):
     
     :param parser:       An :class:`argparse.ArgumentParser` instance.
     
-    :param propCls:      A :class:`fsl.props.properties.HasProperties` class.
+    :param propCls:      A :class:`props.properties.HasProperties` class.
     
     :param str propName: Name of the property.
     
@@ -135,18 +225,17 @@ def _ColourMap(parser, propCls, propName, propHelp, shortArg, longArg):
 
 
 def applyArguments(hasProps, arguments):
-    """Apply arguments to a :class:`~fsl.props.properties.HasProperties`
-    instance.
+    """Apply arguments to a :class:`~props.properties.HasProperties` instance.
 
-    Given a :class:`~fsl.props.properties.HasProperties` instance and an
+    Given a :class:`~props.properties.HasProperties` instance and an
     :class:`argparse.Namespace` instance, sets the property values of the
-    :class:`~fsl.props.properties.HasProperties` instance from the values
+    :class:`~props.properties.HasProperties` instance from the values
     stored in the :class:`argparse.Namespace` object.
 
-    :param hasProps:  The :class:`~fsl.props.properties.HasProperties`
-                      instance.
+    :param hasProps:  The :class:`~props.properties.HasProperties` instance.
     
     :param arguments: The :class:`argparse.Namespace` instance.
+
     """
     
     propNames, propObjs = hasProps.getAllProperties()
@@ -164,8 +253,7 @@ def _getShortArgs(propCls, propNames, exclude=''):
     the given list of property names. Any letters in the exclude string are
     not used as short arguments.
 
-    :param propCls:        A :class:`~fsl.props.properties.HasProperties`
-                           class.
+    :param propCls:        A :class:`~props.properties.HasProperties` class.
     
     :param list propNames: List of property names for which short arguments 
                            are to be generated.
@@ -276,16 +364,18 @@ def addParserArguments(
             cliProps = propCls.getAllProperties()[0]
 
     if propHelp is None:
-        if hasattr(propCls, '_help'):
-            propHelp = propCls._help
-        else:
-            propHelp = {}
+        if hasattr(propCls, '_propHelp'): propHelp = propCls._propHelp
+        else:                             propHelp = {}
 
     if longArgs is None:
         if hasattr(propCls, '_longArgs'): longArgs = propCls._longArgs
         else:                             longArgs = {}
 
-    shortArgs = _getShortArgs(propCls, cliProps)
+    if shortArgs is None:
+        if hasattr(propCls, '_shortArgs'):
+            shortArgs = propCls._shortArgs
+        else:
+            shortArgs = _getShortArgs(propCls, cliProps, exclude)
 
     for propName in cliProps:
 
