@@ -746,6 +746,7 @@ class Bounds(List):
         kwargs['minDistance'] = minDistance
         kwargs['editLimits']  = editLimits
 
+        self._real   = real
         self._ndims  = ndims
         self._labels = labels
 
