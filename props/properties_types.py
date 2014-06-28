@@ -280,16 +280,16 @@ class Choice(props.PropertyBase):
             raise ValueError('A list of choices must be provided')
 
         if isinstance(choices, dict):
-            self.choices, self.choiceLabels = zip(*choices.items())
+            self._choices, self._choiceLabels = zip(*choices.items())
             
         else:
-            self.choices      = choices
-            self.choiceLabels = choiceLabels
+            self._choices      = choices
+            self._choiceLabels = choiceLabels
 
-        if self.choiceLabels is None:
-            self.choiceLabels = map(str, self.choices)
+        if self._choiceLabels is None:
+            self._choiceLabels = map(str, self._choices)
 
-        kwargs['default'] = kwargs.get('default', self.choices[0])
+        kwargs['default'] = kwargs.get('default', self._choices[0])
 
         props.PropertyBase.__init__(self, **kwargs)
 
@@ -300,7 +300,7 @@ class Choice(props.PropertyBase):
         """
         props.PropertyBase.validate(self, instance, attributes, value)
 
-        if value not in self.choices:
+        if value not in self._choices:
             raise ValueError('Invalid choice ({})'.format(value))
 
 

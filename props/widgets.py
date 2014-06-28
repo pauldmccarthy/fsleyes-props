@@ -225,8 +225,8 @@ def _Choice(parent, hasProps, propObj, propVal):
     user to set the given propObj (props.Choice) object.
     """
 
-    choices = propObj.choices
-    labels  = propObj.choiceLabels
+    choices = propObj._choices
+    labels  = propObj._choiceLabels
     valMap  = OrderedDict(zip(choices, labels))
     widget  = wx.ComboBox(
         parent,

@@ -118,6 +118,19 @@ named class attributes of your :class:`~props.properties.HasProperties` class::
       -h, --help            show this help message and exit
       -t, --someBool        Toggles bool
       -r INT, --TheInt INT  Sets int value
+
+Not all property types are supported at the moment. The ones which are
+supported:
+  - :class:`~props.properties_types.String`
+  - :class:`~props.properties_types.Choice`
+  - :class:`~props.properties_types.Int`
+  - :class:`~props.properties_types.Real`
+  - :class:`~props.properties_types.Percentage`
+  - :class:`~props.properties_types.Boolean`
+  - :class:`~props.properties_types.ColourMap`
+  - :class:`~props.properties_types.Bounds`
+  - :class:`~props.properties_types.Point`
+
 """
 
 import logging
@@ -151,6 +164,23 @@ def _String(parser, propCls, propName, propHelp, shortArg, longArg):
     """
     parser.add_argument(shortArg, longArg, help=propHelp) 
 
+
+def _Choice(parser, propCls, propName, propHelp, shortArg, longArg):
+    """Adds an argument to the given parser for the given
+    :class:`~props.properties_types.Choice` property. See the
+    :func:`_String` documentation for details on the parameters.
+    """
+    choices = getattr(propCls, propName)._choices
+
+    # I'm assuming here that all choices are of the
+    # same type, and that said type is a standard
+    # python builtin (e.g. str, int, float, etc)
+    parser.add_argument(shortArg,
+                        longArg,
+                        type=type(choices[0]),
+                        help=propHelp,
+                        choices=choices)
+    
     
 def _Boolean(parser, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
@@ -186,6 +216,18 @@ def _Real(parser, propCls, propName, propHelp, shortArg, longArg):
                         metavar='REAL',
                         type=float)
 
+    
+def _Percentage(parser, propCls, propName, propHelp, shortArg, longArg):
+    """Adds an argument to the given parser for the given
+    :class:`~props.properties_types.Percentage` property. See the
+    :func:`_String` documentation for details on the parameters.
+    """ 
+    parser.add_argument(shortArg,
+                        longArg,
+                        help=propHelp,
+                        metavar='PERC',
+                        type=float)    
+
 
 def _Bounds(parser, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
@@ -193,12 +235,32 @@ def _Bounds(parser, propCls, propName, propHelp, shortArg, longArg):
     :func:`_String` documentation for details on the parameters.
     """ 
     ndims = getattr(propCls, propName)._ndims
+    real  = getattr(propCls, propName)._real
+    if real: bType = float
+    else:    bType = int
     parser.add_argument(shortArg,
                         longArg,
                         help=propHelp,
                         metavar='N',
-                        type=float,
+                        type=bType,
                         nargs=2 * ndims)
+
+
+def _Point(parser, propCls, propName, propHelp, shortArg, longArg):
+    """Adds an argument to the given parser for the given
+    :class:`~props.properties_types.Point` property. See the
+    :func:`_String` documentation for details on the parameters.
+    """ 
+    ndims = getattr(propCls, propName)._ndims
+    real  = getattr(propCls, propName)._real
+    if real: pType = float
+    else:    pType = int 
+    parser.add_argument(shortArg,
+                        longArg,
+                        help=propHelp,
+                        metavar='N',
+                        type=pType,
+                        nargs=ndims) 
 
     
 def _ColourMap(parser, propCls, propName, propHelp, shortArg, longArg):
