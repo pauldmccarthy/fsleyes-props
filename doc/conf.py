@@ -333,3 +333,6 @@ epub_exclude_files = ['search.html']
 
 # ensure that class __init__ docstring is included.
 autoclass_content = "both"
+
+# Document private members
+autodoc_default_flags = ['private-members']
