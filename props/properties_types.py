@@ -673,7 +673,6 @@ class BoundsValueList(propvals.PropertyValueList):
         elif lname == 'ymax': self.setMax(  1, value)
         elif lname == 'zmax': self.setMax(  2, value)
         elif lname == 'tmax': self.setMax(  3, value)
-        elif lname == 'all':  self[:] = value
         else:                 self.__dict__[name] = value
 
 
