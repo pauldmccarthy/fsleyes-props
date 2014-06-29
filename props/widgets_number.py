@@ -95,10 +95,14 @@ def _makeSlider(parent, hasProps, propObj, propVal):
     value      = propVal.get()
     minval     = propObj.getConstraint(hasProps, 'minval')
     maxval     = propObj.getConstraint(hasProps, 'maxval')
-    editLimits = propObj.getConstraint(hasProps, 'editLimits') 
+    editLimits = propObj.getConstraint(hasProps, 'editLimits')
+
+    if   isinstance(propObj, props.Int):  real = False
+    elif isinstance(propObj, props.Real): real = True
 
     slider = floatslider.SliderSpinPanel(
         parent,
+        real=real,
         value=value,
         minValue=minval,
         maxValue=maxval,
