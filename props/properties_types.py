@@ -653,10 +653,10 @@ class BoundsValueList(propvals.PropertyValueList):
 
         lname = name.lower()
         
-        if   lname == 'x':    self.setRange(0, value)
-        elif lname == 'y':    self.setRange(1, value)
-        elif lname == 'z':    self.setRange(2, value)
-        elif lname == 't':    self.setRange(3, value)
+        if   lname == 'x':    self.setRange(0, *value)
+        elif lname == 'y':    self.setRange(1, *value)
+        elif lname == 'z':    self.setRange(2, *value)
+        elif lname == 't':    self.setRange(3, *value)
         elif lname == 'xlo':  self.setLo(   0, value)
         elif lname == 'xhi':  self.setHi(   0, value)
         elif lname == 'ylo':  self.setLo(   1, value)
