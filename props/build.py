@@ -536,7 +536,9 @@ def _layoutVGroup(group, parent, children, labels):
             childParams['flag']   = wx.EXPAND | wx.BOTTOM
             
         if label is not None:
-            sizer.Add(labels[cidx], pos=(cidx, 0), flag=wx.EXPAND)
+            sizer.Add(labels[cidx],
+                      pos=(cidx, 0),
+                      flag=wx.ALIGN_CENTER_VERTICAL)
             
         sizer.Add(child, **childParams)
 
