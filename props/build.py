@@ -22,6 +22,11 @@ an optional :class:`ViewItem` object, which specifies how the interface is to
 be laid out, and two optional dictionaries for passing in labels and tooltips.
 
 
+The :func:`buildDialog` function is also provided for convenience. It simply
+embeds the result of a call to :func:`buildGUI` in a :class:`wx.Dialog`, and
+returns the dialog instance.
+
+
 The :class:`ViewItem` class allows the layout of the generated interface to be
 customised.  Property widgets may be grouped together by embedding them within
 a :class:`HGroup` or :class:`VGroup` object; they will then respectively be
@@ -792,3 +797,25 @@ def buildGUI(parent,
     # created, via the propGui.guiObjects dict. ??
 
     return mainPanel
+
+
+def buildDialog(parent,
+                hasProps,
+                view=None,
+                labels=None,
+                tooltips=None):
+    """Convenience method which embeds the result of a call to
+    :func:`buildGUI` in a :class:`wx.Dialog`.
+
+    See the :func:`buildGUI` documentation for details on the paramters.
+    """
+    
+    dialog = wx.Dialog(parent)
+    panel  = buildGUI(dialog, hasProps, view, labels, tooltips)
+
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    dialog.SetSizer(sizer)
+
+    sizer.Add(panel, flag=wx.EXPAND, proportion=1)
+
+    return dialog
