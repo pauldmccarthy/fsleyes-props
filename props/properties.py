@@ -570,6 +570,51 @@ class HasProperties(object):
         return getattr(cls, propName)
 
 
+    def bindProps(self, propName, other, otherPropName=None):
+        """Binds the properties specified by ``propName``  and
+        ``otherPropName`` such that changes to one are applied
+        to the other.
+
+        :arg str propName:        The name of a property on this
+                                  :class:`HasProperties` instance.
+        
+        :arg HasProperties other: Another :class:`HasProperties` instance.
+        
+        :arg str otherPropName:   The name of a property on ``other`` to
+                                  bind to. If ``None`` it is assumed that
+                                  there is a property on ``other`` called
+                                  ``propName``.
+        """
+
+        if otherPropName is None: otherPropName = propName
+
+        myPropVal    = self.getPropVal(propName)
+        otherPropVal = other.getPropVal(otherPropName)
+
+        def onVal(slave, value, *a):
+            if slave.get() != value:
+                slave.set(value)
+
+        def onAtt(slave, ctx, attName, value):
+            if slave.getAttribute(attName) != value:
+                slave.setAttribute(attName, value)
+
+        myName    = 'bindProps_{}_{}_{}'.format(propName,
+                                                otherPropName,
+                                                id(self))
+        otherName = 'bindProps_{}_{}_{}'.format(otherPropName,
+                                                propName,
+                                                id(self))
+
+        myPropVal   .addListener(myName,    lambda *a: onVal(otherPropVal, *a))
+        otherPropVal.addListener(otherName, lambda *a: onVal(myPropVal,    *a))
+
+        myPropVal   .addAttributeListener(myName,
+                                          lambda *a: onAtt(otherPropVal, *a))
+        otherPropVal.addAttributeListener(otherName,
+                                          lambda *a: onAtt(myPropVal,    *a)) 
+
+
     def getPropVal(self, propName):
         """Return the :class:`~props.properties_value.PropertyValue`
         object(s) for the given property.
