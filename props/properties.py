@@ -588,11 +588,105 @@ class HasProperties(object):
 
         if otherPropName is None: otherPropName = propName
 
-        myPropVal    = self.getPropVal(propName)
-        otherPropVal = other.getPropVal(otherPropName)
+        myProp    = self .getProp(propName)
+        otherProp = other.getProp(otherPropName)
+
+        if type(myProp) != type(otherProp):
+            raise ValueError('Properties must be of the '
+                             'same type to be bound')
+
+        if isinstance(myProp, ListPropertyBase):
+            self._bindListProps(myProp, other, otherProp)
+        else:
+            self._bindProps(    myProp, other, otherProp)
+
+
+    def _bindProps(self, myProp, other, otherProp):
+        """Binds two :class:`~props.properties_value.PropertyValue` instances
+        together.
+
+        The :meth:`_bindListProps` method is used to bind two
+        :class:`~props.properties_value.PropertyValueList` instances.
+
+        :arg myProp:    The :class:`PropertyBase` instance of this
+                        :class:`HasProperties` instance.
+        
+        :arg other:     The other :class:`HasProperties` instance.
+        
+        :arg otherProp: The :class:`PropertyBase` instance of the ``other``
+                        :class:`HasProperties` instance.
+        """
+
+        myPropVal    = myProp   .getPropVal(self)
+        otherPropVal = otherProp.getPropVal(other)
+
+        self._bindPropVals(myPropVal,
+                           otherPropVal,
+                           myProp._label,
+                           otherProp._label)
+
+
+    def _bindListProps(self, myProp, other, otherProp):
+        """Binds two :class:`~props.properties_value.PropertyValueList`
+        instances together. 
+
+        The two properties must be non-mutable (i.e. their lengths must be
+        equal, and may not be changed). If this is not the case, a
+        :exc:`RuntimeError` is raised.
+
+        :arg myProp:    The :class:`ListPropertyBase` instance of this
+                        :class:`HasProperties` instance.
+        
+        :arg other:     The other :class:`HasProperties` instance.
+        
+        :arg otherProp: The :class:`ListPropertyBase` instance of the
+                        ``other`` :class:`HasProperties` instance.
+        """
+
+        myPropVal    = myProp   .getPropVal(self)
+        otherPropVal = otherProp.getPropVal(other)
+
+        myMinLen    = myPropVal   .getAttribute('minlen')
+        myMaxLen    = myPropVal   .getAttribute('maxlen')
+        otherMinLen = otherPropVal.getAttribute('minlen')
+        otherMaxLen = otherPropVal.getAttribute('maxlen')
+
+        if myMinLen    is None        or \
+           myMaxLen    is None        or \
+           otherMinLen is None        or \
+           otherMaxLen is None        or \
+           myMinLen    != myMaxLen    or \
+           otherMinLen != otherMaxLen or \
+           myMinLen    != otherMinLen:
+            raise RuntimeError('Only non-mutable lists of '
+                               'the same length may be bound')
+
+        # copy value and attributes for each
+        # pair of PropertyValue items and add
+        # value/attribute listeners for each pair
+        myPropValList    = myPropVal   .getPropertyValueList()
+        otherPropValList = otherPropVal.getPropertyValueList()
+
+        for myItem, otherItem in zip(myPropValList, otherPropValList):
+            self._bindPropVals(myItem,
+                               otherItem,
+                               '{}_Item'.format(myProp._label),
+                               '{}_Item'.format(otherProp._label))
+
+
+    def _bindPropVals(self,
+                      myPropVal,
+                      otherPropVal,
+                      myPropName,
+                      otherPropName):
+        """Binds two :class:`~props.properties_value.PropertyValue`
+        instances together such that when the value of one changes,
+        the other is changed. Attributes are also bound between the
+        two instances.
+        """
 
         myPropVal.set(          otherPropVal.get())
-        myPropVal.setAttributes(otherPropVal.getAttributes())        
+        myPropVal.setAttributes(otherPropVal.getAttributes()) 
 
         def onVal(slave, value, *a):
             if slave.get() != value:
@@ -602,11 +696,11 @@ class HasProperties(object):
             if slave.getAttribute(attName) != value:
                 slave.setAttribute(attName, value)
 
-        myName    = 'bindProps_{}_{}_{}'.format(propName,
+        myName    = 'bindProps_{}_{}_{}'.format(myPropName,
                                                 otherPropName,
                                                 id(self))
         otherName = 'bindProps_{}_{}_{}'.format(otherPropName,
-                                                propName,
+                                                myPropName,
                                                 id(self))
 
         myPropVal   .addListener(myName,    lambda *a: onVal(otherPropVal, *a))
