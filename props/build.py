@@ -810,12 +810,16 @@ def buildDialog(parent,
     See the :func:`buildGUI` documentation for details on the paramters.
     """
     
-    dialog = wx.Dialog(parent)
+    dialog = wx.Dialog(parent, style=wx.DEFAULT_DIALOG_STYLE |
+                                     wx.RESIZE_BORDER)
     panel  = buildGUI(dialog, hasProps, view, labels, tooltips)
 
     sizer = wx.BoxSizer(wx.VERTICAL)
     dialog.SetSizer(sizer)
 
     sizer.Add(panel, flag=wx.EXPAND, proportion=1)
+
+    dialog.Layout()
+    dialog.Fit()
 
     return dialog

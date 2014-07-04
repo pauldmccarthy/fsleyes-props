@@ -171,7 +171,8 @@ try:
     from widgets import makeWidget
     
     from build import (
-        buildGUI, 
+        buildGUI,
+        buildDialog,
         ViewItem, 
         Button, 
         Widget, 
