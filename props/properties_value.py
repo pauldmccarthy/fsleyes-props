@@ -182,6 +182,15 @@ class PropertyValue(object):
         return self._attributes.copy()
 
         
+    def setAttributes(self, atts):
+        """Sets all the attributes of this :class:`PropertyValue` object.
+        from the given dictionary.
+        """
+
+        for name, value in atts.items():
+            self.setAttribute(name, value)
+
+        
     def getAttribute(self, name):
         """Returns the value of the named attribute."""
         return self._attributes[name]

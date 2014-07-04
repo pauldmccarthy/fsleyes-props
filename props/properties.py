@@ -591,6 +591,9 @@ class HasProperties(object):
         myPropVal    = self.getPropVal(propName)
         otherPropVal = other.getPropVal(otherPropName)
 
+        myPropVal.set(          otherPropVal.get())
+        myPropVal.setAttributes(otherPropVal.getAttributes())        
+
         def onVal(slave, value, *a):
             if slave.get() != value:
                 slave.set(value)
