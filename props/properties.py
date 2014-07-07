@@ -667,6 +667,12 @@ class HasProperties(object):
         myPropValList    = myPropVal   .getPropertyValueList()
         otherPropValList = otherPropVal.getPropertyValueList()
 
+        self._bindPropVals(myPropVal,
+                           otherPropVal,
+                           myProp._label,
+                           otherProp._label, val=False)
+        
+
         for myItem, otherItem in zip(myPropValList, otherPropValList):
             self._bindPropVals(myItem,
                                otherItem,
@@ -678,23 +684,14 @@ class HasProperties(object):
                       myPropVal,
                       otherPropVal,
                       myPropName,
-                      otherPropName):
+                      otherPropName,
+                      val=True,
+                      att=True):
         """Binds two :class:`~props.properties_value.PropertyValue`
         instances together such that when the value of one changes,
         the other is changed. Attributes are also bound between the
         two instances.
         """
-
-        myPropVal.set(          otherPropVal.get())
-        myPropVal.setAttributes(otherPropVal.getAttributes()) 
-
-        def onVal(slave, value, *a):
-            if slave.get() != value:
-                slave.set(value)
-
-        def onAtt(slave, ctx, attName, value):
-            if slave.getAttribute(attName) != value:
-                slave.setAttribute(attName, value)
 
         myName    = 'bindProps_{}_{}_{}'.format(myPropName,
                                                 otherPropName,
@@ -703,13 +700,28 @@ class HasProperties(object):
                                                 myPropName,
                                                 id(self))
 
-        myPropVal   .addListener(myName,    lambda *a: onVal(otherPropVal, *a))
-        otherPropVal.addListener(otherName, lambda *a: onVal(myPropVal,    *a))
+        if val:
+            myPropVal.set(otherPropVal.get())
 
-        myPropVal   .addAttributeListener(myName,
-                                          lambda *a: onAtt(otherPropVal, *a))
-        otherPropVal.addAttributeListener(otherName,
-                                          lambda *a: onAtt(myPropVal,    *a)) 
+            def onVal(slave, value, *a):
+                if slave.get() != value:
+                    slave.set(value)
+
+            myPropVal.addListener(
+                myName, lambda *a: onVal(otherPropVal, *a))
+            otherPropVal.addListener(
+                otherName, lambda *a: onVal(myPropVal, *a)) 
+
+        if att:
+            myPropVal.setAttributes(otherPropVal.getAttributes()) 
+
+            def onAtt(slave, ctx, attName, value):
+                slave.setAttribute(attName, value)
+
+            myPropVal.addAttributeListener(
+                myName, lambda *a: onAtt(otherPropVal, *a))
+            otherPropVal.addAttributeListener(
+                otherName, lambda *a: onAtt(myPropVal, *a)) 
 
 
     def getPropVal(self, propName):
