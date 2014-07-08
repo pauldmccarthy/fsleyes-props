@@ -677,7 +677,8 @@ class BoundsValueList(propvals.PropertyValueList):
 
 
 class Bounds(List):
-    """Property which represents numeric bounds in any number of dimensions.
+    """Property which represents numeric bounds in any number of dimensions,
+    as long as that number is no more than 4.
 
     :class:`Bound` values are stored in a :class:`BoundsValueList`, a list of
     integer or floating point values, with two values (lo, hi) for each
@@ -731,8 +732,8 @@ class Bounds(List):
         if default is None:
             default = [0.0, minDistance] * ndims
 
-        if ndims < 1 or ndims > 3:
-            raise ValueError('Only bounds of one to three '
+        if ndims < 1 or ndims > 4:
+            raise ValueError('Only bounds of one to four '
                              'dimensions are supported')
 
         elif len(default) != 2 * ndims:
@@ -815,7 +816,7 @@ class PointValueList(propvals.PropertyValueList):
     space.
     
     This class is used by the :class:`Point` property to encapsulate point
-    values for between 2 and 4 dimensions. 
+    values for between 1 and 4 dimensions. 
 
     This class just adds some convenience methods and attributes to the
     :class:`~props.properties_value.PropertyValueList` superclass.
@@ -976,8 +977,8 @@ class Point(List):
         if real:
             default = map(float, default)
 
-        if ndims < 1 or ndims > 3:
-            raise ValueError('Only points of one to three '
+        if ndims < 1 or ndims > 4:
+            raise ValueError('Only points of one to four '
                              'dimensions are supported')
             
         elif len(default) != ndims:
