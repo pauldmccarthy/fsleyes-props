@@ -554,12 +554,16 @@ class HasProperties(object):
         :class:`PropertyBase` objects.
         """
 
-        propNames = dir(cls)
-        props     = map(lambda n: getattr(cls, n), propNames)
+        propNames = []
+        props     = []
 
-        props, propNames = zip(*filter(
-            lambda (p, n): isinstance(p, PropertyBase),
-            zip(props, propNames)))
+        for attName in dir(cls):
+            
+            att = getattr(cls, attName)
+
+            if isinstance(att, PropertyBase):
+                propNames.append(attName)
+                props    .append(att)
 
         return propNames, props
 
