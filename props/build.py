@@ -763,11 +763,13 @@ def buildGUI(parent,
     :class:`~props.properties.HasProperties` object to be edited.
     
     Returns a reference to the top level GUI object (typically a
-    :class:`wx.Panel` or :class:`~pwidgets.notebook.Notebook`).
+    :class:`wx.Frame`, :class:`wx.Panel` or
+    :class:`~pwidgets.notebook.Notebook`).
 
     Parameters:
     
-    :param parent:   parent GUI object
+    :param parent:   parent GUI object. If ``None``, the interface is
+                     embedded within a :class:`wx.Frame`.
     :param hasProps: :class:`~props.properties.HasProperties` object
     :param view:     :class:`ViewItem` object, specifying the interface layout
     :param labels:   Dict specifying labels
@@ -785,9 +787,12 @@ def buildGUI(parent,
         if hasattr(hasProps, '_tooltips'): tooltips = hasProps._tooltips
         else:                              tooltips = {}
 
+    if parent is None: parentObj = wx.Frame(None)
+    else:              parentObj = parent
+
     propGui   = PropGUI()
     view      = _prepareView(view, labels, tooltips) 
-    mainPanel = _create(parent, view, hasProps, propGui)
+    mainPanel = _create(parentObj, view, hasProps, propGui)
     
     propGui.topLevel = mainPanel
     _prepareEvents(hasProps, propGui)
@@ -796,7 +801,12 @@ def buildGUI(parent,
     # has access to all of the GUI objects that were
     # created, via the propGui.guiObjects dict. ??
 
-    return mainPanel
+    if parent is None:
+        parentObj.Layout()
+        parentObj.Fit()
+        return parentObj
+    else:
+        return mainPanel
 
 
 def buildDialog(parent,
