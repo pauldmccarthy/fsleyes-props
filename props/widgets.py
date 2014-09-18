@@ -412,7 +412,7 @@ def _ColourMap(parent, hasProps, propObj, propVal):
     See also the :func:`_makeColourMapComboBox` function.
     """
 
-    cmapNames = sorted(mplcm.datad.keys())
+    cmapNames = propObj._cmapNames
     cmapObjs  = map(mplcm.get_cmap, cmapNames)
     
     valMap    = OrderedDict(zip(cmapObjs,  cmapNames))

@@ -436,18 +436,25 @@ class ColourMap(props.PropertyBase):
     the name of a registered colour map instance.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, cmapNames=None, **kwargs):
         """Define a :class:`ColourMap` property.
         
         If a default value is not given, the :data:`matplotlib.cm.Greys_r`
-        colour map is used.
+        colour map is used. Or, if ``cmapNames`` is not ``None``, the first
+        name is used.
+
+        :param cmapNames: List of strings, the names of possible colour maps
+                          (must be registered with the :mod:`matplotlib.cm`
+                          module). If ``None``, all registered colour maps
+                          are used.
         """
 
         default = kwargs.get('default', None)
 
         if default is None:
-            default = mplcm.Greys_r
-            
+            if cmapNames is None: default = mplcm.Greys_r
+            else:                 default = mplcm.get_cmap(cmapNames[0])
+
         elif isinstance(default, str):
             default = mplcm.get_cmap(default)
             
@@ -455,6 +462,11 @@ class ColourMap(props.PropertyBase):
             raise ValueError(
                 'Invalid  ColourMap default: '.format(
                     default.__class__.__name__))
+ 
+        if cmapNames is None:
+            cmapNames = sorted(mplcm.cmap_d.keys())
+        
+        self._cmapNames = cmapNames
 
         kwargs['default'] = default
         props.PropertyBase.__init__(self, **kwargs)
