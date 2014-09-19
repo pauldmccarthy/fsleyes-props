@@ -99,15 +99,24 @@ class PropertyBase(object):
                                   validity.
         """
 
-        # The _label attribute is set by the PropertyOwner
-        # metaclass when a new HasProperties class is defined
-        self._label              = None
+        # A _label is added by the PropertyOwner metaclass
+        # for each new HasProperties class that is defined
+        self._label              = {}
         self._default            = default
         self._required           = required
         self._validateFunc       = validateFunc
         self._preNotifyFunc      = preNotifyFunc
         self._allowInvalid       = allowInvalid
         self._defaultConstraints = constraints
+
+
+    def getLabel(self, instance):
+        """Returns the property label for the given instance (more specifically, for
+        the class of the given instance), or ``None`` if no such label has
+        been defined.
+        """
+        if instance is None: return None
+        return self._label.get(type(instance), None)
 
         
     def addListener(self, instance, name, callback):
@@ -186,7 +195,7 @@ class PropertyBase(object):
 
         """
         log.debug('Changing {} constraint on {}: {} = {}'.format(
-            self._label,
+            self.getLabel(instance),
             'default' if instance is None else 'instance',
             constraint,
             value))
@@ -221,7 +230,7 @@ class PropertyBase(object):
         instance, is created by that :class:`HasProperties` instance when it
         is created (see :meth:`HasProperties.__new__`).
         """
-        return instance.__dict__.get(self._label, None)
+        return instance.__dict__.get(self.getLabel(instance), None)
 
         
     def _makePropVal(self, instance):
@@ -230,7 +239,7 @@ class PropertyBase(object):
         :class:`HasProperties` instance.  
         """
         return PropertyValue(instance,
-                             name=self._label,
+                             name=self.getLabel(instance),
                              value=self._default,
                              castFunc=self.cast,
                              validateFunc=self.validate,
@@ -407,7 +416,7 @@ class ListPropertyBase(PropertyBase):
         
         return PropertyValueList(
             instance,
-            name=self._label, 
+            name=self.getLabel(instance), 
             values=self._default,
             itemCastFunc=itemCastFunc,
             itemValidateFunc=itemValidateFunc,
@@ -498,11 +507,14 @@ class PropertyOwner(type):
     :class:`PropertyBase` labels from the corresponding class attribute names.
     """
     def __new__(cls, name, bases, attrs):
+        
+        newCls = super(PropertyOwner, cls).__new__(cls, name, bases, attrs)
+        
         for n, v in attrs.items():
             if isinstance(v, PropertyBase):
-                v._label = n
+                v._label[newCls] = n
                 
-        return super(PropertyOwner, cls).__new__(cls, name, bases, attrs)
+        return newCls
 
 
 class HasProperties(object):
@@ -626,8 +638,8 @@ class HasProperties(object):
 
         self._bindPropVals(myPropVal,
                            otherPropVal,
-                           myProp._label,
-                           otherProp._label)
+                           myProp.getLabel(self),
+                           otherProp.getLabel(other))
 
 
     def _bindListProps(self, myProp, other, otherProp):
@@ -673,15 +685,16 @@ class HasProperties(object):
 
         self._bindPropVals(myPropVal,
                            otherPropVal,
-                           myProp._label,
-                           otherProp._label, val=False)
+                           myProp.getLabel(self),
+                           otherProp.getLabel(other),
+                           val=False)
         
 
         for myItem, otherItem in zip(myPropValList, otherPropValList):
             self._bindPropVals(myItem,
                                otherItem,
-                               '{}_Item'.format(myProp._label),
-                               '{}_Item'.format(otherProp._label))
+                               '{}_Item'.format(myProp.getLabel(self)),
+                               '{}_Item'.format(otherProp.getLabel(other)))
 
 
     def _bindPropVals(self,

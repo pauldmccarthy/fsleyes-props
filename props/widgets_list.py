@@ -28,7 +28,7 @@ def _pasteDataDialog(parent, hasProps, propObj):
                      object.
     """
 
-    listObj  = getattr(hasProps, propObj._label)
+    listObj  = getattr(hasProps, propObj.getLabel(hasProps))
     initText = '\n'.join([str(l).strip() for l in listObj])
  
     frame = wx.Dialog(parent,
@@ -68,7 +68,7 @@ def _pasteDataDialog(parent, hasProps, propObj):
         listData = listData.split('\n')
         listData = [s.strip() for s in listData]
 
-        setattr(hasProps, propObj._label, listData)
+        setattr(hasProps, propObj.getLabel(hasProps), listData)
         frame.Close()
 
     okButton    .Bind(wx.EVT_BUTTON, lambda e: pasteIntoList())
@@ -88,7 +88,7 @@ def _editListDialog(parent, hasProps, propObj):
     """
 
     # listObj is a properties_values.PropertyValueList object
-    listObj  = getattr(hasProps, propObj._label)
+    listObj  = getattr(hasProps, propObj.getLabel(hasProps))
     listType = propObj._listType
 
     # Get a reference to a function in the widgets module,

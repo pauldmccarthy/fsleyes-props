@@ -782,7 +782,7 @@ class Bounds(List):
 
         bvl = BoundsValueList(
             instance,
-            name=self._label,
+            name=self.getLabel(instance),
             values=self._default,
             itemCastFunc=self._listType.cast,
             itemValidateFunc=self._listType.validate,
@@ -1026,7 +1026,7 @@ class Point(List):
 
         pvl = PointValueList(
             instance,
-            name=self._label,
+            name=self.getLabel(instance),
             values=self._default,
             itemCastFunc=self._listType.cast,
             itemValidateFunc=self._listType.validate,
