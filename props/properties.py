@@ -507,13 +507,22 @@ class PropertyOwner(type):
     :class:`PropertyBase` labels from the corresponding class attribute names.
     """
     def __new__(cls, name, bases, attrs):
-        
+
         newCls = super(PropertyOwner, cls).__new__(cls, name, bases, attrs)
+
+        # Return *all* attributes of the new class,
+        # including those of its subclasses
+        def allAttrs(cls):
+            atts = cls.__dict__.items()
+            if hasattr(cls, '__bases__'):
+                for base in cls.__bases__:
+                    atts += allAttrs(base)
+            return atts
         
-        for n, v in attrs.items():
+        for n, v in allAttrs(newCls):
             if isinstance(v, PropertyBase):
                 v._label[newCls] = n
-                
+
         return newCls
 
 
