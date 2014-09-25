@@ -27,14 +27,16 @@ embeds the result of a call to :func:`buildGUI` in a :class:`wx.Dialog`, and
 returns the dialog instance.
 
 
-The :class:`ViewItem` class allows the layout of the generated interface to be
-customised.  Property widgets may be grouped together by embedding them within
-a :class:`HGroup` or :class:`VGroup` object; they will then respectively be
-laid out horizontally or verticaly.  Groups may be embedded within a
-:class:`NotebookGroup` object, which will result in an interface containing a
-tab for each child :class:`Group`.  The label for, and behaviour of, the
-widget for an individual property may be customised with a :class:`Widget`
-object. As an example::
+A number of classes are defined in the separate :mod:`props.build_parts`
+module.  The :class:`~props.build_parts.ViewItem` class allows the layout of
+the generated interface to be customised.  Property widgets may be grouped
+together by embedding them within a :class:`~props.build_parts.HGroup` or
+:class:`~props.build_parts.VGroup` object; they will then respectively be laid
+out horizontally or verticaly.  Groups may be embedded within a
+:class:`~props.build_parts.NotebookGroup` object, which will result in an
+interface containing a tab for each child :class:`~props.build_parts.Group`.
+The label for, and behaviour of, the widget for an individual property may be
+customised with a :class:`~props.build_parts.Widget` object. As an example::
 
     import wx
     import props
@@ -111,170 +113,8 @@ import wx
 
 import widgets
 
+import build_parts       as parts
 import pwidgets.notebook as nb
-
-
-class ViewItem(object):
-    """Superclass for :class:`Widget`, :class:`Button`, :class:`Label` and
-    :class:`Group`. Represents an item to be displayed.
-    """
-
-    def __init__(self, key=None, label=None, tooltip=None,
-                 visibleWhen=None, enabledWhen=None):
-        """Define a :class:`ViewItem`.
-
-        :param str key:     An identifier for this item. If this item is a
-                            :class:`Widget`, this should be the property
-                            name that the widget edits. This key is used to
-                            look up labels and tooltips, if they are passed
-                            in as dicts (see :func:`buildGUI`).
-        
-        :param str label:   A label for this item, which may be used in the
-                            GUI.
-
-        :param str tooltip: A tooltip, which may be displayed when the user
-                            hovers the mouse over the widget for this
-                            :class:`ViewItem`.
-        
-        :param visibleWhen: A function which takes one argument, the
-                            :class:`~props.properties.HasProperties` instance,
-                            and returns a ``bool``. When any property values
-                            change, the function is called. The return value
-                            is used to determine whether this item should be
-                            made visible or invisible.
-        
-        :param enabledWhen: Same as the ``visibleWhen`` parameter, except the
-                            state of the item (and its children) is changed
-                            between enabled and disabled.
-
-        """
-
-        self.key         = key
-        self.label       = label
-        self.tooltip     = tooltip
-        self.visibleWhen = visibleWhen
-        self.enabledWhen = enabledWhen
-
-
-class Button(ViewItem):
-    """Represents a button which, when clicked, will call a specified callback
-    function.
-
-    When the button is clicked, it is passed two arguemnts - the
-    :class:`~props.properties.HasProperties` instance, and the
-    :class:`wx.Button` instance.
-    """
-
-    def __init__(self, key=None, text=None, callback=None, **kwargs):
-        self.callback = callback
-        self.text     = text
-        ViewItem.__init__(self, key, **kwargs)
-
-
-class Label(ViewItem):
-    """Represents a static text label."""
-
-    
-    def __init__(self, viewItem=None, **kwargs):
-        """Define a label.
-
-        :class:`Label` objects are automatically created for other
-        :class:`ViewItem` objects, which are to be labelled.
-        """
-
-        if viewItem is not None:
-            kwargs['key']         = '{}_label'.format(viewItem.key)
-            kwargs['label']       = viewItem.label
-            kwargs['tooltip']     = viewItem.tooltip
-            kwargs['visibleWhen'] = viewItem.visibleWhen
-            kwargs['enabledWhen'] = viewItem.enabledWhen
-            
-        ViewItem.__init__(self, **kwargs)
-
-
-class Widget(ViewItem):
-    """Represents a widget which is used to modify a property value. """
-
-    
-    def __init__(self, propName, **kwargs):
-        """Define a :class:`Widget`.
-        
-        :param str propName: The name of the property which this widget can
-                             modify.
-        
-        :param kwargs:       Passed to the :class:`ViewItem` constructor.
-        """
-        
-        kwargs['key'] = propName
-        ViewItem.__init__(self, **kwargs)
-
-
-class Group(ViewItem):
-    """Represents a collection of other :class:`ViewItem` objects.
-
-    This class is not to be used directly - use one of the subclasses:
-      - :class:`VGroup`
-      - :class:`HGroup`
-      - :class:`NotebookGroup`
-    """
-
-    
-    def __init__(self, children, showLabels=True, border=False, **kwargs):
-        """Define a :class:`Group`.
-        
-        Parameters:
-        
-        :param children:        List of :class:`ViewItem` objects, the
-                                children of this :class:`Group`.
-        
-        :param bool showLabels: Whether labels should be displayed for each of
-                                the children. If this is ``True``, an attribute
-                                will be added to this :class:`Group` object in
-                                the :func:`_prepareView` function, called
-                                ``childLabels``, which contains a
-                                :class:`Label` object for each child.
-
-        :param bool border:     If ``True``, this group will be drawn with a 
-                                border around it. If this group is a child of
-                                another :class:`VGroup`, it will be laid out
-                                a bit differently, too.
-        
-        :param kwargs:          Passed to the :class:`ViewItem` constructor.
-        """
-        ViewItem.__init__(self, **kwargs)
-        self.children   = children
-        self.border     = border
-        self.showLabels = showLabels
-
-
-class NotebookGroup(Group):
-    """A :class:`Group` representing a GUI Notebook. Children are added as
-    notebook pages.
-    """
-    def __init__(self, children, **kwargs):
-        """Define a :class:`NotebookGroup`.
-
-        :param children: List of :class:`ViewItem` objects - a tab in the
-                         notebook is added for each child.
-        """
-        Group.__init__(self, children, **kwargs)
-
-
-class HGroup(Group):
-    """A group representing a GUI panel, whose children are laid out
-    horizontally.
-    """
-    pass
-
-
-class VGroup(Group): 
-    """A group representing a GUI panel, whose children are laid out
-    vertically.
-    """
-    def __init__(self, children, **kwargs):
-        kwargs['border'] = kwargs.get('border', True)
-        Group.__init__(self, children, **kwargs) 
-
 
 class PropGUI(object):
     """An internal container class used for convenience. Stores references to
@@ -447,7 +287,7 @@ def _createNotebookGroup(parent, group, hasProps, propGui):
         if child.label is None: pageLabel = '{}'.format(i)
         else:                   pageLabel = child.label
 
-        if isinstance(child, Group):
+        if isinstance(child, parts.Group):
             child.border = False
 
         page = _create(notebook, child, hasProps, propGui)
@@ -514,7 +354,7 @@ def _layoutVGroup(group, parent, children, labels):
         # widget, the label is embedded in the border. The
         # _createGroup function takes care of creating the
         # border/label for the child GUI object.
-        if (isinstance(vItem, Group) and vItem.border):
+        if (isinstance(vItem, parts.Group) and vItem.border):
 
             label = None
             childParams['pos']    = (cidx, 0)
@@ -582,9 +422,9 @@ def _createGroup(parent, group, hasProps, propGui):
         labelObjs.append(labelObj) 
         childObjs.append(childObj)
 
-    if   isinstance(group, HGroup):
+    if   isinstance(group, parts.HGroup):
         _layoutHGroup(group, panel, childObjs, labelObjs)
-    elif isinstance(group, VGroup):
+    elif isinstance(group, parts.VGroup):
         _layoutVGroup(group, panel, childObjs, labelObjs)
 
     panel.Layout()
@@ -659,9 +499,9 @@ def _defaultView(hasProps):
 
     propNames, propObjs = hasProps.getAllProperties()
 
-    widgets = [Widget(name, label=name) for name in propNames]
+    widgets = [parts.Widget(name, label=name) for name in propNames]
     
-    return VGroup(label=hasProps.__class__.__name__, children=widgets)
+    return parts.VGroup(label=hasProps.__class__.__name__, children=widgets)
 
 
 def _prepareView(viewItem, labels, tooltips):
@@ -676,9 +516,9 @@ def _prepareView(viewItem, labels, tooltips):
     """
 
     if isinstance(viewItem, str):
-        viewItem = Widget(viewItem)
+        viewItem = parts.Widget(viewItem)
 
-    if not isinstance(viewItem, ViewItem):
+    if not isinstance(viewItem, parts.ViewItem):
         raise ValueError('Not a ViewItem')
 
     if viewItem.label   is None:
@@ -686,7 +526,7 @@ def _prepareView(viewItem, labels, tooltips):
     if viewItem.tooltip is None:
         viewItem.tooltip = tooltips.get(viewItem.key, None) 
 
-    if isinstance(viewItem, Group):
+    if isinstance(viewItem, parts.Group):
 
         # children may have been specified as a tuple,
         # so we cast it to a list, making it mutable
@@ -709,10 +549,10 @@ def _prepareView(viewItem, labels, tooltips):
 
             # or this child is a group with a border
             mkLabel = mkLabel and \
-                      not (isinstance(child, Group) and child.border)
+                      not (isinstance(child, parts.Group) and child.border)
 
             # unless there is no label specified
-            if mkLabel: viewItem.childLabels.append(Label(child))
+            if mkLabel: viewItem.childLabels.append(parts.Label(child))
             else:       viewItem.childLabels.append(None)
 
     return viewItem

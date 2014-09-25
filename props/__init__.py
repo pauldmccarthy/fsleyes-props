@@ -138,8 +138,19 @@ import properties
 import properties_value
 import properties_types
 import cli
+import build_parts
 
 # The 'public' props API starts here.
+from build_parts import (
+    ViewItem, 
+    Button,
+    Label,
+    Widget, 
+    Group, 
+    NotebookGroup,
+    HGroup, 
+    VGroup)
+
 from properties import (
     PropertyBase,
     HasProperties)
@@ -173,14 +184,7 @@ try:
     
     from build import (
         buildGUI,
-        buildDialog,
-        ViewItem, 
-        Button, 
-        Widget, 
-        Group, 
-        NotebookGroup,
-        HGroup, 
-        VGroup)
+        buildDialog)
     
 except Exception as e:
     log.warn('GUI property module import failed: {}'.format(e), exc_info=True)
