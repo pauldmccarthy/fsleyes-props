@@ -137,12 +137,6 @@ log = logging.getLogger(__name__)
 import properties
 import properties_value
 import properties_types
-import widgets
-import widgets_number
-import widgets_bounds
-import widgets_point
-import widgets_list
-import build
 import cli
 
 # The 'public' props API starts here.
@@ -168,6 +162,13 @@ from cli import (
     addParserArguments)
 
 try:
+    import widgets
+    import widgets_number
+    import widgets_bounds
+    import widgets_point
+    import widgets_list
+    import build
+ 
     from widgets import makeWidget
     
     from build import (
