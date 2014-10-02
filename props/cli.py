@@ -8,7 +8,7 @@
 """Generate command line arguments for a
 :class:`~props.properties.HasProperties` object.
 
-This module provides two functions:
+This module provides the following functions:
 
 :func:`addParserArguments`:
     Given an :class:`argparse.ArgumentParser` and a
@@ -22,6 +22,12 @@ This module provides two functions:
     parser mentioned above, sets the property values of the
     :class:`~props.properties.HasProperties` instance from the values stored
     in the :class:`~argparse.Namespace` object.
+
+:func:`generateArguments`:
+    Basically the inverse of the :func:`applyArguments` function. Given a
+    :class:`~props.properties.HasProperties` instance, generates a string
+    which contains arguments that could be used to re-configure another
+    instance of the same class.
 
 The :func:`addParserArguments` function is used to add arguments to a
 :class:`argparse.ArgumentParser` object for the properties of a
@@ -116,6 +122,21 @@ named class attributes of your :class:`~props.properties.HasProperties` class::
       -t, --someBool        Toggles bool
       -r INT, --TheInt INT  Sets int value
 
+    >>> args = parser.parse_args('--someBool -r 23413'.split())
+    >>> myobj = MyObj()
+    >>> props.applyArguments(myobj, args)
+    >>> print myobj
+    MyObj
+      boolProp = True
+       intProp = 23413
+
+Finally, the :func:`generateArguments` function, as the name suggests,
+generates command line arguments from a
+:class:`~props.properties.HasProperties` instance::
+
+    >>> props.cli.generateArguments(myobj)
+    ['--someBool', '--TheInt', '23413']
+
 Not all property types are supported at the moment. The ones which are
 supported:
 
@@ -128,7 +149,6 @@ supported:
   - :class:`~props.properties_types.ColourMap`
   - :class:`~props.properties_types.Bounds`
   - :class:`~props.properties_types.Point`
-
 """
 
 import logging
@@ -283,8 +303,9 @@ def _ColourMap(parser, propCls, propName, propHelp, shortArg, longArg):
                         action='store')
 
 
-
-def applyArguments(hasProps, arguments):
+def applyArguments(hasProps,
+                   arguments,
+                   longArgs=None):
     """Apply arguments to a :class:`~props.properties.HasProperties` instance.
 
     Given a :class:`~props.properties.HasProperties` instance and an
@@ -296,16 +317,24 @@ def applyArguments(hasProps, arguments):
     
     :param arguments: The :class:`argparse.Namespace` instance.
 
+    :param longArgs:  Dict containing {property name : longArg} mappings.
     """
-    
-    propNames, propObjs = hasProps.getAllProperties()
-    for propName, propObj in zip(propNames, propObjs):
-        
-        val = getattr(arguments, propName, None)
 
-        if val is None: continue
+    propNames, propObjs = hasProps.getAllProperties()
+
+    if longArgs is None:
+        if hasattr(hasProps, '_longArgs'): longArgs = hasProps._longArgs
+        else:                              longArgs = dict(zip(propNames,
+                                                               propNames))
+    
+    for propName, propObj in zip(propNames, propObjs):
+
+        argName = longArgs[propName]
+        argVal  = getattr(arguments, argName, None)
+
+        if argVal is None: continue
             
-        setattr(hasProps, propName, getattr(arguments, propName))
+        setattr(hasProps, propName, argVal)
 
     
 def _getShortArgs(propCls, propNames, exclude=''):
@@ -429,7 +458,8 @@ def addParserArguments(
 
     if longArgs is None:
         if hasattr(propCls, '_longArgs'): longArgs = propCls._longArgs
-        else:                             longArgs = {}
+        else:                             longArgs = dict(zip(cliProps,
+                                                              cliProps))
 
     if shortArgs is None:
         if hasattr(propCls, '_shortArgs'):
@@ -451,7 +481,7 @@ def addParserArguments(
             continue
 
         shortArg =  '-{}'.format(shortArgs[propName])
-        longArg  = '--{}'.format(longArgs.get(propName, propName))
+        longArg  = '--{}'.format(longArgs[ propName])
 
         parserFunc(parser,
                    propCls,
@@ -459,3 +489,66 @@ def addParserArguments(
                    propHelp.get(propName, None),
                    shortArg,
                    longArg)
+
+        
+def generateArguments(hasProps,
+                      useShortArgs=False,
+                      cliProps=None,
+                      shortArgs=None,
+                      longArgs=None,
+                      exclude=''):
+    """
+    Given a :class:`~props.properties.HasProperties` instance, generates a list
+    of arguments which could be used to configure another instance in the same
+    way. 
+    
+    :param hasProps:     The :class:`~props.properties.HasProperties` instance.
+
+    :param useShortArgs: If `True` the short argument version is used instead
+                         of the long argument version.
+
+    See the :func:`addParserArguments` function for descriptions of the other
+    parameters.
+    """
+    args = []
+
+    if cliProps is None:
+        if hasattr(hasProps, '_cliProps'):
+            cliProps = hasProps._cliProps
+        else:
+            cliProps = hasProps.getAllProperties()[0]
+
+    if longArgs is None:
+        if hasattr(hasProps, '_longArgs'): longArgs = hasProps._longArgs
+        else:                              longArgs = dict(zip(cliProps,
+                                                               cliProps))
+
+    if shortArgs is None:
+        if hasattr(hasProps, '_shortArgs'):
+            shortArgs = hasProps._shortArgs
+        else:
+            shortArgs = _getShortArgs(hasProps, cliProps, exclude)
+ 
+    for propName in cliProps:
+        propObj = hasProps.getProp(propName)
+        propVal = getattr(hasProps, propName)
+
+        if useShortArgs: argKey =  '-{}'.format(shortArgs[propName])
+        else:            argKey = '--{}'.format(longArgs[ propName])
+
+        if isinstance(propObj, props.Bounds):
+            value = ' '.join(['{}'.format(v) for v in propVal])
+            
+        elif isinstance(propObj, props.Point):
+            value = ' '.join(['{}'.format(v) for v in propVal])
+            
+        elif isinstance(propObj, props.Boolean):
+            value = None
+            if not propVal: argKey = None
+        else:
+            value = propVal
+
+        if argKey is not None: args.append(argKey)
+        if value  is not None: args.append(value)
+
+    return args

@@ -170,7 +170,8 @@ from properties_types import (
 
 from cli import (
     applyArguments,
-    addParserArguments)
+    addParserArguments,
+    generateArguments)
 
 try:
     import widgets
