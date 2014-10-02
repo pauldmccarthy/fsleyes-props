@@ -541,6 +541,9 @@ def generateArguments(hasProps,
             
         elif isinstance(propObj, props.Point):
             value = ' '.join(['{}'.format(v) for v in propVal])
+
+        elif isinstance(propObj, props.ColourMap):
+            value = propVal.name
             
         elif isinstance(propObj, props.Boolean):
             value = None
