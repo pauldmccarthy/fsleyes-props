@@ -187,4 +187,5 @@ try:
         buildDialog)
     
 except Exception as e:
-    log.warn('GUI property module import failed: {}'.format(e), exc_info=True)
+    log.warn('GUI property module import failed '
+             '- GUI functionality is disabled')
