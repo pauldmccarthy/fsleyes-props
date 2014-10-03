@@ -645,7 +645,8 @@ class HasProperties(object):
         myPropVal    = myProp   .getPropVal(self)
         otherPropVal = otherProp.getPropVal(other)
 
-        self._bindPropVals(myPropVal,
+        self._bindPropVals(other,
+                           myPropVal,
                            otherPropVal,
                            myProp.getLabel(self),
                            otherProp.getLabel(other))
@@ -692,21 +693,23 @@ class HasProperties(object):
         myPropValList    = myPropVal   .getPropertyValueList()
         otherPropValList = otherPropVal.getPropertyValueList()
 
-        self._bindPropVals(myPropVal,
+        self._bindPropVals(other,
+                           myPropVal,
                            otherPropVal,
                            myProp.getLabel(self),
                            otherProp.getLabel(other),
                            val=False)
-        
 
         for myItem, otherItem in zip(myPropValList, otherPropValList):
-            self._bindPropVals(myItem,
+            self._bindPropVals(other,
+                               myItem,
                                otherItem,
                                '{}_Item'.format(myProp.getLabel(self)),
                                '{}_Item'.format(otherProp.getLabel(other)))
 
 
     def _bindPropVals(self,
+                      other,
                       myPropVal,
                       otherPropVal,
                       myPropName,
@@ -719,12 +722,14 @@ class HasProperties(object):
         two instances.
         """
 
-        myName    = 'bindProps_{}_{}_{}'.format(myPropName,
-                                                otherPropName,
-                                                id(self))
-        otherName = 'bindProps_{}_{}_{}'.format(otherPropName,
-                                                myPropName,
-                                                id(self))
+        myName    = 'bindProps_{}_{}_{}_{}'.format(myPropName,
+                                                   otherPropName,
+                                                   id(self),
+                                                   id(other))
+        otherName = 'bindProps_{}_{}_{}_{}'.format(otherPropName,
+                                                   myPropName,
+                                                   id(self),
+                                                   id(other))
 
         if val:
             myPropVal.set(otherPropVal.get())
