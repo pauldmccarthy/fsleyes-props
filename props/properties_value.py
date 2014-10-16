@@ -18,6 +18,7 @@ said for the other way around though.
 """
 
 import logging
+import inspect
 import traceback
 
 from collections import OrderedDict
@@ -264,10 +265,29 @@ class PropertyValue(object):
         """Removes the listener with the given name from this
         :class:`PropertyValue`.
         """
-        log.debug('Removing listener on {}.{}: {}'.format(
+
+        # The typical stack trace of a call to this method is:
+        #    someHasPropertiesObject.removeListener(...) (the original call)
+        #      HasProperties.removeListener(...)
+        #        PropertyBase.removeListener(...)
+        #          this method
+        # So to be a bit more informative, we'll examine the stack
+        # and extract the (assumed) location of the original call
+        stack = inspect.stack()
+
+        if len(stack) >= 4: frame = stack[ 3]
+        else:               frame = stack[-1]
+        
+        srcMod  = '...{}'.format(frame[1][-20:])
+        srcLine = frame[2]
+        
+        log.debug('Removing listener on {}.{}: {} ({}:{})'.format(
             self._context.__class__.__name__,
             self._name,
-            name))
+            name,
+            srcMod,
+            srcLine))
+
         name = 'PropertyValue_{}_{}'.format(self._name, name)
         self._changeListeners.pop(name, None)
 
