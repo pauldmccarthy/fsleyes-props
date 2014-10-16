@@ -289,7 +289,8 @@ class Choice(props.PropertyBase):
         if self._choiceLabels is None:
             self._choiceLabels = map(str, self._choices)
 
-        kwargs['default'] = kwargs.get('default', self._choices[0])
+        kwargs['default']      = kwargs.get('default',      self._choices[0])
+        kwargs['allowInvalid'] = kwargs.get('allowInvalid', False)
 
         props.PropertyBase.__init__(self, **kwargs)
 
