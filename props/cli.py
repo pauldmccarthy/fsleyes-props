@@ -164,13 +164,15 @@ import properties as props
 # The functions below add an argument to an 
 # ArgumentParser for a specific property type.
 
-def _String(parser, propCls, propName, propHelp, shortArg, longArg):
+def _String(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.String` property.
     
     :param parser:       An :class:`argparse.ArgumentParser` instance.
     
     :param propCls:      A :class:`~props.properties.HasProperties` class.
+
+    :param propObj:      The :class:`~props.properties.PropertyBase` class.
     
     :param str propName: Name of the property.
     
@@ -183,24 +185,23 @@ def _String(parser, propCls, propName, propHelp, shortArg, longArg):
     parser.add_argument(shortArg, longArg, help=propHelp) 
 
 
-def _Choice(parser, propCls, propName, propHelp, shortArg, longArg):
+def _Choice(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.Choice` property. See the
     :func:`_String` documentation for details on the parameters.
     """
-    choices = getattr(propCls, propName)._choices
-
     # I'm assuming here that all choices are of the
     # same type, and that said type is a standard
     # python builtin (e.g. str, int, float, etc)
     parser.add_argument(shortArg,
                         longArg,
-                        type=type(choices[0]),
+                        type=type(propObj._choices[0]),
                         help=propHelp,
-                        choices=choices)
+                        default=propObj._default,
+                        choices=propObj._choices)
     
     
-def _Boolean(parser, propCls, propName, propHelp, shortArg, longArg):
+def _Boolean(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.Boolean` property. See the
     :func:`_String` documentation for details on the parameters.
@@ -211,7 +212,7 @@ def _Boolean(parser, propCls, propName, propHelp, shortArg, longArg):
                         action='store_true')
 
     
-def _Int(parser, propCls, propName, propHelp, shortArg, longArg):
+def _Int(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.Int` property. See the
     :func:`_String` documentation for details on the parameters.
@@ -223,7 +224,7 @@ def _Int(parser, propCls, propName, propHelp, shortArg, longArg):
                         type=int)
 
     
-def _Real(parser, propCls, propName, propHelp, shortArg, longArg):
+def _Real(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.Real` property. See the
     :func:`_String` documentation for details on the parameters.
@@ -235,7 +236,8 @@ def _Real(parser, propCls, propName, propHelp, shortArg, longArg):
                         type=float)
 
     
-def _Percentage(parser, propCls, propName, propHelp, shortArg, longArg):
+def _Percentage(
+        parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.Percentage` property. See the
     :func:`_String` documentation for details on the parameters.
@@ -247,7 +249,7 @@ def _Percentage(parser, propCls, propName, propHelp, shortArg, longArg):
                         type=float)    
 
 
-def _Bounds(parser, propCls, propName, propHelp, shortArg, longArg):
+def _Bounds(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.Bounds` property. See the
     :func:`_String` documentation for details on the parameters.
@@ -264,7 +266,7 @@ def _Bounds(parser, propCls, propName, propHelp, shortArg, longArg):
                         nargs=2 * ndims)
 
 
-def _Point(parser, propCls, propName, propHelp, shortArg, longArg):
+def _Point(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.Point` property. See the
     :func:`_String` documentation for details on the parameters.
@@ -281,7 +283,8 @@ def _Point(parser, propCls, propName, propHelp, shortArg, longArg):
                         nargs=ndims) 
 
     
-def _ColourMap(parser, propCls, propName, propHelp, shortArg, longArg):
+def _ColourMap(
+        parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.ColourMap` property. See the
     :func:`_String` documentation for details on the parameters.
@@ -484,6 +487,7 @@ def addParserArguments(
         longArg  = '--{}'.format(longArgs[ propName])
 
         parserFunc(parser,
+                   propObj,
                    propCls,
                    propName,
                    propHelp.get(propName, None),
