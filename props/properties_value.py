@@ -426,10 +426,10 @@ class PropertyValueList(PropertyValue):
     like a Python list), both lists are updated.
 
     The values contained in this :class:`PropertyValueList` may be accessed
-    through standard Python list operations, including slice-based access
-    and assignment, :meth:`append`, :meth:`extend`, :meth:`pop`,
-    :meth:`index`, :meth:`count`, and :meth:`move` (this last one is
-    non-standard).
+    through standard Python list operations, including slice-based access and
+    assignment, :meth:`append`, :meth:`insert`, :meth:`extend`, :meth:`pop`,
+    :meth:`index`, :meth:`count`, :meth:`move`, and :meth:`insertAll` (these
+    last two are non-standard).
 
     The main restriction of this list-like functionality is that value
     assigments via indexing must not change the length of the list. For
@@ -652,7 +652,30 @@ class PropertyValueList(PropertyValue):
     def __contains__(self, item):  return self[:].__contains__(item)
     def index(       self, item):  return self[:].index(item)
     def count(       self, item):  return self[:].count(item)
+
     
+    def insert(self, index, item):
+        """Inserts the given item before the given index. """
+        
+        listVals = self[:]
+        listVals.insert(index, item)
+        self.set(listVals, False)
+
+        propVal = self.__newItem(item)
+        self.__propVals.insert(index, propVal)
+
+        
+    def insertAll(self, index, items):
+        """Inserts all of the given items before the given index."""
+        
+        listVals = self[:]
+        listVals[index:index] = items
+        self.set(listVals, False)
+
+        propVals = map(self.__newItem, items)
+        self.__propVals[index:index] = propVals
+
+        
     def append(self, item):
         """Appends the given item to the end of the list."""
 
