@@ -238,7 +238,7 @@ class PropertyValue(object):
                 traceback.print_stack()
         
         
-    def addListener(self, name, callback):
+    def addListener(self, name, callback, overwrite=False):
         """Adds a listener for this value.
 
         When the value changes, the listener callback function is called. The
@@ -248,17 +248,27 @@ class PropertyValue(object):
           - ``valid``:   Whether the value is valid or invalid
           - ``context``: The context object passed to :meth:`__init__`.
 
-        :param str name: A unique name for this listener. If a listener with
-                         the name already exists, it will be overwritten.
-        :param callback: The callback function.
+        :param str name:  A unique name for this listener. If a listener with
+                          the name already exists, a RuntimeError will be
+                          raised, or it will be overwritten, depending upon
+                          the value of the ``overwrite`` argument.
+        :param callback:  The callback function.
+        :param overwrite: If ``True`` any previous listener with the same name
+                          will be overwritten. 
 
         """
         log.debug('Adding listener on {}.{}: {}'.format(
             self._context.__class__.__name__,
             self._name,
             name))
-        name = 'PropertyValue_{}_{}'.format(self._name, name)
-        self._changeListeners[name] = callback
+        fullName = 'PropertyValue_{}_{}'.format(self._name, name)
+
+        prior = self._changeListeners.get(fullName, None)
+
+        if   prior is None: self._changeListeners[fullName] = callback
+        elif overwrite:     self._changeListeners[fullName] = callback
+        else:               raise RuntimeError('Listener {} already '
+                                               'exists'.format(name))
 
 
     def removeListener(self, name):

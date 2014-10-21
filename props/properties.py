@@ -119,18 +119,21 @@ class PropertyBase(object):
         return self._label.get(type(instance), None)
 
         
-    def addListener(self, instance, name, callback):
+    def addListener(self, instance, name, callback, overwrite=False):
         """Register a listener with the
         :class:`~props.properties_value.PropertyValue` object managed by
         this property. See
         :meth:`~props.properties_value.PropertyValue.addListener`.
 
-        :param instance: The :class:`HasProperties` instance on which the
-                         listener is to be registered.
-        :param str name: A name for the listener.
-        :param callback: The listener callback function
+        :param instance:  The :class:`HasProperties` instance on which the
+                          listener is to be registered.
+        :param str name:  A name for the listener.
+        :param callback:  The listener callback function
+        :param overwrite: Overwrite any existing listener with the same name
         """
-        self._getInstanceData(instance).propVal.addListener(name, callback)
+        self._getInstanceData(instance).propVal.addListener(name,
+                                                            callback,
+                                                            overwrite)
         
         
     def removeListener(self, instance, name):
@@ -805,11 +808,14 @@ class HasProperties(object):
  
 
 
-    def addListener(self, propName, listenerName, callback):
+    def addListener(self, propName, listenerName, callback, overwrite=False):
         """Convenience method, adds the specified listener to the specified
         property. See :meth:`PropertyBase.addListener`.
         """
-        self.getProp(propName).addListener(self, listenerName, callback)
+        self.getProp(propName).addListener(self,
+                                           listenerName,
+                                           callback,
+                                           overwrite)
 
         
     def removeListener(self, propName, listenerName):
