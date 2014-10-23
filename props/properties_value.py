@@ -578,9 +578,6 @@ class PropertyValueList(PropertyValue):
 
         if itemEqualityFunc is None:
             itemEqualityFunc = lambda a, b: a == b
-            
-        listEqualityFunc = lambda a, b: all([itemEqualityFunc(ai, bi)
-                                             for ai, bi in zip(a, b)])
 
         # The list as a whole must be allowed to contain
         # invalid values because, if an individual
@@ -594,7 +591,7 @@ class PropertyValueList(PropertyValue):
             name=name,
             value=values,
             allowInvalid=True,
-            equalityFunc=listEqualityFunc,
+            equalityFunc=self._listEquality,
             validateFunc=listValidateFunc,
             preNotifyFunc=preNotifyFunc,
             postNotifyFunc=postNotifyFunc,
@@ -611,6 +608,14 @@ class PropertyValueList(PropertyValue):
         # The list of PropertyValue objects.
         if values is not None: self.__propVals = map(self.__newItem, values)
         else:                  self.__propVals = []
+
+
+    def _listEquality(self, a, b):
+        """Uses the item equality function to test whether two lists are
+        equal. Returns ``True`` if they are, ``False`` if they're not.
+        """
+        if len(a) != len(b): return False
+        return all([self._itemEqualityFunc(ai, bi) for ai, bi in zip(a, b)])
 
         
     def getPropertyValueList(self):
