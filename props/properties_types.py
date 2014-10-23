@@ -167,12 +167,16 @@ class Int(Number):
 
 class Real(Number):
     """A property which encapsulates a floating point number."""
+
     
-    def __init__(self, **kwargs):
+    def __init__(self, precision=0.000000001, **kwargs):
         """Define a :class:`Real` property. See the :class:`Number` constructor
         documentation for keyword arguments.
         """
-        Number.__init__(self, **kwargs)
+
+        eqFunc = lambda a, b: abs(a - b) < precision
+        
+        Number.__init__(self, equalityFunc=eqFunc, **kwargs)
 
 
     def cast(self, instance, attributes, value):
