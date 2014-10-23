@@ -366,8 +366,9 @@ class PropertyValue(object):
 
         # If the value or its validity has not
         # changed, listeners are not notified
-        changed = not self._equalityFunc(self.__value, self.__lastValue) or \
-                  (self.__valid != self.__lastValid)
+        changed = (self.__valid != self.__lastValid) or \
+                  not self._equalityFunc(self.__value, self.__lastValue)
+                  
 
         if not changed: return
         
@@ -576,11 +577,10 @@ class PropertyValueList(PropertyValue):
         if listAttributes is None: listAttributes = {}
 
         if itemEqualityFunc is None:
-            listEqualityFunc = None
-        else:
-            listEqualityFunc = lambda a, b: all([itemEqualityFunc(ai, bi)
-                                                 for ai, bi in zip(a, b)])
+            itemEqualityFunc = lambda a, b: a == b
             
+        listEqualityFunc = lambda a, b: all([itemEqualityFunc(ai, bi)
+                                             for ai, bi in zip(a, b)])
 
         # The list as a whole must be allowed to contain
         # invalid values because, if an individual
@@ -679,8 +679,9 @@ class PropertyValueList(PropertyValue):
         # When a PropertyValue item value changes,
         # sync the list values with it if necessary.
         def postNotify(value, *a):
-            idx = self.__propVals.index(propVal)
-            if self[idx] != value: self[idx] = value
+            idx   = self.__propVals.index(propVal)
+            equal = self._itemEqualityFunc(self[idx], value)
+            if not equal: self[idx] = value
             
         propVal._postNotifyFunc = postNotify
 
@@ -807,7 +808,7 @@ class PropertyValueList(PropertyValue):
         try:
             
             for idx, val in zip(indices, values):
-                if self.__propVals[idx].get() != val:
+                if not self._itemEqualityFunc(self.__propVals[idx].get(), val):
                     self.__propVals[idx].set(val)
 
         except ValueError:
