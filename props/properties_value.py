@@ -38,6 +38,7 @@ class PropertyValue(object):
                  value=None,
                  castFunc=None,
                  validateFunc=None,
+                 equalityFunc=None,
                  preNotifyFunc=None,
                  postNotifyFunc=None,
                  allowInvalid=True,
@@ -68,6 +69,11 @@ class PropertyValue(object):
                                of this object, and a value. This function
                                should test the provided value, and raise a
                                :exc:`ValueError` if it is invalid.
+
+        :param equalityFunc:   Function which accepts two values, and should
+                               return ``True`` if they are equal, ``False``
+                               otherwise. If not provided, the python equailty
+                               operator (i.e. ``==``) is used.
 
         :param preNotifyFunc:  Function to be called whenever the property
                                value changes, but before any registered
@@ -107,10 +113,12 @@ class PropertyValue(object):
         
         if name     is     None: name  = 'PropertyValue_{}'.format(id(self))
         if castFunc is not None: value = castFunc(context, attributes, value)
+        if equalityFunc is None: equalityFunc = lambda a, b: a == b
         
         self._context            = context
         self._validate           = validateFunc
         self._name               = name
+        self._equalityFunc       = equalityFunc
         self._castFunc           = castFunc
         self._preNotifyFunc      = preNotifyFunc
         self._postNotifyFunc     = postNotifyFunc
@@ -358,7 +366,7 @@ class PropertyValue(object):
 
         # If the value or its validity has not
         # changed, listeners are not notified
-        changed = (self.__value != self.__lastValue) or \
+        changed = not self._equalityFunc(self.__value, self.__lastValue) or \
                   (self.__valid != self.__lastValid)
 
         if not changed: return
@@ -514,6 +522,7 @@ class PropertyValueList(PropertyValue):
                  name=None,
                  values=None,
                  itemCastFunc=None,
+                 itemEqualityFunc=None,
                  itemValidateFunc=None,
                  listValidateFunc=None,
                  itemAllowInvalid=True,
@@ -539,6 +548,10 @@ class PropertyValueList(PropertyValue):
                                       list item. See the :class:`PropertyValue`
                                       constructor.
         
+        :param itemEqualityFunc:      Function which tests equality of two
+                                      values. See the :class:`PropertyValue`
+                                      constructor. 
+        
         :param listValidateFunc:      Function which validates the list as a
                                       whole.
         
@@ -562,6 +575,13 @@ class PropertyValueList(PropertyValue):
         
         if listAttributes is None: listAttributes = {}
 
+        if itemEqualityFunc is None:
+            listEqualityFunc = None
+        else:
+            listEqualityFunc = lambda a, b: all([itemEqualityFunc(ai, bi)
+                                                 for ai, bi in zip(a, b)])
+            
+
         # The list as a whole must be allowed to contain
         # invalid values because, if an individual
         # PropertyValue item value changes, there is no
@@ -574,6 +594,7 @@ class PropertyValueList(PropertyValue):
             name=name,
             value=values,
             allowInvalid=True,
+            equalityFunc=listEqualityFunc,
             validateFunc=listValidateFunc,
             preNotifyFunc=preNotifyFunc,
             postNotifyFunc=postNotifyFunc,
@@ -583,6 +604,7 @@ class PropertyValueList(PropertyValue):
         # constructor whenever a new item is added to the list
         self._itemCastFunc     = itemCastFunc
         self._itemValidateFunc = itemValidateFunc
+        self._itemEqualityFunc = itemEqualityFunc
         self._itemAllowInvalid = itemAllowInvalid
         self._itemAttributes   = itemAttributes
         
@@ -650,6 +672,7 @@ class PropertyValueList(PropertyValue):
             value=item,
             castFunc=self._itemCastFunc,
             allowInvalid=self._itemAllowInvalid,
+            equalityFunc=self._itemEqualityFunc,
             validateFunc=self._itemValidateFunc,
             **itemAtts)
 

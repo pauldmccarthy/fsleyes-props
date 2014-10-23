@@ -60,43 +60,48 @@ class PropertyBase(object):
     def __init__(self,
                  default=None,
                  validateFunc=None,
+                 equalityFunc=None,
                  preNotifyFunc=None,
                  required=False,
                  allowInvalid=True,
                  **constraints):
         """Define a :class:`PropertyBase` property.
         
-        :param default:           Default/initial value.
+        :param default:       Default/initial value.
         
-        :param bool required:     Boolean determining whether or not this
-                                  property must have a value. May alternately
-                                  be a function which accepts one parameter,
-                                  the owning :class:`HasProperties` instance,
-                                  and returns ``True`` or ``False``.
+        :param bool required: Boolean determining whether or not this
+                              property must have a value. May alternately
+                              be a function which accepts one parameter,
+                              the owning :class:`HasProperties` instance,
+                              and returns ``True`` or ``False``.
         
-        :param validateFunc:      Custom validation function. Must accept
-                                  three parameters: a reference to the
-                                  :class:`HasProperties` instance, the owner
-                                  of this property; a dictionary containing
-                                  the constraints for this property; and the
-                                  new property value. Should return ``True``
-                                  if the property value is valid, ``False``
-                                  otherwise.
+        :param validateFunc:  Custom validation function. Must accept
+                              three parameters: a reference to the
+                              :class:`HasProperties` instance, the owner
+                              of this property; a dictionary containing
+                              the constraints for this property; and the
+                              new property value. Should return ``True``
+                              if the property value is valid, ``False``
+                              otherwise.
+
+        :param equalityFunc:  Function for testing equality of two
+                              property values. See
+                              :class:`~props.properties_value.PropertyValue`. 
 
         :param preNotifyFunc: Function to be called whenever the property
                               value(s) changes. See
                               :class:`~props.properties_value.PropertyValue`.
 
-        :param bool allowInvalid: If ``False``, a :exc:`ValueError` will be
-                                  raised on all attempts to set this property
-                                  to an invalid value. This does not guarantee
-                                  that the property value will never be
-                                  invalid - see caveats in the
-                                  :class:`~props.properties_value.PropertyValue`
-                                  documentation.
+        :param allowInvalid:  If ``False``, a :exc:`ValueError` will be
+                              raised on all attempts to set this property
+                              to an invalid value. This does not guarantee
+                              that the property value will never be
+                              invalid - see caveats in the
+                              :class:`~props.properties_value.PropertyValue`
+                              documentation.
         
-        :param constraints:       Type specific constraints used to test
-                                  validity.
+        :param constraints:   Type specific constraints used to test
+                              validity.
         """
 
         # A _label is added by the PropertyOwner metaclass
@@ -105,6 +110,7 @@ class PropertyBase(object):
         self._default            = default
         self._required           = required
         self._validateFunc       = validateFunc
+        self._equalityFunc       = equalityFunc
         self._preNotifyFunc      = preNotifyFunc
         self._allowInvalid       = allowInvalid
         self._defaultConstraints = constraints
@@ -246,6 +252,7 @@ class PropertyBase(object):
                              value=self._default,
                              castFunc=self.cast,
                              validateFunc=self.validate,
+                             equalityFunc=self._equalityFunc,
                              preNotifyFunc=self._preNotifyFunc,
                              postNotifyFunc=self._valChanged,
                              allowInvalid=self._allowInvalid,
@@ -409,11 +416,13 @@ class ListPropertyBase(PropertyBase):
         if self._listType is not None:
             itemCastFunc     = self._listType.cast
             itemValidateFunc = self._listType.validate
+            itemEqualityFunc = self._listType._equalityFunc
             itemAllowInvalid = self._listType._allowInvalid
             itemAttributes   = self._listType._defaultConstraints
         else:
             itemCastFunc     = None
             itemValidateFunc = None
+            itemEqualityFunc = None
             itemAllowInvalid = True
             itemAttributes   = None
         
@@ -423,6 +432,7 @@ class ListPropertyBase(PropertyBase):
             values=self._default,
             itemCastFunc=itemCastFunc,
             itemValidateFunc=itemValidateFunc,
+            itemEqualityFunc=itemEqualityFunc,
             listValidateFunc=self.validate,
             itemAllowInvalid=itemAllowInvalid,
             postNotifyFunc=self._valChanged,
