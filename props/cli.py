@@ -558,4 +558,4 @@ def generateArguments(hasProps,
         if argKey is not None: args.append(argKey)
         if value  is not None: args.append(value)
 
-    return args
+    return map(str, args)

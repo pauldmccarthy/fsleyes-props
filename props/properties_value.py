@@ -767,6 +767,11 @@ class PropertyValueList(PropertyValue):
         propVal = self.__propVals.pop(index)
         return propVal.get()
 
+    
+    def remove(self, value):
+        """Remove the first item in the list with the specified value. """
+        del self[self.index(value)]
+
         
     def move(self, from_, to):
         """Move the item from 'from\_' to 'to'."""
