@@ -770,7 +770,27 @@ class PropertyValueList(PropertyValue):
     
     def remove(self, value):
         """Remove the first item in the list with the specified value. """
+
+        # delegates to __delitem__, defined below
         del self[self.index(value)]
+
+        
+    def removeAll(self, values):
+        """Removes the first occurrence in the list of all of the specified
+        values.
+        """
+        
+        listVals = self[:]
+        propVals = list(self.__propVals)
+        
+        for v in values:
+            idx = listVals.index(v)
+            listVals.pop(idx)
+            propVals.pop(idx)
+            
+        self.set(listVals, False)
+
+        self.__propVals[:] = propVals
 
         
     def move(self, from_, to):
