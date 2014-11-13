@@ -580,7 +580,52 @@ class HasProperties(object):
 
         return instance
 
+
+    def __init__(self, parent=None, nobind=None, nounbind=None):
+        """Create a :class:`HasProperties` object.
+
+        If this :class:`HasProperties` object does not have a parent, there
+        is no need to call this constructor explicitly. Otherwise, the parent
+        must be an instance of the same class to which this instance's
+        properties should be bound.
         
+        :arg parent:   Another :class:`HasProperties` instance, which is of
+                       the same class as this instance.
+        
+        :arg nobind:   A sequence of property names which should not be bound
+                       with the parent.
+        
+        :arg nounbind: A sequence of property names which cannot be unbound
+                       from the parent.
+        """
+        if nobind   is None: nobind   = []
+        if nounbind is None: nounbind = []
+
+        self._parent   = parent
+        self._nobind   = nobind
+        self._nounbind = nounbind
+
+        if parent is not None:
+
+            if not isinstance(parent, self.__class__):
+                raise TypeError('parent is of a different type '
+                                '({} != {})'.format(parent.__class__,
+                                                    self.__class__))
+
+            propNames, _ = self.getAllProperties()
+
+            for propName in propNames:
+                if propName not in nobind:
+                    self.bindToParent(propName)
+
+                    
+    def getParent(self):
+        """Returns the parent of this instance, or ``None`` if there is no
+        parent.
+        """
+        return self._parent
+
+            
     @classmethod
     def getAllProperties(cls):
         """Returns two lists, the first containing the names of all properties
@@ -607,193 +652,7 @@ class HasProperties(object):
         """Return the :class:`PropertyBase` object for the given property."""
         return getattr(cls, propName)
 
-
-    def unbindProps(self, propName, other, otherPropName=None):
-        """Unbinds two properties previously bound via a call to
-        :meth:`bindProps`. 
-        """
-        self.bindProps(propName, other, otherPropName, unbind=True)
-
-
-    def bindProps(self, propName, other, otherPropName=None, unbind=False):
-        """Binds the properties specified by ``propName``  and
-        ``otherPropName`` such that changes to one are applied
-        to the other.
-
-        :arg str propName:        The name of a property on this
-                                  :class:`HasProperties` instance.
-        
-        :arg HasProperties other: Another :class:`HasProperties` instance.
-        
-        :arg str otherPropName:   The name of a property on ``other`` to
-                                  bind to. If ``None`` it is assumed that
-                                  there is a property on ``other`` called
-                                  ``propName``.
-
-        :arg unbind:              If ``True``, the properties are unbound.
-                                  See the :meth:`unbindProps` method.
-        """
-
-        if otherPropName is None: otherPropName = propName
-
-        myProp    = self .getProp(propName)
-        otherProp = other.getProp(otherPropName)
-
-        if type(myProp) != type(otherProp):
-            raise ValueError('Properties must be of the '
-                             'same type to be bound')
-
-        if isinstance(myProp, ListPropertyBase):
-            self._bindListProps(myProp, other, otherProp, unbind)
-        else:
-            self._bindProps(    myProp, other, otherProp, unbind)
-
-
-    def _bindProps(self, myProp, other, otherProp, unbind=False):
-        """Binds two :class:`~props.properties_value.PropertyValue` instances
-        together.
-
-        The :meth:`_bindListProps` method is used to bind two
-        :class:`~props.properties_value.PropertyValueList` instances.
-
-        :arg myProp:    The :class:`PropertyBase` instance of this
-                        :class:`HasProperties` instance.
-        
-        :arg other:     The other :class:`HasProperties` instance.
-        
-        :arg otherProp: The :class:`PropertyBase` instance of the ``other``
-                        :class:`HasProperties` instance.
-
-        :arg unbind:    If ``True``, the properties are unbound.
-        """
-
-        myPropVal    = myProp   .getPropVal(self)
-        otherPropVal = otherProp.getPropVal(other)
-
-        self._bindPropVals(other,
-                           myPropVal,
-                           otherPropVal,
-                           myProp.getLabel(self),
-                           otherProp.getLabel(other),
-                           unbind=unbind)
-
-
-    def _bindListProps(self, myProp, other, otherProp, unbind=False):
-        """Binds two :class:`~props.properties_value.PropertyValueList`
-        instances together. 
-
-        The two properties must be non-mutable (i.e. their lengths must be
-        equal, and may not be changed). If this is not the case, a
-        :exc:`RuntimeError` is raised.
-
-        :arg myProp:    The :class:`ListPropertyBase` instance of this
-                        :class:`HasProperties` instance.
-        
-        :arg other:     The other :class:`HasProperties` instance.
-        
-        :arg otherProp: The :class:`ListPropertyBase` instance of the
-                        ``other`` :class:`HasProperties` instance.
-
-        :arg unbind:    If ``True``, the properties are unbound.
-        """
-
-        myPropVal    = myProp   .getPropVal(self)
-        otherPropVal = otherProp.getPropVal(other)
-
-        myMinLen    = myPropVal   .getAttribute('minlen')
-        myMaxLen    = myPropVal   .getAttribute('maxlen')
-        otherMinLen = otherPropVal.getAttribute('minlen')
-        otherMaxLen = otherPropVal.getAttribute('maxlen')
-
-        if myMinLen    is None        or \
-           myMaxLen    is None        or \
-           otherMinLen is None        or \
-           otherMaxLen is None        or \
-           myMinLen    != myMaxLen    or \
-           otherMinLen != otherMaxLen or \
-           myMinLen    != otherMinLen:
-            raise RuntimeError('Only non-mutable lists of '
-                               'the same length may be bound')
-
-        # copy value and attributes for each
-        # pair of PropertyValue items and add
-        # value/attribute listeners for each pair
-        myPropValList    = myPropVal   .getPropertyValueList()
-        otherPropValList = otherPropVal.getPropertyValueList()
-
-        self._bindPropVals(other,
-                           myPropVal,
-                           otherPropVal,
-                           myProp.getLabel(self),
-                           otherProp.getLabel(other),
-                           val=False,
-                           unbind=unbind)
-
-        for myItem, otherItem in zip(myPropValList, otherPropValList):
-            self._bindPropVals(other,
-                               myItem,
-                               otherItem,
-                               '{}_Item'.format(myProp.getLabel(self)),
-                               '{}_Item'.format(otherProp.getLabel(other)),
-                               unbind=unbind)
-
-
-    def _bindPropVals(self,
-                      other,
-                      myPropVal,
-                      otherPropVal,
-                      myPropName,
-                      otherPropName,
-                      val=True,
-                      att=True,
-                      unbind=False):
-        """Binds two :class:`~props.properties_value.PropertyValue`
-        instances together such that when the value of one changes,
-        the other is changed. Attributes are also bound between the
-        two instances.
-        """
-
-        myName    = 'bindProps_{}_{}_{}_{}'.format(myPropName,
-                                                   otherPropName,
-                                                   id(self),
-                                                   id(other))
-        otherName = 'bindProps_{}_{}_{}_{}'.format(otherPropName,
-                                                   myPropName,
-                                                   id(self),
-                                                   id(other))
-
-        if val:
-            myPropVal.set(otherPropVal.get())
-
-            def onVal(slave, value, *a):
-                if slave.get() != value:
-                    slave.set(value)
-
-            if not unbind:
-                myPropVal.addListener(
-                    myName, lambda *a: onVal(otherPropVal, *a))
-                otherPropVal.addListener(
-                    otherName, lambda *a: onVal(myPropVal, *a))
-            else:
-                myPropVal   .removeListener(myName)
-                otherPropVal.removeListener(otherName) 
-
-        if att:
-            myPropVal.setAttributes(otherPropVal.getAttributes()) 
-
-            def onAtt(slave, ctx, attName, value):
-                slave.setAttribute(attName, value)
-            
-            if not unbind:
-                myPropVal.addAttributeListener(
-                    myName, lambda *a: onAtt(otherPropVal, *a))
-                otherPropVal.addAttributeListener(
-                    otherName, lambda *a: onAtt(myPropVal, *a))
-            else:
-                myPropVal   .removeAttributeListener(myName)
-                otherPropVal.removeAttributeListener(otherName)
-
-
+    
     def getPropVal(self, propName):
         """Return the :class:`~props.properties_value.PropertyValue`
         object(s) for the given property.
@@ -915,6 +774,272 @@ class HasProperties(object):
 
         return errors
 
+
+    def bindToParent(self, propName):
+        """Bind the given property with the parent instance.
+
+        If this :class:`HasProperties` instance has no parent, a
+        `RuntimeError` is raised. If the specified property is in the
+        ``nobind`` list (see :meth:`__init__`), a `RuntimeError` is
+        raised.
+
+        ..note:: The ``nobind`` check can be avoided by calling
+        :meth:`bindProps` directly. But don't do that.
+        """
+
+        if self._parent is None:
+            raise RuntimeError('No parent')
+        
+        if propName in self._nobind:
+            raise RuntimeError('{} cannot be bound to '
+                               'parent'.format(propName)) 
+        self.bindProps(propName, self._parent)
+
+    
+    def unbindFromParent(self, propName):
+        """Unbind the given property from the parent instance.
+
+        If this :class:`HasProperties` instance has no parent, a
+        `RuntimeError` is raised. If the specified property is in the
+        `nounbind` list (see :meth:`__init__`), a `RuntimeError` is raised.
+
+        ..note:: The ``nounbind`` check can be avoided by calling
+        :meth:`bindProps` directly. But don't do that. 
+        """
+        
+        if self._parent is None:
+            raise RuntimeError('No parent')
+        
+        if propName in self._nounbind:
+            raise RuntimeError('{} cannot be unbound from '
+                               'parent'.format(propName)) 
+        self.bindProps(propName, self._parent, unbind=True)
+
+        
+    def isBoundToParent(self, propName):
+        """Returns true if the specified property is bound to the parent of
+        this :class:`HasProperties` instance, ``False`` otherwise.
+        """
+        return self.isBound(self._parent, propName)
+
+    
+    def bindProps(self, propName, other, otherPropName=None, unbind=False):
+        """Binds the properties specified by ``propName``  and
+        ``otherPropName`` such that changes to one are applied
+        to the other.
+
+        :arg str propName:        The name of a property on this
+                                  :class:`HasProperties` instance.
+        
+        :arg HasProperties other: Another :class:`HasProperties` instance.
+        
+        :arg str otherPropName:   The name of a property on ``other`` to
+                                  bind to. If ``None`` it is assumed that
+                                  there is a property on ``other`` called
+                                  ``propName``.
+
+        :arg unbind:              If ``True``, the properties are unbound.
+                                  See the :meth:`unbindProps` method.
+        """
+
+        if otherPropName is None: otherPropName = propName
+
+        myProp    = self .getProp(propName)
+        otherProp = other.getProp(otherPropName)
+
+        if type(myProp) != type(otherProp):
+            raise ValueError('Properties must be of the '
+                             'same type to be bound')
+
+        if isinstance(myProp, ListPropertyBase):
+            self._bindListProps(myProp, other, otherProp, unbind)
+        else:
+            self._bindProps(    myProp, other, otherProp, unbind)
+
+    
+    def unbindProps(self, propName, other, otherPropName=None):
+        """Unbinds two properties previously bound via a call to
+        :meth:`bindProps`. 
+        """
+        self.bindProps(propName, other, otherPropName, unbind=True)
+
+
+    def isBound(self, propName, other, otherPropName=None):
+        """Returns ``True`` if the specified property is bound to the
+        other :class:`HasProperties` object, ``False`` otherwise.
+        """
+        
+        if otherPropName is None: otherPropName = propName
+
+        myProp       = self     .getProp(   propName)
+        otherProp    = other    .getProp(   otherPropName)
+        myPropVal    = myProp   .getPropVal(self)
+        otherPropVal = otherProp.getPropVal(other)
+
+        myPropName    = myProp   .getLabel(self)
+        otherPropName = otherProp.getLabel(other)
+
+        myName, otherName = self._makeBindingNames(other,
+                                                   myPropName,
+                                                   otherPropName)
+        
+        return myPropVal   .hasListener(myName) and \
+               otherPropVal.hasListener(otherName)
+        
+
+    def _bindProps(self, myProp, other, otherProp, unbind=False):
+        """Binds two :class:`~props.properties_value.PropertyValue` instances
+        together.
+
+        The :meth:`_bindListProps` method is used to bind two
+        :class:`~props.properties_value.PropertyValueList` instances.
+
+        :arg myProp:    The :class:`PropertyBase` instance of this
+                        :class:`HasProperties` instance.
+        
+        :arg other:     The other :class:`HasProperties` instance.
+        
+        :arg otherProp: The :class:`PropertyBase` instance of the ``other``
+                        :class:`HasProperties` instance.
+
+        :arg unbind:    If ``True``, the properties are unbound.
+        """
+
+        myPropVal    = myProp   .getPropVal(self)
+        otherPropVal = otherProp.getPropVal(other)
+
+        self._bindPropVals(other,
+                           myPropVal,
+                           otherPropVal,
+                           myProp.getLabel(self),
+                           otherProp.getLabel(other),
+                           unbind=unbind)
+
+
+    def _bindListProps(self, myProp, other, otherProp, unbind=False):
+        """Binds two :class:`~props.properties_value.PropertyValueList`
+        instances together. 
+
+        The two properties must be non-mutable (i.e. their lengths must be
+        equal, and may not be changed). If this is not the case, a
+        :exc:`RuntimeError` is raised.
+
+        :arg myProp:    The :class:`ListPropertyBase` instance of this
+                        :class:`HasProperties` instance.
+        
+        :arg other:     The other :class:`HasProperties` instance.
+        
+        :arg otherProp: The :class:`ListPropertyBase` instance of the
+                        ``other`` :class:`HasProperties` instance.
+
+        :arg unbind:    If ``True``, the properties are unbound.
+        """
+
+        myPropVal    = myProp   .getPropVal(self)
+        otherPropVal = otherProp.getPropVal(other)
+
+        myMinLen    = myPropVal   .getAttribute('minlen')
+        myMaxLen    = myPropVal   .getAttribute('maxlen')
+        otherMinLen = otherPropVal.getAttribute('minlen')
+        otherMaxLen = otherPropVal.getAttribute('maxlen')
+
+        if myMinLen    is None        or \
+           myMaxLen    is None        or \
+           otherMinLen is None        or \
+           otherMaxLen is None        or \
+           myMinLen    != myMaxLen    or \
+           otherMinLen != otherMaxLen or \
+           myMinLen    != otherMinLen:
+            raise RuntimeError('Only non-mutable lists of '
+                               'the same length may be bound')
+
+        # copy value and attributes for each
+        # pair of PropertyValue items and add
+        # value/attribute listeners for each pair
+        myPropValList    = myPropVal   .getPropertyValueList()
+        otherPropValList = otherPropVal.getPropertyValueList()
+
+        self._bindPropVals(other,
+                           myPropVal,
+                           otherPropVal,
+                           myProp.getLabel(self),
+                           otherProp.getLabel(other),
+                           val=False,
+                           unbind=unbind)
+
+        for myItem, otherItem in zip(myPropValList, otherPropValList):
+            self._bindPropVals(other,
+                               myItem,
+                               otherItem,
+                               '{}_Item'.format(myProp.getLabel(self)),
+                               '{}_Item'.format(otherProp.getLabel(other)),
+                               unbind=unbind)
+
+            
+    def _makeBindingNames(self, other, myPropName, otherPropName):
+        """Generates property listener names for binding."""
+        
+        myName    = 'bindProps_{}_{}_{}_{}'.format(myPropName,
+                                                   otherPropName,
+                                                   id(self),
+                                                   id(other))
+        otherName = 'bindProps_{}_{}_{}_{}'.format(otherPropName,
+                                                   myPropName,
+                                                   id(self),
+                                                   id(other))
+        return myName, otherName
+
+
+    def _bindPropVals(self,
+                      other,
+                      myPropVal,
+                      otherPropVal,
+                      myPropName,
+                      otherPropName,
+                      val=True,
+                      att=True,
+                      unbind=False):
+        """Binds two :class:`~props.properties_value.PropertyValue`
+        instances together such that when the value of one changes,
+        the other is changed. Attributes are also bound between the
+        two instances.
+        """
+
+        myName, otherName = self._makeBindingNames(other,
+                                                   myPropName,
+                                                   otherPropName)
+
+        if val:
+            myPropVal.set(otherPropVal.get())
+
+            def onVal(slave, value, *a):
+                if slave.get() != value:
+                    slave.set(value)
+
+            if not unbind:
+                myPropVal.addListener(
+                    myName, lambda *a: onVal(otherPropVal, *a))
+                otherPropVal.addListener(
+                    otherName, lambda *a: onVal(myPropVal, *a))
+            else:
+                myPropVal   .removeListener(myName)
+                otherPropVal.removeListener(otherName) 
+
+        if att:
+            myPropVal.setAttributes(otherPropVal.getAttributes()) 
+
+            def onAtt(slave, ctx, attName, value):
+                slave.setAttribute(attName, value)
+            
+            if not unbind:
+                myPropVal.addAttributeListener(
+                    myName, lambda *a: onAtt(otherPropVal, *a))
+                otherPropVal.addAttributeListener(
+                    otherName, lambda *a: onAtt(myPropVal, *a))
+            else:
+                myPropVal   .removeAttributeListener(myName)
+                otherPropVal.removeAttributeListener(otherName)
+    
         
     def __str__(self):
         """Returns a multi-line string containing the names and values of

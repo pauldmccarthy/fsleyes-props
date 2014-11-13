@@ -310,6 +310,14 @@ class PropertyValue(object):
         self._changeListeners.pop(name, None)
 
 
+    def hasListener(self, listenerName):
+        """Returns ``True`` if a listener with the given name is registered,
+        ``False`` otherwise.
+        """
+
+        return listenerName in self._changeListeners.keys()
+
+
     def setPreNotifyFunction(self, preNotifyFunc):
         """Sets the function to be called on value changes, before any
         registered listeners.
