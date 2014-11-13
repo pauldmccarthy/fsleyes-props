@@ -1,0 +1,44 @@
+The props package uses python descriptors to implement an event programming
+framework. It also includes the ability for automatic CLI generation and,
+optionally, automatic GUI generation (if wxPython is present).
+
+Example usage:
+
+>>> import props
+
+>>> class PropObj(props.HasProperties):
+>>>     myProperty = props.Boolean()
+
+>>> myPropObj = PropObj()
+
+
+# Access the property value as a normal attribute:
+>>> myPropObj.myProperty = True
+>>> myPropObj.myProperty
+>>> True
+
+
+# access the props.Boolean instance:
+>>> myPropObj.getProp('myProperty')
+>>> <props.prop.Boolean at 0x1045e2710>
+
+
+# access the underlying props.PropertyValue object
+# (there are caveats for List properties):
+>>> myPropObj.getPropVal('myProperty')
+>>> <props.prop.PropertyValue instance at 0x1047ef518>
+
+
+# Receive notification of property value changes
+>>> def myPropertyChanged(value, *args):
+>>>     print('New property value: {}'.format(value))
+
+>>> myPropObj.addListener(
+>>>    'myProperty', 'myListener', myPropertyChanged)
+
+>>> myPropObj.myProperty = False
+>>> New property value: False
+
+
+# Remove a previously added listener
+>>> myPropObj.removeListener('myListener')
