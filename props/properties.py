@@ -608,7 +608,14 @@ class HasProperties(object):
         return getattr(cls, propName)
 
 
-    def bindProps(self, propName, other, otherPropName=None):
+    def unbindProps(self, propName, other, otherPropName=None):
+        """Unbinds two properties previously bound via a call to
+        :meth:`bindProps`. 
+        """
+        self.bindProps(propName, other, otherPropName, unbind=True)
+
+
+    def bindProps(self, propName, other, otherPropName=None, unbind=False):
         """Binds the properties specified by ``propName``  and
         ``otherPropName`` such that changes to one are applied
         to the other.
@@ -622,6 +629,9 @@ class HasProperties(object):
                                   bind to. If ``None`` it is assumed that
                                   there is a property on ``other`` called
                                   ``propName``.
+
+        :arg unbind:              If ``True``, the properties are unbound.
+                                  See the :meth:`unbindProps` method.
         """
 
         if otherPropName is None: otherPropName = propName
@@ -634,12 +644,12 @@ class HasProperties(object):
                              'same type to be bound')
 
         if isinstance(myProp, ListPropertyBase):
-            self._bindListProps(myProp, other, otherProp)
+            self._bindListProps(myProp, other, otherProp, unbind)
         else:
-            self._bindProps(    myProp, other, otherProp)
+            self._bindProps(    myProp, other, otherProp, unbind)
 
 
-    def _bindProps(self, myProp, other, otherProp):
+    def _bindProps(self, myProp, other, otherProp, unbind=False):
         """Binds two :class:`~props.properties_value.PropertyValue` instances
         together.
 
@@ -653,6 +663,8 @@ class HasProperties(object):
         
         :arg otherProp: The :class:`PropertyBase` instance of the ``other``
                         :class:`HasProperties` instance.
+
+        :arg unbind:    If ``True``, the properties are unbound.
         """
 
         myPropVal    = myProp   .getPropVal(self)
@@ -662,10 +674,11 @@ class HasProperties(object):
                            myPropVal,
                            otherPropVal,
                            myProp.getLabel(self),
-                           otherProp.getLabel(other))
+                           otherProp.getLabel(other),
+                           unbind=unbind)
 
 
-    def _bindListProps(self, myProp, other, otherProp):
+    def _bindListProps(self, myProp, other, otherProp, unbind=False):
         """Binds two :class:`~props.properties_value.PropertyValueList`
         instances together. 
 
@@ -680,6 +693,8 @@ class HasProperties(object):
         
         :arg otherProp: The :class:`ListPropertyBase` instance of the
                         ``other`` :class:`HasProperties` instance.
+
+        :arg unbind:    If ``True``, the properties are unbound.
         """
 
         myPropVal    = myProp   .getPropVal(self)
@@ -711,14 +726,16 @@ class HasProperties(object):
                            otherPropVal,
                            myProp.getLabel(self),
                            otherProp.getLabel(other),
-                           val=False)
+                           val=False,
+                           unbind=unbind)
 
         for myItem, otherItem in zip(myPropValList, otherPropValList):
             self._bindPropVals(other,
                                myItem,
                                otherItem,
                                '{}_Item'.format(myProp.getLabel(self)),
-                               '{}_Item'.format(otherProp.getLabel(other)))
+                               '{}_Item'.format(otherProp.getLabel(other)),
+                               unbind=unbind)
 
 
     def _bindPropVals(self,
@@ -728,7 +745,8 @@ class HasProperties(object):
                       myPropName,
                       otherPropName,
                       val=True,
-                      att=True):
+                      att=True,
+                      unbind=False):
         """Binds two :class:`~props.properties_value.PropertyValue`
         instances together such that when the value of one changes,
         the other is changed. Attributes are also bound between the
@@ -751,21 +769,29 @@ class HasProperties(object):
                 if slave.get() != value:
                     slave.set(value)
 
-            myPropVal.addListener(
-                myName, lambda *a: onVal(otherPropVal, *a))
-            otherPropVal.addListener(
-                otherName, lambda *a: onVal(myPropVal, *a)) 
+            if not unbind:
+                myPropVal.addListener(
+                    myName, lambda *a: onVal(otherPropVal, *a))
+                otherPropVal.addListener(
+                    otherName, lambda *a: onVal(myPropVal, *a))
+            else:
+                myPropVal   .removeListener(myName)
+                otherPropVal.removeListener(otherName) 
 
         if att:
             myPropVal.setAttributes(otherPropVal.getAttributes()) 
 
             def onAtt(slave, ctx, attName, value):
                 slave.setAttribute(attName, value)
-
-            myPropVal.addAttributeListener(
-                myName, lambda *a: onAtt(otherPropVal, *a))
-            otherPropVal.addAttributeListener(
-                otherName, lambda *a: onAtt(myPropVal, *a)) 
+            
+            if not unbind:
+                myPropVal.addAttributeListener(
+                    myName, lambda *a: onAtt(otherPropVal, *a))
+                otherPropVal.addAttributeListener(
+                    otherName, lambda *a: onAtt(myPropVal, *a))
+            else:
+                myPropVal   .removeAttributeListener(myName)
+                otherPropVal.removeAttributeListener(otherName)
 
 
     def getPropVal(self, propName):
