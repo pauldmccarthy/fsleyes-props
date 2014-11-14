@@ -193,6 +193,34 @@ def _configureVisibleWhen(viewItem, guiObj, hasProps):
     return _toggleVis
 
 
+def _createLinkBox(parent, viewItem, hasProps, propGui):
+    """Creates a checkbox which can be used to link/unlink a property
+    from its parent property.
+    """
+    propName = viewItem.propKey
+    value    = hasProps.isBoundToParent(propName)
+    
+    # label=u'\U0001F512') - 32 bit
+    # unicode doesn't seem to work
+    linkBox = wx.CheckBox(parent, label='L')
+    linkBox.SetValue(value)
+
+    if (not hasProps.canBeBoundToParent(    propName)) or \
+       (not hasProps.canBeUnboundFromParent(propName)):
+        linkBox.Enable(False)
+        viewItem.enabledWhen = None
+        
+    else:
+        def onLinkBox(ev):
+            value = linkBox.GetValue()
+            if value: hasProps.bindToParent(    propName)
+            else:     hasProps.unbindFromParent(propName)
+
+        linkBox.Bind(wx.EVT_CHECKBOX, onLinkBox)
+
+    return linkBox
+
+
 def _createLabel(parent, viewItem, hasProps, propGui):
     """Creates a :class:`wx.StaticText` object containing a label for the
     given :class:`ViewItem`.
@@ -504,7 +532,7 @@ def _defaultView(hasProps):
     return parts.VGroup(label=hasProps.__class__.__name__, children=widgets)
 
 
-def _prepareView(viewItem, labels, tooltips):
+def _prepareView(hasProps, viewItem, labels, tooltips, showUnlink):
     """Recursively steps through the given ``viewItem`` and its children (if
     any).
 
@@ -534,7 +562,11 @@ def _prepareView(viewItem, labels, tooltips):
         viewItem.childLabels = []
 
         for i, child in enumerate(viewItem.children):
-            viewItem.children[i] = _prepareView(child, labels, tooltips)
+            viewItem.children[i] = _prepareView(hasProps,
+                                                child,
+                                                labels,
+                                                tooltips,
+                                                showUnlink)
 
         # Create a Label object for each 
         # child of this group if necessary
@@ -554,6 +586,13 @@ def _prepareView(viewItem, labels, tooltips):
             # unless there is no label specified
             if mkLabel: viewItem.childLabels.append(parts.Label(child))
             else:       viewItem.childLabels.append(None)
+
+    # Add link/unlink checkboxes if necessary
+    elif (isinstance(viewItem, parts.Widget) and
+          showUnlink                         and
+          hasProps.getParent() is not None):
+        linkBox  = parts.LinkBox(viewItem)
+        viewItem = parts.HGroup((linkBox, viewItem), showLabels=False)
 
     return viewItem
 
@@ -598,7 +637,8 @@ def buildGUI(parent,
              hasProps,
              view=None,
              labels=None,
-             tooltips=None):
+             tooltips=None,
+             showUnlink=True):
     """Builds a GUI interface which allows the properties of the given
     :class:`~props.properties.HasProperties` object to be edited.
     
@@ -608,13 +648,17 @@ def buildGUI(parent,
 
     Parameters:
     
-    :param parent:   parent GUI object. If ``None``, the interface is
-                     embedded within a :class:`wx.Frame`.
-    :param hasProps: :class:`~props.properties.HasProperties` object
-    :param view:     :class:`ViewItem` object, specifying the interface layout
-    :param labels:   Dict specifying labels
-    :param tooltips: Dict specifying tooltips
-
+    :param parent:     parent GUI object. If ``None``, the interface is
+                       embedded within a :class:`wx.Frame`.
+    :param hasProps:   :class:`~props.properties.HasProperties` object
+    :param view:       :class:`ViewItem` object, specifying the interface
+                       layout
+    :param labels:     Dict specifying labels
+    :param tooltips:   Dict specifying tooltips
+    :param showUnlink: If the given ``hasProps`` object has a parent,
+                       a 'link/unlink' checkbox will be shown next to
+                       any properties that can be bound/unbound from the
+                       parent object.
     """
 
     if view is None:
@@ -631,7 +675,7 @@ def buildGUI(parent,
     else:              parentObj = parent
 
     propGui   = PropGUI()
-    view      = _prepareView(view, labels, tooltips) 
+    view      = _prepareView(hasProps, view, labels, tooltips, showUnlink) 
     mainPanel = _create(parentObj, view, hasProps, propGui)
     
     propGui.topLevel = mainPanel
@@ -653,7 +697,8 @@ def buildDialog(parent,
                 hasProps,
                 view=None,
                 labels=None,
-                tooltips=None):
+                tooltips=None,
+                showUnlink=True):
     """Convenience method which embeds the result of a call to
     :func:`buildGUI` in a :class:`wx.Dialog`.
 
@@ -662,7 +707,7 @@ def buildDialog(parent,
     
     dialog = wx.Dialog(parent, style=wx.DEFAULT_DIALOG_STYLE |
                                      wx.RESIZE_BORDER)
-    panel  = buildGUI(dialog, hasProps, view, labels, tooltips)
+    panel  = buildGUI(dialog, hasProps, view, labels, tooltips, showUnlink)
 
     sizer = wx.BoxSizer(wx.VERTICAL)
     dialog.SetSizer(sizer)

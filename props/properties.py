@@ -826,6 +826,16 @@ class HasProperties(object):
         return self.isBound(propName, self._parent)
 
     
+    def canBeBoundToParent(self, propName):
+        """"""
+        return propName not in self._nobind
+
+    
+    def canBeUnboundFromParent(self, propName):
+        """"""
+        return propName not in self._nounbind
+
+    
     def bindProps(self, propName, other, otherPropName=None, unbind=False):
         """Binds the properties specified by ``propName``  and
         ``otherPropName`` such that changes to one are applied

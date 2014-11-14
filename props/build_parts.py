@@ -93,6 +93,25 @@ class Label(ViewItem):
         ViewItem.__init__(self, **kwargs)
 
 
+class LinkBox(ViewItem):
+    """Represents a checkbox which allows the user to control whether a
+    property is linked (a.k.a. bound) to the parent of the
+    :class:`HasProperties` object.
+    """
+
+    def __init__(self, viewItem=None, **kwargs):
+
+        if viewItem is not None:
+            self.propKey          = viewItem.key
+            kwargs['key']         = '{}_linkBox'.format(viewItem.key)
+            kwargs['label']       = viewItem.label
+            kwargs['tooltip']     = viewItem.tooltip
+            kwargs['visibleWhen'] = viewItem.visibleWhen
+            kwargs['enabledWhen'] = viewItem.enabledWhen
+            
+        ViewItem.__init__(self, **kwargs) 
+
+
 class Widget(ViewItem):
     """Represents a widget which is used to modify a property value. """
 
