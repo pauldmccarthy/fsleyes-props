@@ -614,6 +614,9 @@ class HasProperties(object):
 
             propNames, _ = self.getAllProperties()
 
+            log.debug('Binding properties of {} ({}) to parent ({})'.format(
+                self.__class__.__name__, id(self), id(parent)))
+
             for propName in propNames:
                 if propName not in nobind:
                     self.bindToParent(propName)
