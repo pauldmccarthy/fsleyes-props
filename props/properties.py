@@ -823,7 +823,7 @@ class HasProperties(object):
         """Returns true if the specified property is bound to the parent of
         this :class:`HasProperties` instance, ``False`` otherwise.
         """
-        return self.isBound(self._parent, propName)
+        return self.isBound(propName, self._parent)
 
     
     def bindProps(self, propName, other, otherPropName=None, unbind=False):
@@ -988,8 +988,8 @@ class HasProperties(object):
                                                    id(other))
         otherName = 'bindProps_{}_{}_{}_{}'.format(otherPropName,
                                                    myPropName,
-                                                   id(self),
-                                                   id(other))
+                                                   id(other),
+                                                   id(self))
         return myName, otherName
 
 
