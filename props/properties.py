@@ -581,54 +581,6 @@ class HasProperties(object):
         return instance
 
 
-    def __init__(self, parent=None, nobind=None, nounbind=None):
-        """Create a :class:`HasProperties` object.
-
-        If this :class:`HasProperties` object does not have a parent, there
-        is no need to call this constructor explicitly. Otherwise, the parent
-        must be an instance of the same class to which this instance's
-        properties should be bound.
-        
-        :arg parent:   Another :class:`HasProperties` instance, which is of
-                       the same class as this instance.
-        
-        :arg nobind:   A sequence of property names which should not be bound
-                       with the parent.
-        
-        :arg nounbind: A sequence of property names which cannot be unbound
-                       from the parent.
-        """
-        if nobind   is None: nobind   = []
-        if nounbind is None: nounbind = []
-
-        self._parent   = parent
-        self._nobind   = nobind
-        self._nounbind = nounbind
-
-        if parent is not None:
-
-            if not isinstance(parent, self.__class__):
-                raise TypeError('parent is of a different type '
-                                '({} != {})'.format(parent.__class__,
-                                                    self.__class__))
-
-            propNames, _ = self.getAllProperties()
-
-            log.debug('Binding properties of {} ({}) to parent ({})'.format(
-                self.__class__.__name__, id(self), id(parent)))
-
-            for propName in propNames:
-                if propName not in nobind:
-                    self.bindToParent(propName)
-
-                    
-    def getParent(self):
-        """Returns the parent of this instance, or ``None`` if there is no
-        parent.
-        """
-        return self._parent
-
-            
     @classmethod
     def getAllProperties(cls):
         """Returns two lists, the first containing the names of all properties
@@ -776,64 +728,6 @@ class HasProperties(object):
                 errors.append((name, e.message))
 
         return errors
-
-
-    def bindToParent(self, propName):
-        """Bind the given property with the parent instance.
-
-        If this :class:`HasProperties` instance has no parent, a
-        `RuntimeError` is raised. If the specified property is in the
-        ``nobind`` list (see :meth:`__init__`), a `RuntimeError` is
-        raised.
-
-        ..note:: The ``nobind`` check can be avoided by calling
-        :meth:`bindProps` directly. But don't do that.
-        """
-
-        if self._parent is None:
-            raise RuntimeError('No parent')
-        
-        if propName in self._nobind:
-            raise RuntimeError('{} cannot be bound to '
-                               'parent'.format(propName)) 
-        self.bindProps(propName, self._parent)
-
-    
-    def unbindFromParent(self, propName):
-        """Unbind the given property from the parent instance.
-
-        If this :class:`HasProperties` instance has no parent, a
-        `RuntimeError` is raised. If the specified property is in the
-        `nounbind` list (see :meth:`__init__`), a `RuntimeError` is raised.
-
-        ..note:: The ``nounbind`` check can be avoided by calling
-        :meth:`bindProps` directly. But don't do that. 
-        """
-        
-        if self._parent is None:
-            raise RuntimeError('No parent')
-        
-        if propName in self._nounbind:
-            raise RuntimeError('{} cannot be unbound from '
-                               'parent'.format(propName)) 
-        self.bindProps(propName, self._parent, unbind=True)
-
-        
-    def isBoundToParent(self, propName):
-        """Returns true if the specified property is bound to the parent of
-        this :class:`HasProperties` instance, ``False`` otherwise.
-        """
-        return self.isBound(propName, self._parent)
-
-    
-    def canBeBoundToParent(self, propName):
-        """"""
-        return propName not in self._nobind
-
-    
-    def canBeUnboundFromParent(self, propName):
-        """"""
-        return propName not in self._nounbind
 
     
     def bindProps(self, propName, other, otherPropName=None, unbind=False):

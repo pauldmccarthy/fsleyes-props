@@ -135,6 +135,7 @@ log = logging.getLogger(__name__)
 # Allow access to the individual properties
 # modules for internal/advanced/dangerous usage.
 import properties
+import bindable
 import properties_value
 import properties_types
 import cli
@@ -154,6 +155,9 @@ from build_parts import (
 from properties import (
     PropertyBase,
     HasProperties)
+
+from bindable import (
+    BindableHasProperties)
 
 from properties_types import (
     Boolean,

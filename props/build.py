@@ -216,6 +216,9 @@ def _createLinkBox(parent, viewItem, hasProps, propGui):
             if value: hasProps.bindToParent(    propName)
             else:     hasProps.unbindFromParent(propName)
 
+
+        # Add a bind change listener here
+
         linkBox.Bind(wx.EVT_CHECKBOX, onLinkBox)
 
     return linkBox
