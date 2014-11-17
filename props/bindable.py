@@ -183,7 +183,7 @@ class BindableHasProperties(props.HasProperties):
         bindPropVal.set(True)
 
         if self.canBeUnboundFromParent(propName):
-            lName = 'asdfasd'
+            lName = '{}{}_{}'.format(_BIND_SALT_, propName, id(self))
             bindPropVal.addListener(
                 lName,
                 lambda *a: self._bindPropChanged(propName, *a))

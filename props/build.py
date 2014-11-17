@@ -114,6 +114,7 @@ import wx
 import widgets
 
 import build_parts       as parts
+import                      bindable
 import pwidgets.notebook as nb
 
 class PropGUI(object):
@@ -598,8 +599,9 @@ def _prepareView(hasProps, viewItem, labels, tooltips, showUnlink):
             else:       viewItem.childLabels.append(None)
 
     # Add link/unlink checkboxes if necessary
-    elif (isinstance(viewItem, parts.Widget) and
-          showUnlink                         and
+    elif (showUnlink                                           and
+          isinstance(viewItem, parts.Widget)                   and
+          isinstance(hasProps, bindable.BindableHasProperties) and
           hasProps.getParent() is not None):
         linkBox  = parts.LinkBox(viewItem)
         viewItem = parts.HGroup((linkBox, viewItem), showLabels=False)
@@ -665,10 +667,12 @@ def buildGUI(parent,
                        layout
     :param labels:     Dict specifying labels
     :param tooltips:   Dict specifying tooltips
-    :param showUnlink: If the given ``hasProps`` object has a parent,
-                       a 'link/unlink' checkbox will be shown next to
-                       any properties that can be bound/unbound from the
-                       parent object.
+    
+    :param showUnlink: If the given ``hasProps`` object is a
+                       :class:`props.BindableHasProperties` instance, and
+                       it has a parent, a 'link/unlink' checkbox will be
+                       shown next to any properties that can be bound/unbound
+                       from the parent object.
     """
 
     if view is None:
