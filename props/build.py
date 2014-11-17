@@ -359,10 +359,15 @@ def _layoutHGroup(group, parent, children, labels):
 
     for cidx in range(len(children)):
 
+        vItem = group.children[cidx]
+
         if labels is not None and labels[cidx] is not None:
             sizer.Add(labels[cidx], flag=wx.EXPAND)
-                
-        sizer.Add(children[cidx], flag=wx.EXPAND, proportion=1)
+
+        if isinstance(vItem, parts.LinkBox):
+            sizer.Add(children[cidx], flag=wx.EXPAND)
+        else:
+            sizer.Add(children[cidx], flag=wx.EXPAND, proportion=1)
 
         # TODO I have not added support
         # for child groups with borders
