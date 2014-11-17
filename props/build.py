@@ -211,14 +211,21 @@ def _createLinkBox(parent, viewItem, hasProps, propGui):
         viewItem.enabledWhen = None
         
     else:
+
+        # Update the binding state when the linkbox is modified
         def onLinkBox(ev):
             value = linkBox.GetValue()
             if value: hasProps.bindToParent(    propName)
             else:     hasProps.unbindFromParent(propName)
 
-
-        # Add a bind change listener here
-
+        # And update the linkbox when the binding state is modified
+        def onBindProp(*a):
+            linkBox.SetValue(hasProps.isBoundToParent(propName))
+        
+        hasProps.addBindChangeListener(
+            propName,
+            'build_pyLinkBox_{}_{}'.format(propName, linkBox),
+            onBindProp)
         linkBox.Bind(wx.EVT_CHECKBOX, onLinkBox)
 
     return linkBox
