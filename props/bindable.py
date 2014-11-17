@@ -1,9 +1,60 @@
 #!/usr/bin/env python
 #
-# parent.py -
+# bindable.py - An extension to the HasProperties class which allows
+# a master-slave relationship to exist between instances.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+"""The :mod:`bindable` module provides the :class:`BindableHasProperties`
+class, an extension to the :class:`props.HasProperties` class which allows a
+parent-child relationship to exist between instances. All that is needed to
+make use of this functionality is to extend the :class:`BindableHasProperties`
+class instead of the :class:`HasProperties` class::
+
+    >>> import props
+
+    >>> class MyObj(props.BindableHasProperties):
+    >>>     myint = props.Int()
+    >>>     def __init__(self, parent=None):
+    >>>         props.BindableHasProperties.__init__(self, parent)
+    >>>
+
+Given a class definition such as the above, a parent-child relationship
+between two instances can be set up as follows::
+
+    >>> myParent = MyObj()
+    >>> myChild  = MyObj(myParent)
+
+The ``myint`` properties of both instances are now bound to each
+other - when it changes in one instance, that change is propagated to the
+other instance::
+
+    >>> def parentPropChanged(*a):
+    >>>     print 'myParent.myint changed: {}'.format(myParent.myint)
+    >>>
+    >>> def childPropChanged(*a):
+    >>>     print 'myChild.myint changed: {}'.format(myChild.myint)
+
+    >>> myParent.addListener('myint', 'parentPropChanged', parentPropChanged)
+    >>> myChild.addListener( 'myint', 'childPropChanged',  childPropChanged)
+
+    >>> myParent.myint = 12345
+    myParent.myint changed: 12345
+    myChild.myint changed: 12345
+
+    >>> myChild.myint = 54321
+    myParent.myint changed: 54321
+    myChild.myint changed: 54321
+
+This binding can be toggled on the child instance, via the
+:meth:`unbindFromParent` and :meth:`bindToParent` methods of the
+:class:`BindableHasProperties` class.  Listeners to binding state changes may
+be registered on the child instance via the :meth:`addBindChangeListener`
+method (and de-registered via the :meth:`removeBindChangeListener` method).
+
+A one-to-many binding relationship is possible between one parent, and many
+children.
+"""
 
 import logging
 log = logging.getLogger(__name__)
@@ -11,7 +62,9 @@ log = logging.getLogger(__name__)
 import properties       as props
 import properties_types as types
 
-_BIND_SALT = '_bind_'
+
+_BIND_SALT_ = '_bind_'
+"""Constant string added to binding-related property names and listeners."""
 
 
 class BindablePropertyOwner(props.PropertyOwner):
@@ -19,8 +72,6 @@ class BindablePropertyOwner(props.PropertyOwner):
     a :class:`~props.Boolean` property for every other property in the
     class, which controls whether the corresponding property is bound
     to the parent or not.
-
-    BindableHasProperties hierarchies are not supported at the moment.
     """
 
     def __new__(cls, name, bases, attrs):
@@ -30,9 +81,14 @@ class BindablePropertyOwner(props.PropertyOwner):
         for propName, propObj in attrs.items():
             
             if not isinstance(propObj, props.PropertyBase): continue
-            
+
+            # Add a hidden boolean property for every
+            # real property which controls the
+            # parent-child bind state of that property.
+            # The logic to control this is configured in
+            # the BindableHasProperties.__init__ method.
             bindProp = types.Boolean(default=True)
-            newAttrs['{}{}'.format(_BIND_SALT, propName)] = bindProp
+            newAttrs['{}{}'.format(_BIND_SALT_, propName)] = bindProp
 
         newCls = super(BindablePropertyOwner, cls).__new__(
             cls, name, bases, newAttrs)
@@ -41,9 +97,14 @@ class BindablePropertyOwner(props.PropertyOwner):
 
     
 class BindableHasProperties(props.HasProperties):
+    """An extension to the :class:`props.HasProperties` class which supports
+    parent-child relationships between instances.
+    """
 
+    
     __metaclass__ = BindablePropertyOwner
 
+    
     def __init__(self, parent=None, nobind=None, nounbind=None):
         """Create a :class:`BindableHasProperties` object.
 
@@ -53,7 +114,7 @@ class BindableHasProperties(props.HasProperties):
         properties should be bound.
         
         :arg parent:   Another :class:`Bindable HasProperties` instance, which
-                       has the  same type as this instance.
+                       has the same type as this instance.
         
         :arg nobind:   A sequence of property names which should not be bound
                        with the parent.
@@ -68,20 +129,26 @@ class BindableHasProperties(props.HasProperties):
         self._nobind   = nobind
         self._nounbind = nounbind
 
-        # If parent is none, then this instance
-        # is a 'master' instance, and doesn't need
-        # to worry about being bound. So we'll
-        # remove all the _bind_ properties which
-        # were created by the metaclass
+        # Get a list of all the
+        # properties of this class
         propNames, propObjs  = super(
             BindableHasProperties,
             self).getAllProperties()
- 
+
+        # If parent is none, then this instance
+        # is a 'parent' instance, and doesn't need
+        # to worry about being bound. So we'll
+        # remove all the _bind_ properties which
+        # were created by the metaclass
         if parent is None:
             for propName in propNames:
-                if propName.startswith(_BIND_SALT):
+                if propName.startswith(_BIND_SALT_):
                     self.__dict__[propName] = None
 
+        # Otherwise, this instance is a 'child'
+        # instance - set up a binding between
+        # this instance and its parent for every
+        # property - see _initBindProperty
         else:
 
             if not isinstance(parent, self.__class__):
@@ -99,8 +166,13 @@ class BindableHasProperties(props.HasProperties):
 
 
     def _initBindProperty(self, propName):
+        """Called by child instances from __init__.
+
+        Configures a binding between this instance and its parent for the
+        specified property.
+        """
         
-        bindPropName  = '{}{}'.format(_BIND_SALT, propName)
+        bindPropName  = '{}{}'.format(_BIND_SALT_, propName)
         bindPropObj   = self.getProp(bindPropName)
         bindPropVal   = bindPropObj.getPropVal(self)
 
@@ -120,8 +192,13 @@ class BindableHasProperties(props.HasProperties):
 
             
     def _bindPropChanged(self, propName, *a):
+        """Called when a hidden boolean property controlling the binding
+        state of the specified real property changes.
 
-        bindPropName = '{}{}'.format(_BIND_SALT, propName)
+        Changes the binding state of the property accordingly.
+        """
+
+        bindPropName = '{}{}'.format(_BIND_SALT_, propName)
         bindPropVal  = getattr(self, bindPropName)
 
         if bindPropVal and (propName in self._nobind):
@@ -136,7 +213,9 @@ class BindableHasProperties(props.HasProperties):
         
     @classmethod 
     def getAllProperties(cls):
-        """
+        """Returns all of the properties of this :class:`BindableHasProperties`
+        class, not including the hidden boolean properties which control 
+        binding states.
         """
 
         # TODO this code will crash for BHP
@@ -147,7 +226,7 @@ class BindableHasProperties(props.HasProperties):
             cls).getAllProperties()
 
         propNames, propObjs  = zip(
-            *filter(lambda (pn, p) : not pn.startswith(_BIND_SALT),
+            *filter(lambda (pn, p) : not pn.startswith(_BIND_SALT_),
                     zip(propNames, propObjs)))
 
         return propNames, propObjs
@@ -171,7 +250,11 @@ class BindableHasProperties(props.HasProperties):
         ..note:: The ``nobind`` check can be avoided by calling
         :meth:`bindProps` directly. But don't do that.
         """
-        bindPropName = '{}{}'.format(_BIND_SALT, propName)
+        if propName in self._nobind:
+            raise RuntimeError('{} cannot be bound to '
+                               'parent'.format(propName))
+
+        bindPropName = '{}{}'.format(_BIND_SALT_, propName)
         setattr(self, bindPropName, True)
 
     
@@ -185,7 +268,11 @@ class BindableHasProperties(props.HasProperties):
         ..note:: The ``nounbind`` check can be avoided by calling
         :meth:`bindProps` directly. But don't do that. 
         """
-        bindPropName = '{}{}'.format(_BIND_SALT, propName)
+        if propName in self._nounbind:
+            raise RuntimeError('{} cannot be unbound from '
+                               'parent'.format(propName))        
+        
+        bindPropName = '{}{}'.format(_BIND_SALT_, propName)
         setattr(self, bindPropName, False) 
 
         
@@ -193,25 +280,36 @@ class BindableHasProperties(props.HasProperties):
         """Returns true if the specified property is bound to the parent of
         this :class:`HasProperties` instance, ``False`` otherwise.
         """
-        return getattr(self, '{}{}'.format(_BIND_SALT, propName))
+        return getattr(self, '{}{}'.format(_BIND_SALT_, propName))
 
     
     def canBeBoundToParent(self, propName):
-        """"""
+        """Returns ``True`` if the given property can be bound between a
+        child and its parent (see the ``nobind`` parameter in
+        :meth:`__init__`).
+        """
         return propName not in self._nobind
 
     
     def canBeUnboundFromParent(self, propName):
-        """"""
+        """Returns ``True`` if the given property can be unbound between a
+        child and its parent (see the ``nounbind`` parameter in
+        :meth:`__init__`).
+        """ 
         return propName not in self._nounbind
 
 
-
     def addBindChangeListener(self, propName, listenerName, callback):
-        bindPropName = '{}{}'.format(_BIND_SALT, propName)
+        """Registers the given callback function to be called when
+        the binding state of the specified property changes.
+        """
+        bindPropName = '{}{}'.format(_BIND_SALT_, propName)
         self.addListener(bindPropName, listenerName, callback)
 
         
     def removeBindChangeListener(self, propName, listenerName):
-        bindPropName = '{}{}'.format(_BIND_SALT, propName)
+        """De-registers the given listener from receiving binding
+        state changes.
+        """ 
+        bindPropName = '{}{}'.format(_BIND_SALT_, propName)
         self.removeListener(bindPropName, listenerName)
