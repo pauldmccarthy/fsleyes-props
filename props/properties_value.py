@@ -477,8 +477,8 @@ class PropertyValueList(PropertyValue):
     The values contained in this :class:`PropertyValueList` may be accessed
     through standard Python list operations, including slice-based access and
     assignment, :meth:`append`, :meth:`insert`, :meth:`extend`, :meth:`pop`,
-    :meth:`index`, :meth:`count`, :meth:`move`, and :meth:`insertAll` (these
-    last two are non-standard).
+    :meth:`index`, :meth:`count`, :meth:`move`, :meth:`insertAll`,
+    :meth:`removeAll`, and :meth:`reorder` (these last few are non-standard).
 
     The main restriction of this list-like functionality is that value
     assigments via indexing must not change the length of the list. For
@@ -777,6 +777,18 @@ class PropertyValueList(PropertyValue):
         propVal = self.__propVals.pop(index)
         return propVal.get()
 
+
+    def move(self, from_, to):
+        """Move the item from 'from\_' to 'to'."""
+
+        listVals = self[:]
+        val = listVals.pop(from_)
+        listVals.insert(to, val)
+        self.set(listVals, False)
+
+        pval = self.__propVals.pop(from_)
+        self.__propVals.insert(to, pval)
+
     
     def remove(self, value):
         """Remove the first item in the list with the specified value. """
@@ -803,16 +815,19 @@ class PropertyValueList(PropertyValue):
         self.__propVals[:] = propVals
 
         
-    def move(self, from_, to):
-        """Move the item from 'from\_' to 'to'."""
+    def reorder(self, idxs):
+        """Reorders the list according to the given sequence of indices."""
 
-        listVals = self[:]
-        val = listVals.pop(from_)
-        listVals.insert(to, val)
-        self.set(listVals, False)
+        if sorted(idxs) != range(len(self)):
+            raise ValueError('Indices ({}) must '
+                             'cover the list range '
+                             '([0..{}])'.format(idxs, len(self) - 1))
 
-        pval = self.__propVals.pop(from_)
-        self.__propVals.insert(to, pval)
+            listVals = self[:]
+            listVals = [listVals[i] for i in idxs]
+            self.set(listVals, False)
+
+            self.__propVals = [self.__propVals[i] for i in self.__propVals]
 
 
     def __setitem__(self, key, values):
