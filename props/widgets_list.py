@@ -196,8 +196,8 @@ def _editListDialog(parent, hasProps, propObj):
 
     frame.ShowModal()
 
-    
-def _List(parent, hasProps, propObj, propVal):
+
+def _listDialogWidget(parent, hasProps, propObj, propVal):
     """Creates and returns a GUI panel containing two buttons which, when
     pushed, display dialogs allowing the user to edit the values contained
     in the list.
@@ -229,3 +229,14 @@ def _List(parent, hasProps, propObj, propVal):
     panel.Layout()
         
     return panel
+
+
+def _listEmbedWidget(parent, hasProps, propObj, propVal):
+    pass
+    
+def _List(parent, hasProps, propObj, propVal):
+
+    if propObj.embed:
+        return _listEmbedWidget(parent, hasProps, propObj, propVal)
+    else:
+        return _listDialogWidget(parent, hasProps, propObj, propVal)

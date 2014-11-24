@@ -394,7 +394,12 @@ class List(props.ListPropertyBase):
     as it contains important usage information.
     """
     
-    def __init__(self, listType=None, minlen=None, maxlen=None, **kwargs):
+    def __init__(self,
+                 listType=None,
+                 minlen=None,
+                 maxlen=None,
+                 embed=False,
+                 **kwargs):
         """Define a :class:`List` property.
         
         :param listType:   A :class:`~props.properties.PropertyBase` type,
@@ -404,6 +409,11 @@ class List(props.ListPropertyBase):
                 
         :param int minlen: Minimum list length.
         :param int maxlen: Maximum list length.
+        :param bool embed: If ``True``, when a graphical interface is made
+                           to edit this list property, a widget is embedded
+                           directly into the parent GUI. Otherwise, a button
+                           is embedded which, when clicked, opens a dialog
+                           allowing the user to edit the list.
         """
 
         if (listType is not None) and \
@@ -414,6 +424,8 @@ class List(props.ListPropertyBase):
         kwargs['default'] = kwargs.get('default', [])
         kwargs['minlen']  = minlen
         kwargs['maxlen']  = maxlen
+
+        self.embed        = embed
 
         props.ListPropertyBase.__init__(self, listType,  **kwargs)
 
