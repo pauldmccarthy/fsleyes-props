@@ -134,20 +134,9 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
     myPropVal    = myProp   .getPropVal(self)
     otherPropVal = otherProp.getPropVal(other)
 
-    myMinLen    = myPropVal   .getAttribute('minlen')
-    myMaxLen    = myPropVal   .getAttribute('maxlen')
-    otherMinLen = otherPropVal.getAttribute('minlen')
-    otherMaxLen = otherPropVal.getAttribute('maxlen')
-
-    # if myMinLen    is None        or \
-    #    myMaxLen    is None        or \
-    #    otherMinLen is None        or \
-    #    otherMaxLen is None        or \
-    #    myMinLen    != myMaxLen    or \
-    #    otherMinLen != otherMaxLen or \
-    #    myMinLen    != otherMinLen:
-    #     raise RuntimeError('Only non-mutable lists of '
-    #                        'the same length may be bound')
+    if len(myPropVal) != len(otherPropVal):
+        raise RuntimeError('Lists must have the same '
+                           'length before being bound')
 
     # copy value and attributes for each
     # pair of PropertyValue items and add
@@ -155,14 +144,8 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
     myPropValList    = myPropVal   .getPropertyValueList()
     otherPropValList = otherPropVal.getPropertyValueList()
 
-    _bindPropVals(self,
-                  other,
-                  myPropVal,
-                  otherPropVal,
-                  myProp.getLabel(self),
-                  otherProp.getLabel(other),
-                  val=False,
-                  unbind=unbind)
+    myPropValMap    = []
+    otherPropValMap = []
 
     for myItem, otherItem in zip(myPropValList, otherPropValList):
         _bindPropVals(self,
@@ -172,6 +155,120 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
                       '{}_Item'.format(myProp.getLabel(self)),
                       '{}_Item'.format(otherProp.getLabel(other)),
                       unbind=unbind)
+
+        myPropValMap   .append((id(myItem),    id(otherItem)))
+        otherPropValMap.append((id(otherItem), id(myItem)))
+
+    # Bind list-level attributes between
+    # the PropertyValueList objects
+    _bindPropVals(self,
+                  other,
+                  myPropVal,
+                  otherPropVal,
+                  myProp.getLabel(self),
+                  otherProp.getLabel(other),
+                  val=False,
+                  unbind=unbind)
+
+    # Register listeners on each PropertyValueList
+    # to synchronise list additions, deletions, and
+    # re-orderings
+    myName, otherName = _makeBindingNames(self,
+                                          other,
+                                          myProp.getLabel(self),
+                                          otherProp.getLabel(other))
+
+    if not unbind:
+        myPropVal.addListener(
+            myName,
+            lambda *a: _listPropChanged(myPropVal,
+                                        otherPropVal,
+                                        myPropValMap,
+                                        *a))
+        myPropVal.addListener(
+            otherName,
+            lambda *a: _listPropChanged(otherPropVal,
+                                        myPropVal,
+                                        otherPropValMap,
+                                        *a))
+    else:
+        myPropVal   .removeListener(myName)
+        otherPropVal.removeListener(otherName)
+
+
+def _listPropChanged(masterList, slaveList, propValMap, *a):
+    """
+    """
+
+    def getSlavePropVal(masterPropVal):
+        for i, (mpvid, spvid) in enumerate(propValMap):
+            if mpvid == id(masterPropVal):
+                return spvid
+        return None
+    
+    def getMasterPropVal(slavePropVal):
+        for i, (mpvid, spvid) in enumerate(propValMap):
+            if spvid == id(slavePropVal):
+                return mpvid
+        return None 
+
+    masterPropVals = masterList.getPropertyValueList()
+    slavePropVals  = slaveList .getPropertyValueList()
+
+    slaveListChanged = False
+    slaveList.disableNotification()
+    
+    # list addition
+    if len(masterList) > len(slaveList):
+        
+        for i, mpv in enumerate(masterPropVals):
+
+            spvid = getSlavePropVal(mpv)
+
+            # we've found a value in the master
+            # list which is not in the slave list
+            if spvid is None:
+                slaveListChanged = True
+                slaveList.insert(mpv.get(), i)
+                spv = slaveList.getPropertyValueList()[i]
+                propValMap.insert((id(mpv), id(spv)))
+
+    # list deletion
+    elif len(masterList) < len(slaveList):
+        
+        mpvIds = map(id, masterPropVals)
+        for i, spv in reversed(enumerate(slavePropVals)):
+
+            mpvid = getMasterPropVal(spv)
+
+            # If this happens, there's
+            # a bug in somebody's code.
+            if mpvid is None:
+                raise RuntimeError('Lists are out of sync')
+
+            # we've found a value in
+            # the slave list which is no
+            # longer in the master list 
+            if mpvid not in mpvIds:
+                slaveListChanged = True
+                del slaveList[ i]
+                del propValMap[i]
+            
+    # list re-order (or individual value
+    # change, which we don't care about)
+    else:
+        mpvIds   = map(id, masterPropVals)
+        newOrder = []
+        for i, spv in enumerate(slavePropVals):
+
+            mpvid = getMasterPropVal(spv)
+            newOrder.append(mpvIds.index(mpvid))
+
+        slaveList.reorder(newOrder)
+
+    slaveList.enableNotification()
+    if slaveListChanged:
+        slaveList._notify()
 
         
 def _makeBindingNames(self, other, myPropName, otherPropName):
