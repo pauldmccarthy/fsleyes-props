@@ -1,315 +1,244 @@
 #!/usr/bin/env python
 #
-# bindable.py - An extension to the HasProperties class which allows
-# a master-slave relationship to exist between instances.
+# bindable.py - This module adds functionality to the HasProperties class
+# to allow properties from different instances to be bound to each other.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""The :mod:`bindable` module provides the :class:`BindableHasProperties`
-class, an extension to the :class:`props.HasProperties` class which allows a
-parent-child relationship to exist between instances. All that is needed to
-make use of this functionality is to extend the :class:`BindableHasProperties`
-class instead of the :class:`HasProperties` class::
+"""The :mod:`bindable` module adds functionality to the
+:class:`~props.properties.HasProperties` class to allow properties from
+different instances to be bound to each other.
 
-    >>> import props
-
-    >>> class MyObj(props.BindableHasProperties):
-    >>>     myint = props.Int()
-    >>>     def __init__(self, parent=None):
-    >>>         props.BindableHasProperties.__init__(self, parent)
-    >>>
-
-Given a class definition such as the above, a parent-child relationship
-between two instances can be set up as follows::
-
-    >>> myParent = MyObj()
-    >>> myChild  = MyObj(myParent)
-
-The ``myint`` properties of both instances are now bound to each
-other - when it changes in one instance, that change is propagated to the
-other instance::
-
-    >>> def parentPropChanged(*a):
-    >>>     print 'myParent.myint changed: {}'.format(myParent.myint)
-    >>>
-    >>> def childPropChanged(*a):
-    >>>     print 'myChild.myint changed: {}'.format(myChild.myint)
-
-    >>> myParent.addListener('myint', 'parentPropChanged', parentPropChanged)
-    >>> myChild.addListener( 'myint', 'childPropChanged',  childPropChanged)
-
-    >>> myParent.myint = 12345
-    myParent.myint changed: 12345
-    myChild.myint changed: 12345
-
-    >>> myChild.myint = 54321
-    myParent.myint changed: 54321
-    myChild.myint changed: 54321
-
-This binding can be toggled on the child instance, via the
-:meth:`unbindFromParent` and :meth:`bindToParent` methods of the
-:class:`BindableHasProperties` class.  Listeners to binding state changes may
-be registered on the child instance via the :meth:`addBindChangeListener`
-method (and de-registered via the :meth:`removeBindChangeListener` method).
-
-A one-to-many binding relationship is possible between one parent, and many
-children.
+The functions defined in this module should be considered to be methods
+of the :class:`~props.properties.HasProperties` class - they're separated
+purely to keep the properties.py file size down.
 """
 
-import logging
-log = logging.getLogger(__name__)
+import properties as props
 
-import properties       as props
-import properties_types as types
+    
+def bindProps(self, propName, other, otherPropName=None, unbind=False):
+    """Binds the properties specified by ``propName``  and
+    ``otherPropName`` such that changes to one are applied
+    to the other.
 
+    :arg str propName:        The name of a property on this
+                              :class:`HasProperties` instance.
+    
+    :arg HasProperties other: Another :class:`HasProperties` instance.
+    
+    :arg str otherPropName:   The name of a property on ``other`` to
+                              bind to. If ``None`` it is assumed that
+                              there is a property on ``other`` called
+                              ``propName``.
 
-_BIND_SALT_ = '_bind_'
-"""Constant string added to binding-related property names and listeners."""
-
-
-class BindablePropertyOwner(props.PropertyOwner):
-    """Metaclass for the :class:`BindableHasProperties` class. Creates
-    a :class:`~props.Boolean` property for every other property in the
-    class, which controls whether the corresponding property is bound
-    to the parent or not.
+    :arg unbind:              If ``True``, the properties are unbound.
+                              See the :meth:`unbindProps` method.
     """
 
-    def __new__(cls, name, bases, attrs):
+    if otherPropName is None: otherPropName = propName
 
-        newAttrs = dict(attrs)
+    myProp    = self .getProp(propName)
+    otherProp = other.getProp(otherPropName)
 
-        for propName, propObj in attrs.items():
-            
-            if not isinstance(propObj, props.PropertyBase): continue
+    if type(myProp) != type(otherProp):
+        raise ValueError('Properties must be of the '
+                         'same type to be bound')
 
-            # Add a hidden boolean property for every
-            # real property which controls the
-            # parent-child bind state of that property.
-            # The logic to control this is configured in
-            # the BindableHasProperties.__init__ method.
-            bindProp = types.Boolean(default=True)
-            newAttrs['{}{}'.format(_BIND_SALT_, propName)] = bindProp
+    if isinstance(myProp, props.ListPropertyBase):
+        _bindListProps(self, myProp, other, otherProp, unbind)
+    else:
+        _bindProps(self, myProp, other, otherProp, unbind)
 
-        newCls = super(BindablePropertyOwner, cls).__new__(
-            cls, name, bases, newAttrs)
 
-        return newCls 
+def unbindProps(self, propName, other, otherPropName=None):
+    """Unbinds two properties previously bound via a call to
+    :meth:`bindProps`. 
+    """
+    self.bindProps(propName, other, otherPropName, unbind=True)
 
+
+def isBound(self, propName, other, otherPropName=None):
+    """Returns ``True`` if the specified property is bound to the
+    other :class:`HasProperties` object, ``False`` otherwise.
+    """
     
-class BindableHasProperties(props.HasProperties):
-    """An extension to the :class:`props.HasProperties` class which supports
-    parent-child relationships between instances.
+    if otherPropName is None: otherPropName = propName
+
+    myProp       = self     .getProp(   propName)
+    otherProp    = other    .getProp(   otherPropName)
+    myPropVal    = myProp   .getPropVal(self)
+    otherPropVal = otherProp.getPropVal(other)
+
+    myPropName    = myProp   .getLabel(self)
+    otherPropName = otherProp.getLabel(other)
+
+    myName, otherName = _makeBindingNames(self,
+                                          other,
+                                          myPropName,
+                                          otherPropName)
+    
+    return myPropVal   .hasListener(myName) and \
+           otherPropVal.hasListener(otherName)
+    
+
+def _bindProps(self, myProp, other, otherProp, unbind=False):
+    """Binds two :class:`~props.properties_value.PropertyValue` instances
+    together.
+
+    The :meth:`_bindListProps` method is used to bind two
+    :class:`~props.properties_value.PropertyValueList` instances.
+
+    :arg myProp:    The :class:`PropertyBase` instance of this
+                    :class:`HasProperties` instance.
+    
+    :arg other:     The other :class:`HasProperties` instance.
+    
+    :arg otherProp: The :class:`PropertyBase` instance of the ``other``
+                    :class:`HasProperties` instance.
+
+    :arg unbind:    If ``True``, the properties are unbound.
     """
 
+    myPropVal    = myProp   .getPropVal(self)
+    otherPropVal = otherProp.getPropVal(other)
+
+    _bindPropVals(self,
+                  other,
+                  myPropVal,
+                  otherPropVal,
+                  myProp.getLabel(self),
+                  otherProp.getLabel(other),
+                  unbind=unbind)
+
+
+def _bindListProps(self, myProp, other, otherProp, unbind=False):
+    """Binds two :class:`~props.properties_value.PropertyValueList`
+    instances together. 
+
+    The two properties must be non-mutable (i.e. their lengths must be
+    equal, and may not be changed). If this is not the case, a
+    :exc:`RuntimeError` is raised.
+
+    :arg myProp:    The :class:`ListPropertyBase` instance of this
+                    :class:`HasProperties` instance.
     
-    __metaclass__ = BindablePropertyOwner
-
+    :arg other:     The other :class:`HasProperties` instance.
     
-    def __init__(self, parent=None, nobind=None, nounbind=None):
-        """Create a :class:`BindableHasProperties` object.
+    :arg otherProp: The :class:`ListPropertyBase` instance of the
+                    ``other`` :class:`HasProperties` instance.
 
-        If this :class:`BindableHasProperties` object does not have a parent,
-        there is no need to call this constructor explicitly. Otherwise, the
-        parent must be an instance of the same class to which this instance's
-        properties should be bound.
+    :arg unbind:    If ``True``, the properties are unbound.
+    """
+
+    myPropVal    = myProp   .getPropVal(self)
+    otherPropVal = otherProp.getPropVal(other)
+
+    myMinLen    = myPropVal   .getAttribute('minlen')
+    myMaxLen    = myPropVal   .getAttribute('maxlen')
+    otherMinLen = otherPropVal.getAttribute('minlen')
+    otherMaxLen = otherPropVal.getAttribute('maxlen')
+
+    # if myMinLen    is None        or \
+    #    myMaxLen    is None        or \
+    #    otherMinLen is None        or \
+    #    otherMaxLen is None        or \
+    #    myMinLen    != myMaxLen    or \
+    #    otherMinLen != otherMaxLen or \
+    #    myMinLen    != otherMinLen:
+    #     raise RuntimeError('Only non-mutable lists of '
+    #                        'the same length may be bound')
+
+    # copy value and attributes for each
+    # pair of PropertyValue items and add
+    # value/attribute listeners for each pair
+    myPropValList    = myPropVal   .getPropertyValueList()
+    otherPropValList = otherPropVal.getPropertyValueList()
+
+    _bindPropVals(self,
+                  other,
+                  myPropVal,
+                  otherPropVal,
+                  myProp.getLabel(self),
+                  otherProp.getLabel(other),
+                  val=False,
+                  unbind=unbind)
+
+    for myItem, otherItem in zip(myPropValList, otherPropValList):
+        _bindPropVals(self,
+                      other,
+                      myItem,
+                      otherItem,
+                      '{}_Item'.format(myProp.getLabel(self)),
+                      '{}_Item'.format(otherProp.getLabel(other)),
+                      unbind=unbind)
+
         
-        :arg parent:   Another :class:`Bindable HasProperties` instance, which
-                       has the same type as this instance.
-        
-        :arg nobind:   A sequence of property names which should not be bound
-                       with the parent.
-        
-        :arg nounbind: A sequence of property names which cannot be unbound
-                       from the parent.
-        """
-        if nobind   is None: nobind   = []
-        if nounbind is None: nounbind = []
+def _makeBindingNames(self, other, myPropName, otherPropName):
+    """Generates property listener names for binding."""
+    
+    myName    = 'bindProps_{}_{}_{}_{}'.format(myPropName,
+                                               otherPropName,
+                                               id(self),
+                                               id(other))
+    otherName = 'bindProps_{}_{}_{}_{}'.format(otherPropName,
+                                               myPropName,
+                                               id(other),
+                                               id(self))
+    return myName, otherName
 
-        self._parent   = parent
-        self._nobind   = nobind
-        self._nounbind = nounbind
 
-        # Get a list of all the
-        # properties of this class
-        propNames, propObjs  = super(
-            BindableHasProperties,
-            self).getAllProperties()
+def _bindPropVals(self,
+                  other,
+                  myPropVal,
+                  otherPropVal,
+                  myPropName,
+                  otherPropName,
+                  val=True,
+                  att=True,
+                  unbind=False):
+    """Binds two :class:`~props.properties_value.PropertyValue`
+    instances together such that when the value of one changes,
+    the other is changed. Attributes are also bound between the
+    two instances.
+    """
 
-        # If parent is none, then this instance
-        # is a 'parent' instance, and doesn't need
-        # to worry about being bound. So we'll
-        # remove all the _bind_ properties which
-        # were created by the metaclass
-        if parent is None:
-            for propName in propNames:
-                if propName.startswith(_BIND_SALT_):
-                    self.__dict__[propName] = None
+    myName, otherName = _makeBindingNames(self,
+                                          other,
+                                          myPropName,
+                                          otherPropName)
 
-        # Otherwise, this instance is a 'child'
-        # instance - set up a binding between
-        # this instance and its parent for every
-        # property - see _initBindProperty
+    if val:
+        myPropVal.set(otherPropVal.get())
+
+        def onVal(slave, value, *a):
+            if slave.get() != value:
+                slave.set(value)
+
+        if not unbind:
+            myPropVal.addListener(
+                myName, lambda *a: onVal(otherPropVal, *a))
+            otherPropVal.addListener(
+                otherName, lambda *a: onVal(myPropVal, *a))
         else:
+            myPropVal   .removeListener(myName)
+            otherPropVal.removeListener(otherName) 
 
-            if not isinstance(parent, self.__class__):
-                raise TypeError('parent is of a different type '
-                                '({} != {})'.format(parent.__class__,
-                                                    self.__class__))
+    if att:
+        myPropVal.setAttributes(otherPropVal.getAttributes()) 
 
-            propNames, _ = self.getAllProperties()
-
-            log.debug('Binding properties of {} ({}) to parent ({})'.format(
-                self.__class__.__name__, id(self), id(parent)))
-
-            for propName in propNames:
-                self._initBindProperty(propName)
-
-
-    def _initBindProperty(self, propName):
-        """Called by child instances from __init__.
-
-        Configures a binding between this instance and its parent for the
-        specified property.
-        """
+        def onAtt(slave, ctx, attName, value):
+            slave.setAttribute(attName, value)
         
-        bindPropName  = '{}{}'.format(_BIND_SALT_, propName)
-        bindPropObj   = self.getProp(bindPropName)
-        bindPropVal   = bindPropObj.getPropVal(self)
+        if not unbind:
+            myPropVal.addAttributeListener(
+                myName, lambda *a: onAtt(otherPropVal, *a))
+            otherPropVal.addAttributeListener(
+                otherName, lambda *a: onAtt(myPropVal, *a))
+        else:
+            myPropVal   .removeAttributeListener(myName)
+            otherPropVal.removeAttributeListener(otherName)
 
-        if not self.canBeBoundToParent(propName):
-            bindPropVal.set(False)
-            return
-
-        bindPropVal.set(True)
-
-        if self.canBeUnboundFromParent(propName):
-            lName = '{}{}_{}'.format(_BIND_SALT_, propName, id(self))
-            bindPropVal.addListener(
-                lName,
-                lambda *a: self._bindPropChanged(propName, *a))
-
-        self.bindProps(propName, self._parent)        
-
-            
-    def _bindPropChanged(self, propName, *a):
-        """Called when a hidden boolean property controlling the binding
-        state of the specified real property changes.
-
-        Changes the binding state of the property accordingly.
-        """
-
-        bindPropName = '{}{}'.format(_BIND_SALT_, propName)
-        bindPropVal  = getattr(self, bindPropName)
-
-        if bindPropVal and (propName in self._nobind):
-            raise RuntimeError('{} cannot be bound to '
-                               'parent'.format(propName))
-
-        if (not bindPropVal) and (propName in self._nounbind):
-            raise RuntimeError('{} cannot be unbound from '
-                               'parent'.format(propName))
-        self.bindProps(propName, self._parent, unbind=(not bindPropVal)) 
-
-        
-    @classmethod 
-    def getAllProperties(cls):
-        """Returns all of the properties of this :class:`BindableHasProperties`
-        class, not including the hidden boolean properties which control 
-        binding states.
-        """
-
-        # TODO this code will crash for BHP
-        # objects which have no properties
-        
-        propNames, propObjs = super(
-            BindableHasProperties,
-            cls).getAllProperties()
-
-        propNames, propObjs  = zip(
-            *filter(lambda (pn, p) : not pn.startswith(_BIND_SALT_),
-                    zip(propNames, propObjs)))
-
-        return propNames, propObjs
-        
-                    
-    def getParent(self):
-        """Returns the parent of this instance, or ``None`` if there is no
-        parent.
-        """
-        return self._parent
-
-
-    def bindToParent(self, propName):
-        """Bind the given property with the parent instance.
-
-        If this :class:`HasProperties` instance has no parent, a
-        `RuntimeError` is raised. If the specified property is in the
-        ``nobind`` list (see :meth:`__init__`), a `RuntimeError` is
-        raised.
-
-        ..note:: The ``nobind`` check can be avoided by calling
-        :meth:`bindProps` directly. But don't do that.
-        """
-        if propName in self._nobind:
-            raise RuntimeError('{} cannot be bound to '
-                               'parent'.format(propName))
-
-        bindPropName = '{}{}'.format(_BIND_SALT_, propName)
-        setattr(self, bindPropName, True)
-
-    
-    def unbindFromParent(self, propName):
-        """Unbind the given property from the parent instance.
-
-        If this :class:`HasProperties` instance has no parent, a
-        `RuntimeError` is raised. If the specified property is in the
-        `nounbind` list (see :meth:`__init__`), a `RuntimeError` is raised.
-
-        ..note:: The ``nounbind`` check can be avoided by calling
-        :meth:`bindProps` directly. But don't do that. 
-        """
-        if propName in self._nounbind:
-            raise RuntimeError('{} cannot be unbound from '
-                               'parent'.format(propName))        
-        
-        bindPropName = '{}{}'.format(_BIND_SALT_, propName)
-        setattr(self, bindPropName, False) 
-
-        
-    def isBoundToParent(self, propName):
-        """Returns true if the specified property is bound to the parent of
-        this :class:`HasProperties` instance, ``False`` otherwise.
-        """
-        return getattr(self, '{}{}'.format(_BIND_SALT_, propName))
-
-    
-    def canBeBoundToParent(self, propName):
-        """Returns ``True`` if the given property can be bound between a
-        child and its parent (see the ``nobind`` parameter in
-        :meth:`__init__`).
-        """
-        return propName not in self._nobind
-
-    
-    def canBeUnboundFromParent(self, propName):
-        """Returns ``True`` if the given property can be unbound between a
-        child and its parent (see the ``nounbind`` parameter in
-        :meth:`__init__`).
-        """ 
-        return propName not in self._nounbind
-
-
-    def addBindChangeListener(self, propName, listenerName, callback):
-        """Registers the given callback function to be called when
-        the binding state of the specified property changes.
-        """
-        bindPropName = '{}{}'.format(_BIND_SALT_, propName)
-        self.addListener(bindPropName, listenerName, callback)
-
-        
-    def removeBindChangeListener(self, propName, listenerName):
-        """De-registers the given listener from receiving binding
-        state changes.
-        """ 
-        bindPropName = '{}{}'.format(_BIND_SALT_, propName)
-        self.removeListener(bindPropName, listenerName)
+props.HasProperties.bindProps   = bindProps
+props.HasProperties.unbindProps = unbindProps
+props.HasProperties.isBound     = isBound

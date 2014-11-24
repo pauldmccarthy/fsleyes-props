@@ -114,7 +114,7 @@ import wx
 import widgets
 
 import build_parts       as parts
-import                      bindable
+import                      syncable
 import pwidgets.notebook as nb
 
 class PropGUI(object):
@@ -199,15 +199,15 @@ def _createLinkBox(parent, viewItem, hasProps, propGui):
     from its parent property.
     """
     propName = viewItem.propKey
-    value    = hasProps.isBoundToParent(propName)
+    value    = hasProps.isSyncedToParent(propName)
     
     # label=u'\U0001F512') - 32 bit
     # unicode doesn't seem to work
     linkBox = wx.CheckBox(parent, label='L')
     linkBox.SetValue(value)
 
-    if (not hasProps.canBeBoundToParent(    propName)) or \
-       (not hasProps.canBeUnboundFromParent(propName)):
+    if (not hasProps.canBeSyncedToParent(    propName)) or \
+       (not hasProps.canBeUnsyncedFromParent(propName)):
         linkBox.Enable(False)
         viewItem.enabledWhen = None
         
@@ -216,17 +216,17 @@ def _createLinkBox(parent, viewItem, hasProps, propGui):
         # Update the binding state when the linkbox is modified
         def onLinkBox(ev):
             value = linkBox.GetValue()
-            if value: hasProps.bindToParent(    propName)
-            else:     hasProps.unbindFromParent(propName)
+            if value: hasProps.syncToParent(    propName)
+            else:     hasProps.unsyncFromParent(propName)
 
         # And update the linkbox when the binding state is modified
-        def onBindProp(*a):
-            linkBox.SetValue(hasProps.isBoundToParent(propName))
+        def onSyncProp(*a):
+            linkBox.SetValue(hasProps.isSyncedToParent(propName))
         
-        hasProps.addBindChangeListener(
+        hasProps.addSyncChangeListener(
             propName,
             'build_pyLinkBox_{}_{}'.format(propName, linkBox),
-            onBindProp)
+            onSyncProp)
         linkBox.Bind(wx.EVT_CHECKBOX, onLinkBox)
 
     return linkBox
@@ -606,7 +606,7 @@ def _prepareView(hasProps, viewItem, labels, tooltips, showUnlink):
     # Add link/unlink checkboxes if necessary
     elif (showUnlink                                           and
           isinstance(viewItem, parts.Widget)                   and
-          isinstance(hasProps, bindable.BindableHasProperties) and
+          isinstance(hasProps, syncable.SyncableHasProperties) and
           hasProps.getParent() is not None):
         linkBox  = parts.LinkBox(viewItem)
         viewItem = parts.HGroup((linkBox, viewItem), showLabels=False)
@@ -674,7 +674,7 @@ def buildGUI(parent,
     :param tooltips:   Dict specifying tooltips
     
     :param showUnlink: If the given ``hasProps`` object is a
-                       :class:`props.BindableHasProperties` instance, and
+                       :class:`props.SyncableHasProperties` instance, and
                        it has a parent, a 'link/unlink' checkbox will be
                        shown next to any properties that can be bound/unbound
                        from the parent object.

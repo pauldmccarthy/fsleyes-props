@@ -136,6 +136,7 @@ log = logging.getLogger(__name__)
 # modules for internal/advanced/dangerous usage.
 import properties
 import bindable
+import syncable
 import properties_value
 import properties_types
 import cli
@@ -156,8 +157,8 @@ from properties import (
     PropertyBase,
     HasProperties)
 
-from bindable import (
-    BindableHasProperties)
+from syncable import (
+    SyncableHasProperties)
 
 from properties_types import (
     Boolean,
