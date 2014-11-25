@@ -133,6 +133,16 @@ class PropertyValue(object):
         self.__lastValid         = False
         self.__notification      = True
 
+
+    def __eq__(self, other):
+        """Returns ``True`` if the given object has the same value as this
+        instance. Returns ``False`` otherwise.
+        """
+        if isinstance(other, PropertyValue):
+            other = other.get()
+
+        return self._equalityFunc(self.get(), other)
+
         
     def enableNotification(self):
         """Enables notification of property value and attribute listeners for
@@ -619,6 +629,15 @@ class PropertyValueList(PropertyValue):
         if values is not None: self.__propVals = map(self.__newItem, values)
         else:                  self.__propVals = []
 
+        
+    def __eq__(self, other):
+        """Retuns ``True`` if the given object is a :class:`PropertyValueList`
+        instance, and it contains the same values as this instance, ``False``
+        otherwise.
+        """
+
+        return self._listEquality(self[:], other[:])
+
 
     def _listEquality(self, a, b):
         """Uses the item equality function to test whether two lists are
@@ -713,7 +732,6 @@ class PropertyValueList(PropertyValue):
     def __getitem__(self, key):
         return PropertyValue.get(self).__getitem__(key)
 
-    def __eq__(      self, other): return self[:].__eq__(other[:])
     def __len__(     self):        return self[:].__len__()
     def __repr__(    self):        return self[:].__repr__()
     def __str__(     self):        return self[:].__str__()
