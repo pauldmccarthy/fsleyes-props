@@ -76,10 +76,10 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
         spin.SetRange(minval, maxval)
 
     listenerName = 'widgets_number_py_updateRange_{}'.format(id(spin))
-    propObj.addConstraintListener(hasProps, listenerName, updateRange)
+    propVal.addAttributeListener(listenerName, updateRange)
 
     def onDestroy(ev):
-        propObj.removeConstraintListener(hasProps, listenerName)
+        propVal.removeAttributeListener(listenerName)
         ev.Skip()
     
     spin.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
