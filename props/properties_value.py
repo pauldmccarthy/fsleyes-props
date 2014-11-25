@@ -392,10 +392,10 @@ class PropertyValue(object):
             'valid' if valid else 'invalid - {}'.format(validStr)))
 
         # Notify any registered listeners
-        self._notify()
+        self.notify()
 
         
-    def _notify(self):
+    def notify(self):
         """Notifies registered listeners.
 
         Calls the ``preNotify`` function (if it is set), any listeners which
@@ -722,72 +722,118 @@ class PropertyValueList(PropertyValue):
     def index(       self, item):  return self[:].index(item)
     def count(       self, item):  return self[:].count(item)
 
+
+    def __applySet(self, listVals, propVals, recreate):
+        """This method is used by all of the public methods, defined below,
+        which modify the list (add, remove or reorder list items).
+        
+        An attempt is made to set the list values to the given ``listVals``,
+        and property values to the given ``propVals`` lists. If the first
+        step fails, the property value list is reverted to its previous
+        state.
+
+        :arg listVals: List of new values
+        
+        :arg propVals: List of new PropertyValue objects
+        
+        :arg recreate: See :meth:`set`.
+        """
+
+        # We set __propVals before setting the list values,
+        # so that any listeners registered on this PVL will
+        # see the updated property value list (as returned
+        # by the getPropertyValueList method).
+        oldPropVals     = self.__propVals
+        self.__propVals = propVals
+
+        try:
+            self.set(listVals, recreate)
+        except:
+            self.__propVals = oldPropVals
+            raise 
+
     
     def insert(self, index, item):
         """Inserts the given item before the given index. """
         
-        listVals = self[:]
+        listVals   = self[:]
+        propVals   = self.__propVals[:]
+        newPropVal = self.__newItem(item)
+        
         listVals.insert(index, item)
-        self.set(listVals, False)
+        propVals.insert(index, newPropVal) 
 
-        propVal = self.__newItem(item)
-        self.__propVals.insert(index, propVal)
+        self.__applySet(listVals, propVals, False)
 
         
     def insertAll(self, index, items):
         """Inserts all of the given items before the given index."""
         
-        listVals = self[:]
+        listVals    = self[:]
+        propVals    = self.__propVals[:]
+        newPropVals = map(self.__newItem, items) 
+        
         listVals[index:index] = items
-        self.set(listVals, False)
-
-        propVals = map(self.__newItem, items)
-        self.__propVals[index:index] = propVals
+        propVals[index:index] = newPropVals
+        
+        self.__applySet(listVals, propVals, False)
 
         
     def append(self, item):
         """Appends the given item to the end of the list."""
 
-        listVals = self[:]
-        listVals.append(item)
-        self.set(listVals, False)
+        listVals   = self[:]
+        propVals   = self.__propVals[:]
+        newPropVal = self.__newItem(item)
         
-        propVal = self.__newItem(item)
-        self.__propVals.append(propVal)
+        listVals.append(item)
+        propVals.append(newPropVal)
+        
+        self.__applySet(listVals, propVals, False)
 
 
     def extend(self, iterable):
         """Appends all items in the given iterable to the end of the list."""
-        listVals = self[:]
-        listVals.extend(iterable)
-        self.set(listVals, False) 
         
-        propVals = [self.__newItem(item) for item in iterable]
-        self.__propVals.extend(propVals)
+        listVals    = self[:]
+        propVals    = self.__propVals[:]
+        newPropVals = map(self.__newItem, iterable)
+        
+        listVals.extend(iterable)
+        propVals.extend(newPropVals)
+        
+        self.__applySet(listVals, propVals, False) 
 
         
     def pop(self, index=-1):
         """Remove and return the specified value in the list (default:
         last).
         """
+        
         listVals = self[:]
-        listVals.pop(index)
-        self.set(listVals, False)
+        propVals = self.__propVals[:]
+        
+        listVals                .pop(index)
+        poppedPropVal = propVals.pop(index)
+        
+        self.__applySet(listVals, propVals, False)
 
-        propVal = self.__propVals.pop(index)
-        return propVal.get()
+        return poppedPropVal.get()
 
 
     def move(self, from_, to):
         """Move the item from 'from\_' to 'to'."""
 
         listVals = self[:]
-        val = listVals.pop(from_)
-        listVals.insert(to, val)
-        self.set(listVals, False)
-
-        pval = self.__propVals.pop(from_)
-        self.__propVals.insert(to, pval)
+        propVals = self.__propVals[:]
+        
+        movedVal     = listVals.pop(from_)
+        movedPropVal = propVals.pop(from_)
+        
+        listVals.insert(to, movedVal)
+        propVals.insert(to, movedPropVal)
+        
+        self.__applySet(listVals, propVals, False)
 
     
     def remove(self, value):
@@ -803,16 +849,14 @@ class PropertyValueList(PropertyValue):
         """
         
         listVals = self[:]
-        propVals = list(self.__propVals)
+        propVals = self.__propVals[:]
         
         for v in values:
             idx = listVals.index(v)
             listVals.pop(idx)
             propVals.pop(idx)
             
-        self.set(listVals, False)
-
-        self.__propVals[:] = propVals
+        self.__applySet(listVals, propVals, False)
 
         
     def reorder(self, idxs):
@@ -823,11 +867,16 @@ class PropertyValueList(PropertyValue):
                              'cover the list range '
                              '([0..{}])'.format(idxs, len(self) - 1))
 
-            listVals = self[:]
-            listVals = [listVals[i] for i in idxs]
-            self.set(listVals, False)
+        if idxs == range(len(self)):
+            return
 
-            self.__propVals = [self.__propVals[i] for i in self.__propVals]
+        listVals = self[:]
+        propVals = self.__propVals[:]
+
+        listVals = [listVals[i] for i in idxs]
+        propVals = [propVals[i] for i in idxs]
+        
+        self.__applySet(listVals, propVals, False)
 
 
     def __setitem__(self, key, values):
@@ -845,36 +894,47 @@ class PropertyValueList(PropertyValue):
         else:
             raise IndexError('Invalid key type')
 
+        # prepare the new values
         oldVals = self[:]
-        newVals = list(oldVals)
+        newVals = oldVals[:]
+
+        # Reverts the values of all PropertyValue list
+        # items in the event that the set fails (e.g.
+        # due to an invalid value at either the list
+        # level or the item level)
+        def revert():
+            for idx in indices:
+                self.__propVals[idx].set(oldVals[idx])
+        
         for idx, val in zip(indices, values):
+
             propVal = self.__propVals[idx]
-            newVals[idx] = propVal._castFunc(propVal._context,
-                                             propVal._attributes,
-                                             val) 
+            newVal  = propVal._castFunc(propVal._context,
+                                        propVal._attributes,
+                                        val)
+            newVals[idx] = newVal
+
+            try:
+                propVal.set(newVal)
+            except:
+                revert()
+                raise
 
         # set the list values
-        self.set(newVals, False)
-
-        # propagate the changes to the PropertyValue items if
-        # necessary. if any of the individual property values
-        # are invalid, catch the error, revert the values,
-        # and re-raise the error
         try:
-            
-            for idx, val in zip(indices, values):
-                if not self._itemEqualityFunc(self.__propVals[idx].get(), val):
-                    self.__propVals[idx].set(val)
-
-        except ValueError:
-            self.set(oldVals, False)
+            self.set(newVals, False)
+        except:
+            revert()
             raise
 
         
     def __delitem__(self, key):
         """Remove items at the specified index/slice from the list."""
+        
         listVals = self[:]
+        propVals = self.__propVals[:]
+        
         listVals.__delitem__(key)
-        self.set(listVals, False)
-
-        self.__propVals.__delitem__(key)
+        propVals.__delitem__(key)
+        
+        self.__applySet(listVals, propVals, False)
