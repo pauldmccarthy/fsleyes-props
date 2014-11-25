@@ -9,12 +9,41 @@
 :class:`~props.properties.HasProperties` class to allow properties from
 different instances to be bound to each other.
 
-The functions defined in this module should be considered to be methods
-of the :class:`~props.properties.HasProperties` class - they're separated
-purely to keep the properties.py file size down.
+The :func:`bindProps`, :func:`unbindProps`, and :func:`isBound` functions
+defined in this module are added as methods of the
+:class:`~props.properties.HasProperties` class - the logic defined in this
+module is separated purely to keep the :mod:`props.properties` module file
+size down.
 """
 
+
 import properties as props
+
+
+class Bidict(object):
+    """A bare-bones bi-directional dictionary, used for binding
+    :class:`~props.properties_value.PropertyValueList` instances -
+    see the :func:`_bindListProps` and :func:`_boundsListChanged`
+    functions.
+    """
+
+    def __init__(self):
+        self._thedict = {}
+
+    def __setitem__(self, key, value):
+        self._thedict[key]   = value
+        self._thedict[value] = key
+
+    def __delitem__(self, key):
+        val = self._thedict.pop(key)
+        self      ._thedict.pop(val)
+
+    def get(self, key, default=None):
+        return self._thedict.get(key, default)
+    
+    def __getitem__(self, key): return self._thedict.__getitem__(key)
+    def __repr__(   self):      return self._thedict.__repr__()
+    def __str__(    self):      return self._thedict.__str__() 
 
     
 def bindProps(self, propName, other, otherPropName=None, unbind=False):
@@ -145,7 +174,7 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
     # pairs across the two lists
     myPropValList    = myPropVal   .getPropertyValueList()
     otherPropValList = otherPropVal.getPropertyValueList()
-    propValMap       = []
+    propValMap       = Bidict()
     for myItem, otherItem in zip(myPropValList, otherPropValList):
         _bindPropVals(self,
                       other,
@@ -155,7 +184,7 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
                       '{}_Item'.format(otherProp.getLabel(other)),
                       unbind=unbind)
 
-        propValMap.append((id(myItem), id(otherItem)))
+        propValMap[id(myItem)] = id(otherItem)
 
     # Bind list-level attributes between
     # the PropertyValueList objects -
@@ -217,106 +246,78 @@ def _boundListChanged(self,
     if myList == otherList:
         return
 
-    if myListChanged:
-        masterList, slaveList = myList, otherList
-        masterIdx,  slaveIdx  = 0, 1
-    else:
-        masterList, slaveList = otherList, myList
-        masterIdx,  slaveIdx  = 1, 0
+    # The masterList is the list which has
+    # changed, and the slaveList is the list
+    # which needs to be synced to the master
+    if myListChanged: masterList, slaveList = myList, otherList
+    else:             masterList, slaveList = otherList, myList
 
-    print 'listPropChanged'
-    print
-    print 'masterList: {}'.format(map(id, masterList.getPropertyValueList()))
-    print 'slaveList:  {}'.format(map(id, slaveList .getPropertyValueList()))
-
-    print 'propValMap:\n{}'.format('\n'.join(['{} - {}'.format(k, v)
-                                              for k, v in propValMap]))
-
-    def getSlavePropVal(masterPropVal):
-        for i in range(len(propValMap)):
-            mpvid = propValMap[i][masterIdx]
-            spvid = propValMap[i][slaveIdx]
-            if mpvid == id(masterPropVal):
-                return spvid
-        return None
-    
-    def addPropValMapping(masterPropVal, slavePropVal):
-        pvmap = [0, 0]
-        pvmap[masterIdx] = masterPropVal
-        pvmap[slaveIdx]  = slavePropVal
-        propValMap.append(tuple(pvmap))
-    
-    def delPropValMapping(masterPropVal, slavePropVal):
-        pvmap = [0, 0]
-        pvmap[masterIdx] = masterPropVal
-        pvmap[slaveIdx]  = slavePropVal
-        propValMap.remove(tuple(pvmap))
-    
-    def getMasterPropVal(slavePropVal):
-        for i in range(len(propValMap)):
-            mpvid = propValMap[i][masterIdx]
-            spvid = propValMap[i][slaveIdx] 
-            if spvid == id(slavePropVal):
-                return mpvid
-        return None 
-
-    slaveListChanged = False
+    # This flag will be set to False if it turns
+    # out that the list change which triggered
+    # the call to this function was a change to
+    # an individual value in the list (which is
+    # not handled by this callback)
+    slaveListChanged = True
     slaveList.disableNotification()
     
-    # list addition
+    # one or more items have been
+    # added to the master list
     if len(masterList) > len(slaveList):
 
-        print 'addition'
-        
+        # Loop through the PV objects in the master
+        # list, and search for any which do not have
+        # a paired PV object in the slave list
         for i, mpv in enumerate(masterList.getPropertyValueList()):
 
-            spvid = getSlavePropVal(mpv)
+            spvid = propValMap.get(id(mpv), None)
 
             # we've found a value in the master
             # list which is not in the slave list
             if spvid is None:
-                slaveListChanged = True
+
+                # add a new value to the slave list
                 slaveList.insert(i, mpv.get())
                 spv = slaveList.getPropertyValueList()[i]
-                
-                addPropValMapping(id(mpv), id(spv))
+
+                # register a mapping between the
+                # new master and slave PV objects
+                propValMap[id(mpv)] = id(spv)
 
                 # Bind the two new PV objects
                 _bindPropVals(self,
                               other,
-                              myList,
-                              otherList,
-                              myProp.getLabel(self),
-                              otherProp.getLabel(other),
-                              val=False)                 
+                              mpv,
+                              spv,
+                              '{}_Item'.format(myProp.getLabel(self)),
+                              '{}_Item'.format(otherProp.getLabel(other)))
 
-    # list deletion
+    # one or more items have been
+    # removed from the master list
     elif len(masterList) < len(slaveList):
 
-        print 'deletion'
-        
         mpvIds = map(id, masterList.getPropertyValueList())
         
+        # Loop through the PV objects in the slave
+        # list, and check to see if their mapped
+        # master PV object has been removed from
+        # the master list. Loop backwards so we can
+        # delete items from the slave list as we go,
+        # without having to offset the list index.
         for i, spv in reversed(
                 list(enumerate(slaveList.getPropertyValueList()))):
 
-            mpvid = getMasterPropVal(spv)
+            # If this raises an error, there's a bug
+            # in somebody's code ... probably mine.
+            mpvid = propValMap[id(spv)]
 
-            print 'Checking {} - {} ...'.format(id(spv), mpvid)
-
-            # If this happens, there's
-            # a bug in somebody's code.
-            if mpvid is None:
-                raise RuntimeError('Lists are out of sync')
-
-            # we've found a value in
-            # the slave list which is no
-            # longer in the master list 
+            # we've found a value in the slave list
+            # which is no longer in the master list 
             if mpvid not in mpvIds:
-                print '  This is the deleted one'
-                slaveListChanged = True
+
+                # Delete the item from the slave
+                # list, and delete the PV mapping
                 del slaveList[ i]
-                delPropValMapping(mpvid, id(spv))
+                del propValMap[mpvid]
                 
     # list re-order (or individual value
     # change, which we don't care about)
@@ -324,18 +325,29 @@ def _boundListChanged(self,
         
         mpvIds   = map(id, masterList.getPropertyValueList())
         newOrder = []
+
+        # loop through the PV objects in the slave list,
+        # and build a list of indices of the corresponding
+        # PV objects in the master list
         for i, spv in enumerate(slaveList.getPropertyValueList()):
 
-            mpvid = getMasterPropVal(spv)
+            mpvid = propValMap[id(spv)]
             newOrder.append(mpvIds.index(mpvid))
 
+        # If the master list order has been
+        # changed, re-order the slave list
         if newOrder != range(len(slaveList)):
-            print 'reorder'
             slaveListChanged = True
             slaveList.reorder(newOrder)
-        else:
-            print 'No change to list structure - have been a value change'
 
+        # The list order hasn't changed, so
+        # this call must have been triggered
+        # by a value change, which we don't
+        # care about
+        else: slaveListChanged = False
+
+    # Force notification on the slave
+    # list if it has been changed
     slaveList.enableNotification()
     if slaveListChanged:
         slaveList.notify()
