@@ -14,6 +14,9 @@ import wx
 
 import widgets
 
+import pwidgets.elistbox as elistbox
+
+
 def _pasteDataDialog(parent, hasProps, propObj):
     """Displays a dialog containing an editable text field, allowing the
     user to type/paste bulk data which will be used to populate the list
@@ -231,9 +234,66 @@ def _listDialogWidget(parent, hasProps, propObj, propVal):
     return panel
 
 
-def _listEmbedWidget(parent, hasProps, propObj, propVal):
+class ListPropListBox(wx.Panel):
+
+    def __init__(self, parent, hasProps, propObj, propVal):
+        pass
     pass
+
+
+def _listEmbedWidget(parent, hasProps, propObj, propVal):
+
+    widget = elistbox.EditableListBox(
+        parent,
+        ['{}'.format(v) for v in propVal],
+        style=(elistbox.ELB_REVERSE | elistbox.ELB_EDITABLE))
+
+    changeTriggeredByWidget = [False]
+
+    def _listBoxAdd(ev):
+        import random
+        propVal.append(random.randint(0, 50))
+
+    def _listBoxDelete(ev):
+        changeTriggeredByWidget[0] = True
+        del propVal[ev.idx]
+        changeTriggeredByWidget[0] = False
+
+    def _listBoxMove(ev):
+        changeTriggeredByWidget[0] = True
+        propVal.move(ev.oldIdx, ev.newIdx)
+        changeTriggeredByWidget[0] = False
+
+    def _listBoxEdit(ev):
+        changeTriggeredByWidget[0] = True
+        propVal[ev.idx] = ev.label
+        changeTriggeredByWidget[0] = False 
+
+    def _listChanged(*a):
+
+        if changeTriggeredByWidget[0]:
+            return
+        
+        sel = widget.GetSelection()
+        widget.Clear()
+        for val in propVal:
+            widget.Append('{}'.format(val))
+
+        if sel < widget.GetCount():
+            widget.SetSelection(sel)
+        else:
+            widget.SetSelection(widget.GetCount() - 1)
+
+    widget.Bind(elistbox.EVT_ELB_MOVE_EVENT,   _listBoxMove)
+    widget.Bind(elistbox.EVT_ELB_EDIT_EVENT,   _listBoxEdit)
+    widget.Bind(elistbox.EVT_ELB_REMOVE_EVENT, _listBoxDelete)
+    widget.Bind(elistbox.EVT_ELB_ADD_EVENT,    _listBoxAdd)
     
+    propVal.addListener('abbas_{}'.format(id(widget)), _listChanged)
+    
+    return widget
+
+
 def _List(parent, hasProps, propObj, propVal):
 
     if propObj.embed:
