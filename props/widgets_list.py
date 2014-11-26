@@ -247,7 +247,9 @@ def _listEmbedWidget(parent, hasProps, propObj, propVal):
     widget = elistbox.EditableListBox(
         parent,
         ['{}'.format(v) for v in propVal],
-        style=(elistbox.ELB_NO_ADD | elistbox.ELB_EDITABLE))
+        style=(elistbox.ELB_NO_ADD    |
+               elistbox.ELB_NO_REMOVE |
+               elistbox.ELB_EDITABLE))
 
     changeTriggeredByWidget = [False]
 
@@ -278,8 +280,6 @@ def _listEmbedWidget(parent, hasProps, propObj, propVal):
 
     widget.Bind(elistbox.EVT_ELB_MOVE_EVENT,   _listBoxMove)
     widget.Bind(elistbox.EVT_ELB_EDIT_EVENT,   _listBoxEdit)
-    widget.Bind(elistbox.EVT_ELB_REMOVE_EVENT, _listBoxDelete)
-    widget.Bind(elistbox.EVT_ELB_ADD_EVENT,    _listBoxAdd)
     
     propVal.addListener('widgets_list_py_{}'.format(id(widget)), _listChanged)
     
