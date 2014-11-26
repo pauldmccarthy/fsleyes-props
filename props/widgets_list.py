@@ -16,6 +16,8 @@ import widgets
 
 import pwidgets.elistbox as elistbox
 
+import props
+
 
 def _pasteDataDialog(parent, hasProps, propObj):
     """Displays a dialog containing an editable text field, allowing the
@@ -234,30 +236,20 @@ def _listDialogWidget(parent, hasProps, propObj, propVal):
     return panel
 
 
-class ListPropListBox(wx.Panel):
-
-    def __init__(self, parent, hasProps, propObj, propVal):
-        pass
-    pass
-
-
 def _listEmbedWidget(parent, hasProps, propObj, propVal):
 
+    if not isinstance(propObj._listType, (props.String,
+                                          props.Int,
+                                          props.Real)):
+        raise RuntimeError('Unsupported property '
+                           'type: {}'.format(propObj.__class__))
+    
     widget = elistbox.EditableListBox(
         parent,
         ['{}'.format(v) for v in propVal],
-        style=(elistbox.ELB_REVERSE | elistbox.ELB_EDITABLE))
+        style=(elistbox.ELB_NO_ADD | elistbox.ELB_EDITABLE))
 
     changeTriggeredByWidget = [False]
-
-    def _listBoxAdd(ev):
-        import random
-        propVal.append(random.randint(0, 50))
-
-    def _listBoxDelete(ev):
-        changeTriggeredByWidget[0] = True
-        del propVal[ev.idx]
-        changeTriggeredByWidget[0] = False
 
     def _listBoxMove(ev):
         changeTriggeredByWidget[0] = True
@@ -289,7 +281,7 @@ def _listEmbedWidget(parent, hasProps, propObj, propVal):
     widget.Bind(elistbox.EVT_ELB_REMOVE_EVENT, _listBoxDelete)
     widget.Bind(elistbox.EVT_ELB_ADD_EVENT,    _listBoxAdd)
     
-    propVal.addListener('abbas_{}'.format(id(widget)), _listChanged)
+    propVal.addListener('widgets_list_py_{}'.format(id(widget)), _listChanged)
     
     return widget
 
