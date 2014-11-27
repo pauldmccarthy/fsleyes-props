@@ -9,11 +9,17 @@
 :class:`~props.properties.HasProperties` class to allow properties from
 different instances to be bound to each other.
 
+The logic defined in this module is separated purely to keep the
+:mod:`props.properties` and :mod:`props.properties_value` module file sizes
+down.
+
 The :func:`bindProps`, :func:`unbindProps`, and :func:`isBound` functions
 defined in this module are added (monkey-patched) as methods of the
-:class:`~props.properties.HasProperties` class - the logic defined in this
-module is separated purely to keep the :mod:`props.properties` module file
-size down.
+:class:`~props.properties.HasProperties` class.
+
+The :func:`notify` and :func:`notifyAttributeListeners` functions replace
+the :class:`~props.properties_value.PropertyValue` methods of the same
+names.
 """
 
 
@@ -172,14 +178,23 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
 
         propValMap[myItem] = otherItem
 
+    # This mapping is stored on the PVL objects,
+    # and used by the _syncListPropVals function
     setattr(myPropVal,    '_{}_propValMap'.format(id(otherPropVal)), propValMap)
     setattr(otherPropVal, '_{}_propValMap'.format(id(myPropVal)),    propValMap)
 
+    # When a master list is synchronised to a slave list,
+    # it stores the slave list ID in the _syncing set.
+    # 
+    # The _syncing set is checked before starting a
+    # sync, so that the slave list is not synchronised
+    # back to the master list during the sync.
+    # See the notify function below.
+    myPropVal   ._syncing = set()
+    otherPropVal._syncing = set()
+
     # Bind list-level attributes between
-    # the PropertyValueList objects -
-    # we manually add a list-level value
-    # listener below, which deals with
-    # list additiosn/removals/reorderings
+    # the PropertyValueList objects
     _bindPropVals(myPropVal, otherPropVal, unbind=unbind)
 
 
@@ -218,13 +233,12 @@ def _bindPropVals(myPropVal,
             myBoundAttPropVals   .add(other)
             otherBoundAttPropVals.add(mine) 
 
-    mine.boundPropVals     = myBoundPropVals
-    mine.boundAttPropVals  = myBoundAttPropVals
+    mine .boundPropVals    = myBoundPropVals
+    mine .boundAttPropVals = myBoundAttPropVals
     other.boundPropVals    = otherBoundPropVals
     other.boundAttPropVals = otherBoundAttPropVals
 
-
-
+    
 def _syncPropValLists(masterList, slaveList):
     """Called when one of a pair of bound
     :class:`~props.properties_value.PropertyValueList` instances changes.
@@ -233,12 +247,10 @@ def _syncPropValLists(masterList, slaveList):
     removal, or a re-ordering) to the ``slaveList``.
     """
 
-    if masterList == slaveList:
-        return False
-
     propValMap = getattr(masterList, '_{}_propValMap'.format(id(slaveList)))
 
-    # This flag will be set to False if it turns
+    # This flag (used as the return value of this
+    # function) will be set to False if it turns
     # out that the list change which triggered
     # the call to this function was a change to
     # an individual value in the list (which is
@@ -263,9 +275,11 @@ def _syncPropValLists(masterList, slaveList):
                 # add a new value to the slave list
                 slaveList.insert(i, mpv.get())
 
+                # retrieve the corresponding PV
+                # object that was created by
+                # the slave list
                 spvs = slaveList.getPropertyValueList()
-
-                spv = spvs[i]
+                spv  = spvs[i]
 
                 # register a mapping between the
                 # new master and slave PV objects
@@ -332,17 +346,26 @@ def _syncPropValLists(masterList, slaveList):
     return slaveListChanged
 
 
-def _propValNotify(self):
+def notify(self):
     """
     """
+    
     boundPropVals = self.__dict__.get('boundPropVals', [])
     
     if isinstance(self, properties_value.PropertyValueList):
         for i, bpv in enumerate(boundPropVals):
 
+            # lists already contain the same value,
+            # or the other list is already in the
+            # process of syncing to this list
+            if (self == bpv) or self in bpv._syncing:
+                continue
+
+            self._syncing.add(bpv)
             bpv.disableNotification()
             bpvChanged = _syncPropValLists(self, bpv)
             bpv.enableNotification()
+            self._syncing.remove(bpv)
 
             if bpvChanged:
                 bpv.notify()
@@ -354,17 +377,17 @@ def _propValNotify(self):
             bpv.set(self.get())
             bpv.notify()
 
-    self._monkeyed_notify()
+    self._orig_notify()
 
 
-def _propValNotifyAttributeListeners(self, name, value):
+def notifyAttributeListeners(self, name, value):
     
     boundPropVals = self.__dict__.get('boundAttPropVals', [])
     
     for bpv in boundPropVals:
         bpv.setAttribute(name, value)
 
-    self._monkeyed_notifyAttributeListeners(name, value)
+    self._orig_notifyAttributeListeners(name, value)
 
                          
 # Patch the HasPropertyies and PropertyValue
@@ -372,11 +395,11 @@ properties.HasProperties.bindProps   = bindProps
 properties.HasProperties.unbindProps = unbindProps
 properties.HasProperties.isBound     = isBound
 
-properties_value.PropertyValue._monkeyed_notify = \
+properties_value.PropertyValue._orig_notify = \
     properties_value.PropertyValue.notify
-properties_value.PropertyValue._monkeyed_notifyAttributeListeners = \
+properties_value.PropertyValue._orig_notifyAttributeListeners = \
     properties_value.PropertyValue._notifyAttributeListeners
 
-properties_value.PropertyValue.notify                    = _propValNotify
+properties_value.PropertyValue.notify                    = notify
 properties_value.PropertyValue._notifyAttributeListeners = \
-    _propValNotifyAttributeListeners
+    notifyAttributeListeners
