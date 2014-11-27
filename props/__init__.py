@@ -135,10 +135,10 @@ log = logging.getLogger(__name__)
 # Allow access to the individual properties
 # modules for internal/advanced/dangerous usage.
 import properties
-import bindable
-import syncable
 import properties_value
 import properties_types
+import bindable
+import syncable
 import cli
 import build_parts
 

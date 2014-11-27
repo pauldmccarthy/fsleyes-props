@@ -134,6 +134,17 @@ class PropertyValue(object):
         self.__notification      = True
 
 
+    def __repr__(self):
+        """Returns a string representation of this PropertyValue object."""
+        
+        return 'PV({})'.format(self.__value)
+
+
+    def __str__(self):
+        """Returns a string representation of this PropertyValue object."""
+        return self.__repr__()
+
+
     def __eq__(self, other):
         """Returns ``True`` if the given object has the same value as this
         instance. Returns ``False`` otherwise.
@@ -417,7 +428,7 @@ class PropertyValue(object):
 
         if not self.__notification: return
         
-        value        = self.__value
+        value        = self.get()
         valid        = self.__valid
         allListeners = []
 
@@ -596,8 +607,21 @@ class PropertyValueList(PropertyValue):
         
         if listAttributes is None: listAttributes = {}
 
-        if itemEqualityFunc is None:
-            itemEqualityFunc = lambda a, b: a == b
+        def itemEquals(a, b):
+            if isinstance(a, PropertyValue): a = a.get()
+            if isinstance(b, PropertyValue): b = b.get()
+
+            if itemEqualityFunc is not None: return itemEqualityFunc(a, b)
+            else:                            return a == b
+
+        listValid = None
+        if listValidateFunc is not None:
+            def listValid(ctx, atts, value):
+                value = list(value)
+                for i, v in enumerate(value):
+                    if isinstance(v, PropertyValue):
+                        value[i] = v.get()
+                return listValidateFunc(ctx, atts, value)
 
         # The list as a whole must be allowed to contain
         # invalid values because, if an individual
@@ -609,10 +633,9 @@ class PropertyValueList(PropertyValue):
             self,
             context,
             name=name,
-            value=values,
             allowInvalid=True,
             equalityFunc=self._listEquality,
-            validateFunc=listValidateFunc,
+            validateFunc=listValid,
             preNotifyFunc=preNotifyFunc,
             postNotifyFunc=postNotifyFunc,
             **listAttributes)
@@ -621,19 +644,20 @@ class PropertyValueList(PropertyValue):
         # constructor whenever a new item is added to the list
         self._itemCastFunc     = itemCastFunc
         self._itemValidateFunc = itemValidateFunc
-        self._itemEqualityFunc = itemEqualityFunc
+        self._itemEqualityFunc = itemEquals
         self._itemAllowInvalid = itemAllowInvalid
         self._itemAttributes   = itemAttributes
-        
+            
         # The list of PropertyValue objects.
-        if values is not None: self.__propVals = map(self.__newItem, values)
-        else:                  self.__propVals = []
+        if values is not None: values = map(self.__newItem, values)
+        else:                  values = []
 
-        
+        PropertyValue.set(self, values)
+
+
     def __eq__(self, other):
-        """Retuns ``True`` if the given object is a :class:`PropertyValueList`
-        instance, and it contains the same values as this instance, ``False``
-        otherwise.
+        """Retuns ``True`` if the given object contains the same values as
+        this instance, ``False`` otherwise.
         """
 
         return self._listEquality(self[:], other[:])
@@ -652,7 +676,7 @@ class PropertyValueList(PropertyValue):
         access to the :class:`PropertyValue` objects which manage each list
         item.
         """
-        return list(self.__propVals)
+        return list(PropertyValue.get(self))
  
         
     def get(self):
@@ -662,7 +686,7 @@ class PropertyValueList(PropertyValue):
         return self
 
 
-    def set(self, newValues, recreate=True):
+    def set(self, newValues):
         """Overrides :meth:`PropertyValue.set`.
 
         Sets the values stored in this :class:`PropertyValueList`.  If the
@@ -672,24 +696,16 @@ class PropertyValueList(PropertyValue):
         use only.
         """
 
+        if len(newValues) != len(self):
+            raise ValueError('Lengths don\'t match')
+
         if self._itemCastFunc is not None:
             newValues = map(lambda v: self._itemCastFunc(
                 self._context,
                 self._itemAttributes,
                 v), newValues)
-        PropertyValue.set(self, newValues)
 
-        if recreate: 
-            self.__propVals = map(self.__newItem, newValues)
-
-
-    def revalidate(self):
-        """Overrides :meth:`PropertyValue.revalidate`.
-
-        Revalidates the values in this list, ensuring that the corresponding
-        :class:`PropertyValue` objects are not recreated.
-        """
-        self.set(PropertyValue.get(self), False)
+        self[:] = newValues
 
         
     def __newItem(self, item):
@@ -700,24 +716,21 @@ class PropertyValueList(PropertyValue):
         if self._itemAttributes is None: itemAtts = {}
         else:                            itemAtts = self._itemAttributes
 
+        # When a PropertyValue item value changes,
+        # notify the list-level listeners
+        def postNotify(value, *a):
+            self.notify()
+
         propVal = PropertyValue(
             self._context,
             name='{}_Item'.format(self._name),
             value=item,
             castFunc=self._itemCastFunc,
             allowInvalid=self._itemAllowInvalid,
+            postNotifyFunc=postNotify,
             equalityFunc=self._itemEqualityFunc,
             validateFunc=self._itemValidateFunc,
             **itemAtts)
-
-        # When a PropertyValue item value changes,
-        # sync the list values with it if necessary.
-        def postNotify(value, *a):
-            idx   = self.__propVals.index(propVal)
-            equal = self._itemEqualityFunc(self[idx], value)
-            if not equal: self[idx] = value
-            
-        propVal._postNotifyFunc = postNotify
 
         # Attribute listeners on the list object are
         # notified of changes to item attributes
@@ -728,9 +741,10 @@ class PropertyValueList(PropertyValue):
         
         return propVal
 
-
+    
     def __getitem__(self, key):
-        return PropertyValue.get(self).__getitem__(key)
+        vals = [pv.get() for pv in PropertyValue.get(self)]
+        return vals.__getitem__(key)
 
     def __len__(     self):        return self[:].__len__()
     def __repr__(    self):        return self[:].__repr__()
@@ -740,118 +754,56 @@ class PropertyValueList(PropertyValue):
     def index(       self, item):  return self[:].index(item)
     def count(       self, item):  return self[:].count(item)
 
-
-    def __applySet(self, listVals, propVals, recreate):
-        """This method is used by all of the public methods, defined below,
-        which modify the list (add, remove or reorder list items).
-        
-        An attempt is made to set the list values to the given ``listVals``,
-        and property values to the given ``propVals`` lists. If the first
-        step fails, the property value list is reverted to its previous
-        state.
-
-        :arg listVals: List of new values
-        
-        :arg propVals: List of new PropertyValue objects
-        
-        :arg recreate: See :meth:`set`.
-        """
-
-        # We set __propVals before setting the list values,
-        # so that any listeners registered on this PVL will
-        # see the updated property value list (as returned
-        # by the getPropertyValueList method).
-        oldPropVals     = self.__propVals
-        self.__propVals = propVals
-
-        try:
-            self.set(listVals, recreate)
-        except:
-            self.__propVals = oldPropVals
-            raise 
-
     
     def insert(self, index, item):
         """Inserts the given item before the given index. """
         
-        listVals   = self[:]
-        propVals   = self.__propVals[:]
-        newPropVal = self.__newItem(item)
-        
-        listVals.insert(index, item)
-        propVals.insert(index, newPropVal) 
-
-        self.__applySet(listVals, propVals, False)
+        propVals = self.getPropertyValueList()
+        propVals.insert(index, self.__newItem(item)) 
+        PropertyValue.set(self, propVals)
 
         
     def insertAll(self, index, items):
         """Inserts all of the given items before the given index."""
-        
-        listVals    = self[:]
-        propVals    = self.__propVals[:]
-        newPropVals = map(self.__newItem, items) 
-        
-        listVals[index:index] = items
-        propVals[index:index] = newPropVals
-        
-        self.__applySet(listVals, propVals, False)
+
+        propVals = self.getPropertyValueList()
+        propVals[index:index] = map(self.__newItem, items) 
+        PropertyValue.set(self, propVals)
 
         
     def append(self, item):
         """Appends the given item to the end of the list."""
 
-        listVals   = self[:]
-        propVals   = self.__propVals[:]
-        newPropVal = self.__newItem(item)
-        
-        listVals.append(item)
-        propVals.append(newPropVal)
-        
-        self.__applySet(listVals, propVals, False)
+        propVals = self.getPropertyValueList()
+        propVals.append(self.__newItem(item))
+        PropertyValue.get(self, propVals)
 
 
     def extend(self, iterable):
         """Appends all items in the given iterable to the end of the list."""
-        
-        listVals    = self[:]
-        propVals    = self.__propVals[:]
-        newPropVals = map(self.__newItem, iterable)
-        
-        listVals.extend(iterable)
-        propVals.extend(newPropVals)
-        
-        self.__applySet(listVals, propVals, False) 
+
+        propVals = self.getPropertyValueList()
+        propVals.extend(map(self.__newItem, iterable))
+        PropertyValue.set(self, propVals)
 
         
     def pop(self, index=-1):
         """Remove and return the specified value in the list (default:
         last).
         """
-        
-        listVals = self[:]
-        propVals = self.__propVals[:]
-        
-        listVals                .pop(index)
-        poppedPropVal = propVals.pop(index)
-        
-        self.__applySet(listVals, propVals, False)
 
+        propVals      = self.getPropertyValueList()
+        poppedPropVal = propVals.pop(index)
+        PropertyValue.set(self, propVals)
         return poppedPropVal.get()
 
 
     def move(self, from_, to):
         """Move the item from 'from\_' to 'to'."""
 
-        listVals = self[:]
-        propVals = self.__propVals[:]
-        
-        movedVal     = listVals.pop(from_)
-        movedPropVal = propVals.pop(from_)
-        
-        listVals.insert(to, movedVal)
-        propVals.insert(to, movedPropVal)
-        
-        self.__applySet(listVals, propVals, False)
+        propVals = self.getPropertyValueList()
+        propVals.insert(to, propVals.pop(from_))
+        PropertyValue.set(self, propVals)
 
     
     def remove(self, value):
@@ -866,15 +818,13 @@ class PropertyValueList(PropertyValue):
         values.
         """
         
-        listVals = self[:]
-        propVals = self.__propVals[:]
+        propVals = self.getPropertyValueList()
+        listVals = [pv.get() for pv in propVals]
         
         for v in values:
-            idx = listVals.index(v)
-            listVals.pop(idx)
-            propVals.pop(idx)
+            propVals.pop(listVals.index(v))
             
-        self.__applySet(listVals, propVals, False)
+        PropertyValue.set(self, propVals)
 
         
     def reorder(self, idxs):
@@ -888,13 +838,10 @@ class PropertyValueList(PropertyValue):
         if idxs == range(len(self)):
             return
 
-        listVals = self[:]
-        propVals = self.__propVals[:]
-
-        listVals = [listVals[i] for i in idxs]
+        propVals = self.getPropertyValueList()
         propVals = [propVals[i] for i in idxs]
         
-        self.__applySet(listVals, propVals, False)
+        PropertyValue.set(self, propVals)
 
 
     def __setitem__(self, key, values):
@@ -913,46 +860,31 @@ class PropertyValueList(PropertyValue):
             raise IndexError('Invalid key type')
 
         # prepare the new values
-        oldVals = self[:]
-        newVals = oldVals[:]
+        propVals    = self.getPropertyValueList()
+        oldVals     = [pv.get() for pv in propVals]
+        changedVals = [False] * len(self)
 
-        # Reverts the values of all PropertyValue list
-        # items in the event that the set fails (e.g.
-        # due to an invalid value at either the list
-        # level or the item level)
-        def revert():
-            for idx in indices:
-                self.__propVals[idx].set(oldVals[idx])
-        
         for idx, val in zip(indices, values):
 
-            propVal = self.__propVals[idx]
-            newVal  = propVal._castFunc(propVal._context,
-                                        propVal._attributes,
-                                        val)
-            newVals[idx] = newVal
+            propVal = propVals[idx]
 
-            try:
-                propVal.set(newVal)
-            except:
-                revert()
-                raise
+            propVal.disableNotification()
+            propVal.set(val)
+            changedVals[idx] = propVal.get() != oldVals[idx]
 
-        # set the list values
-        try:
-            self.set(newVals, False)
-        except:
-            revert()
-            raise
+        for idx in indices:
+            propVals[idx].enableNotification()
+
+            if changedVals[idx]:
+                propVals[idx].notify()
+
+        if any(changedVals):
+            self.notify()
 
         
     def __delitem__(self, key):
         """Remove items at the specified index/slice from the list."""
         
-        listVals = self[:]
-        propVals = self.__propVals[:]
-        
-        listVals.__delitem__(key)
+        propVals = PropertyValue.get(self)
         propVals.__delitem__(key)
-        
-        self.__applySet(listVals, propVals, False)
+        PropertyValue.set(self, propVals)

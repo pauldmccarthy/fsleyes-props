@@ -10,14 +10,15 @@
 different instances to be bound to each other.
 
 The :func:`bindProps`, :func:`unbindProps`, and :func:`isBound` functions
-defined in this module are added as methods of the
+defined in this module are added (monkey-patched) as methods of the
 :class:`~props.properties.HasProperties` class - the logic defined in this
 module is separated purely to keep the :mod:`props.properties` module file
 size down.
 """
 
 
-import properties as props
+import properties
+import properties_value
 
 
 class Bidict(object):
@@ -74,7 +75,7 @@ def bindProps(self, propName, other, otherPropName=None, unbind=False):
         raise ValueError('Properties must be of the '
                          'same type to be bound')
 
-    if isinstance(myProp, props.ListPropertyBase):
+    if isinstance(myProp, properties.ListPropertyBase):
         _bindListProps(self, myProp, other, otherProp, unbind)
     else:
         _bindProps(self, myProp, other, otherProp, unbind)
@@ -99,16 +100,11 @@ def isBound(self, propName, other, otherPropName=None):
     myPropVal    = myProp   .getPropVal(self)
     otherPropVal = otherProp.getPropVal(other)
 
-    myPropName    = myProp   .getLabel(self)
-    otherPropName = otherProp.getLabel(other)
+    myBoundPropVals    = myPropVal   .__dict__.get('boundPropVals', set())
+    otherBoundPropVals = otherPropVal.__dict__.get('boundPropVals', set())
 
-    myName, otherName = _makeBindingNames(self,
-                                          other,
-                                          myPropName,
-                                          otherPropName)
-    
-    return myPropVal   .hasListener(myName) and \
-           otherPropVal.hasListener(otherName)
+    return (otherPropVal in myBoundPropVals and
+            myPropVal    in otherBoundPropVals)
     
 
 def _bindProps(self, myProp, other, otherProp, unbind=False):
@@ -131,14 +127,8 @@ def _bindProps(self, myProp, other, otherProp, unbind=False):
 
     myPropVal    = myProp   .getPropVal(self)
     otherPropVal = otherProp.getPropVal(other)
-
-    _bindPropVals(self,
-                  other,
-                  myPropVal,
-                  otherPropVal,
-                  myProp.getLabel(self),
-                  otherProp.getLabel(other),
-                  unbind=unbind)
+    myPropVal.set(otherPropVal.get())
+    _bindPropVals(myPropVal, otherPropVal, unbind=unbind)
 
 
 def _bindListProps(self, myProp, other, otherProp, unbind=False):
@@ -175,82 +165,78 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
     myPropValList    = myPropVal   .getPropertyValueList()
     otherPropValList = otherPropVal.getPropertyValueList()
     propValMap       = Bidict()
+    
     for myItem, otherItem in zip(myPropValList, otherPropValList):
-        _bindPropVals(self,
-                      other,
-                      myItem,
-                      otherItem,
-                      '{}_Item'.format(myProp.getLabel(self)),
-                      '{}_Item'.format(otherProp.getLabel(other)),
-                      unbind=unbind)
+        myItem.set(otherItem.get())
+        _bindPropVals(myItem, otherItem, unbind=unbind)
 
-        propValMap[id(myItem)] = id(otherItem)
+        propValMap[myItem] = otherItem
+
+    setattr(myPropVal,    '_{}_propValMap'.format(id(otherPropVal)), propValMap)
+    setattr(otherPropVal, '_{}_propValMap'.format(id(myPropVal)),    propValMap)
 
     # Bind list-level attributes between
     # the PropertyValueList objects -
     # we manually add a list-level value
     # listener below, which deals with
     # list additiosn/removals/reorderings
-    _bindPropVals(self,
-                  other,
-                  myPropVal,
+    _bindPropVals(myPropVal, otherPropVal, unbind=unbind)
+
+
+def _bindPropVals(myPropVal,
                   otherPropVal,
-                  myProp.getLabel(self),
-                  otherProp.getLabel(other),
-                  val=False,
-                  unbind=unbind)
+                  val=True,
+                  att=True,
+                  unbind=False):
+    """Binds two :class:`~props.properties_value.PropertyValue`
+    instances together such that when the value of one changes,
+    the other is changed. Attributes are also bound between the
+    two instances.
+    """
 
-    # As promised - register listeners on each
-    # PropertyValueList to synchronise list
-    # additions, deletions, and re-orderings
-    myName, otherName = _makeBindingNames(self,
-                                          other,
-                                          myProp.getLabel(self),
-                                          otherProp.getLabel(other))
+    mine  = myPropVal
+    other = otherPropVal
 
-    def listChange(myListChanged, *a):
-        _boundListChanged(self,
-                          myProp,
-                          other,
-                          otherProp,
-                          myPropVal,
-                          otherPropVal,
-                          myListChanged,
-                          propValMap,
-                          *a)        
+    myBoundPropVals       = mine .__dict__.get('boundPropVals',    set())
+    myBoundAttPropVals    = mine .__dict__.get('boundAttPropVals', set())
+    otherBoundPropVals    = other.__dict__.get('boundPropVals',    set())
+    otherBoundAttPropVals = other.__dict__.get('boundAttPropVals', set()) 
 
-    if not unbind:
-        myPropVal   .addListener(myName,    lambda *a: listChange(True,  *a))
-        otherPropVal.addListener(otherName, lambda *a: listChange(False, *a))
-    else:
-        myPropVal   .removeListener(myName)
-        otherPropVal.removeListener(otherName)
+    if val:
+        if unbind:
+            myBoundPropVals   .remove(other)
+            otherBoundPropVals.remove(mine)
+        else:
+            myBoundPropVals   .add(other)
+            otherBoundPropVals.add(mine) 
+        
+    if att:
+        if unbind:
+            myBoundAttPropVals   .remove(other)
+            otherBoundAttPropVals.remove(mine)
+        else:
+            myBoundAttPropVals   .add(other)
+            otherBoundAttPropVals.add(mine) 
+
+    mine.boundPropVals     = myBoundPropVals
+    mine.boundAttPropVals  = myBoundAttPropVals
+    other.boundPropVals    = otherBoundPropVals
+    other.boundAttPropVals = otherBoundAttPropVals
 
 
-def _boundListChanged(self,
-                      myProp,
-                      other,
-                      otherProp,
-                      myList,
-                      otherList,
-                      myListChanged,
-                      propValMap,
-                      *a):
+
+def _syncPropValLists(masterList, slaveList):
     """Called when one of a pair of bound
     :class:`~props.properties_value.PropertyValueList` instances changes.
     
-    Propagates the change (either an addition, a removal, or a re-ordering)
-    to the other list.
+    Propagates the change on the ``masterList`` (either an addition, a
+    removal, or a re-ordering) to the ``slaveList``.
     """
 
-    if myList == otherList:
-        return
+    if masterList == slaveList:
+        return False
 
-    # The masterList is the list which has
-    # changed, and the slaveList is the list
-    # which needs to be synced to the master
-    if myListChanged: masterList, slaveList = myList, otherList
-    else:             masterList, slaveList = otherList, myList
+    propValMap = getattr(masterList, '_{}_propValMap'.format(id(slaveList)))
 
     # This flag will be set to False if it turns
     # out that the list change which triggered
@@ -258,7 +244,6 @@ def _boundListChanged(self,
     # an individual value in the list (which is
     # not handled by this callback)
     slaveListChanged = True
-    slaveList.disableNotification()
     
     # one or more items have been
     # added to the master list
@@ -269,33 +254,31 @@ def _boundListChanged(self,
         # a paired PV object in the slave list
         for i, mpv in enumerate(masterList.getPropertyValueList()):
 
-            spvid = propValMap.get(id(mpv), None)
+            spv = propValMap.get(mpv, None)
 
             # we've found a value in the master
             # list which is not in the slave list
-            if spvid is None:
+            if spv is None:
 
                 # add a new value to the slave list
                 slaveList.insert(i, mpv.get())
-                spv = slaveList.getPropertyValueList()[i]
+
+                spvs = slaveList.getPropertyValueList()
+
+                spv = spvs[i]
 
                 # register a mapping between the
                 # new master and slave PV objects
-                propValMap[id(mpv)] = id(spv)
+                propValMap[mpv] = spv
 
                 # Bind the two new PV objects
-                _bindPropVals(self,
-                              other,
-                              mpv,
-                              spv,
-                              '{}_Item'.format(myProp.getLabel(self)),
-                              '{}_Item'.format(otherProp.getLabel(other)))
+                _bindPropVals(mpv, spv)
 
     # one or more items have been
     # removed from the master list
     elif len(masterList) < len(slaveList):
 
-        mpvIds = map(id, masterList.getPropertyValueList())
+        mpvs = masterList.getPropertyValueList()
         
         # Loop through the PV objects in the slave
         # list, and check to see if their mapped
@@ -308,22 +291,22 @@ def _boundListChanged(self,
 
             # If this raises an error, there's a bug
             # in somebody's code ... probably mine.
-            mpvid = propValMap[id(spv)]
+            mpv = propValMap[spv]
 
             # we've found a value in the slave list
             # which is no longer in the master list 
-            if mpvid not in mpvIds:
+            if mpv not in mpvs:
 
                 # Delete the item from the slave
                 # list, and delete the PV mapping
                 del slaveList[ i]
-                del propValMap[mpvid]
+                del propValMap[mpv]
                 
     # list re-order (or individual value
     # change, which we don't care about)
     else:
         
-        mpvIds   = map(id, masterList.getPropertyValueList())
+        mpvs     = masterList.getPropertyValueList()
         newOrder = []
 
         # loop through the PV objects in the slave list,
@@ -331,8 +314,8 @@ def _boundListChanged(self,
         # PV objects in the master list
         for i, spv in enumerate(slaveList.getPropertyValueList()):
 
-            mpvid = propValMap[id(spv)]
-            newOrder.append(mpvIds.index(mpvid))
+            mpv = propValMap[spv]
+            newOrder.append(mpvs.index(mpv))
 
         # If the master list order has been
         # changed, re-order the slave list
@@ -346,80 +329,54 @@ def _boundListChanged(self,
         # care about
         else: slaveListChanged = False
 
-    # Force notification on the slave
-    # list if it has been changed
-    slaveList.enableNotification()
-    if slaveListChanged:
-        slaveList.notify()
-
-        
-def _makeBindingNames(self, other, myPropName, otherPropName):
-    """Generates property listener names for binding."""
-    
-    myName    = 'bindProps_{}_{}_{}_{}'.format(myPropName,
-                                               otherPropName,
-                                               id(self),
-                                               id(other))
-    otherName = 'bindProps_{}_{}_{}_{}'.format(otherPropName,
-                                               myPropName,
-                                               id(other),
-                                               id(self))
-    return myName, otherName
+    return slaveListChanged
 
 
-def _bindPropVals(self,
-                  other,
-                  myPropVal,
-                  otherPropVal,
-                  myPropName,
-                  otherPropName,
-                  val=True,
-                  att=True,
-                  unbind=False):
-    """Binds two :class:`~props.properties_value.PropertyValue`
-    instances together such that when the value of one changes,
-    the other is changed. Attributes are also bound between the
-    two instances.
+def _propValNotify(self):
     """
+    """
+    boundPropVals = self.__dict__.get('boundPropVals', [])
+    
+    if isinstance(self, properties_value.PropertyValueList):
+        for i, bpv in enumerate(boundPropVals):
 
-    myName, otherName = _makeBindingNames(self,
-                                          other,
-                                          myPropName,
-                                          otherPropName)
+            bpv.disableNotification()
+            bpvChanged = _syncPropValLists(self, bpv)
+            bpv.enableNotification()
 
-    # If val is true, bind the property values
-    if val:
-        myPropVal.set(otherPropVal.get())
+            if bpvChanged:
+                bpv.notify()
+    else:
+        for bpv in boundPropVals:
 
-        def onVal(slave, value, *a):
-            if slave.get() != value:
-                slave.set(value)
+            if self == bpv: continue
 
-        if not unbind:
-            myPropVal.addListener(
-                myName, lambda *a: onVal(otherPropVal, *a))
-            otherPropVal.addListener(
-                otherName, lambda *a: onVal(myPropVal, *a))
-        else:
-            myPropVal   .removeListener(myName)
-            otherPropVal.removeListener(otherName) 
+            bpv.set(self.get())
+            bpv.notify()
 
-    # If att is true, bind the property attributes
-    if att:
-        myPropVal.setAttributes(otherPropVal.getAttributes()) 
+    self._monkeyed_notify()
 
-        def onAtt(slave, ctx, attName, value):
-            slave.setAttribute(attName, value)
-        
-        if not unbind:
-            myPropVal.addAttributeListener(
-                myName, lambda *a: onAtt(otherPropVal, *a))
-            otherPropVal.addAttributeListener(
-                otherName, lambda *a: onAtt(myPropVal, *a))
-        else:
-            myPropVal   .removeAttributeListener(myName)
-            otherPropVal.removeAttributeListener(otherName)
 
-props.HasProperties.bindProps   = bindProps
-props.HasProperties.unbindProps = unbindProps
-props.HasProperties.isBound     = isBound
+def _propValNotifyAttributeListeners(self, name, value):
+    
+    boundPropVals = self.__dict__.get('boundAttPropVals', [])
+    
+    for bpv in boundPropVals:
+        bpv.setAttribute(name, value)
+
+    self._monkeyed_notifyAttributeListeners(name, value)
+
+                         
+# Patch the HasPropertyies and PropertyValue
+properties.HasProperties.bindProps   = bindProps
+properties.HasProperties.unbindProps = unbindProps
+properties.HasProperties.isBound     = isBound
+
+properties_value.PropertyValue._monkeyed_notify = \
+    properties_value.PropertyValue.notify
+properties_value.PropertyValue._monkeyed_notifyAttributeListeners = \
+    properties_value.PropertyValue._notifyAttributeListeners
+
+properties_value.PropertyValue.notify                    = _propValNotify
+properties_value.PropertyValue._notifyAttributeListeners = \
+    _propValNotifyAttributeListeners
