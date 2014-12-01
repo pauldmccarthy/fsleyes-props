@@ -23,6 +23,8 @@ import traceback
 
 from collections import OrderedDict
 
+import callqueue
+
 log = logging.getLogger(__name__)
 
 class PropertyValue(object):
@@ -126,7 +128,7 @@ class PropertyValue(object):
         self._attributes         = attributes.copy()
         self._changeListeners    = OrderedDict()
         self._attributeListeners = OrderedDict()
-        
+
         self.__value             = value
         self.__valid             = False
         self.__lastValue         = None
@@ -253,18 +255,16 @@ class PropertyValue(object):
         """
 
         if not self.__notification: return
+
+        attListeners = []
+        args         = (self._context, name, value)
+        desc         = '{}.{}'.format(self._context.__class__.__name__,
+                                      self._name) 
         
         for cbName, cb in self._attributeListeners.items():
-            
-            log.debug('Notifying attribute listener: {}'.format(cbName))
+            attListeners.append(('{} ({})'.format(cbName, desc), cb, args))
 
-            try:
-                cb(self._context, name, value)
-            except Exception as e:
-                log.warn('Attribute listener {} on {} raised '
-                         'exception: {}'.format(cbName, self._name, e),
-                         exc_info=True)
-                traceback.print_stack()
+        callqueue.queue.callAll(attListeners)
         
         
     def addListener(self, name, callback, overwrite=False):
@@ -432,34 +432,29 @@ class PropertyValue(object):
         valid        = self.__valid
         allListeners = []
 
+        args         = (value, valid, self._context)
+        desc         = '{}.{}'.format(self._context.__class__.__name__,
+                                      self._name)
+
         # Call prenotify first
         if self._preNotifyFunc is not None:
-            allListeners.append(('PreNotify', self._preNotifyFunc))
+            allListeners.append(('PreNotify ({})'.format(desc),
+                                 self._preNotifyFunc,
+                                 args))
 
         # registered listeners second
-        allListeners.extend(self._changeListeners.items())
+        for name, listener in self._changeListeners.items():
+            allListeners.append(('{} ({})'.format(name, desc),
+                                 listener,
+                                 args))
 
-        # and postnotify last
+        # And postnotify last
         if self._postNotifyFunc is not None:
-            allListeners.append(('PostNotify', self._postNotifyFunc))
+            allListeners.append(('PostNotify ({})'.format(desc),
+                                 self._postNotifyFunc,
+                                 args)) 
 
-        for name, listener in allListeners:
-
-            log.debug('Calling listener {} for {}.{}'.format(
-                name,
-                self._context.__class__.__name__,
-                self._name))
-
-            try: listener(value, valid, self._context)
-            except Exception as e:
-                log.warn('Listener {} on {}.{} raised '
-                         'exception: {}'.format(
-                             name,
-                             self._context.__class__.__name__,
-                             self._name,
-                             e),
-                         exc_info=True)
-                traceback.print_stack()
+        callqueue.queue.callAll(allListeners)
 
 
     def revalidate(self):
@@ -716,18 +711,13 @@ class PropertyValueList(PropertyValue):
         if self._itemAttributes is None: itemAtts = {}
         else:                            itemAtts = self._itemAttributes
 
-        # When a PropertyValue item value changes,
-        # notify the list-level listeners
-        def postNotify(value, *a):
-            self.notify()
-
         propVal = PropertyValue(
             self._context,
             name='{}_Item'.format(self._name),
             value=item,
             castFunc=self._itemCastFunc,
             allowInvalid=self._itemAllowInvalid,
-            postNotifyFunc=postNotify,
+            postNotifyFunc=self._itemChanged,
             equalityFunc=self._itemEqualityFunc,
             validateFunc=self._itemValidateFunc,
             **itemAtts)
@@ -741,6 +731,10 @@ class PropertyValueList(PropertyValue):
         
         return propVal
 
+    
+    def _itemChanged(self, *a):
+        self.notify()
+    
     
     def __getitem__(self, key):
         vals = [pv.get() for pv in PropertyValue.get(self)]
@@ -870,13 +864,17 @@ class PropertyValueList(PropertyValue):
 
             propVal.disableNotification()
             propVal.set(val)
-            changedVals[idx] = propVal.get() != oldVals[idx]
+            changedVals[idx] = not self._itemEqualityFunc(
+                propVal.get(), oldVals[idx])
 
+
+        self.disableNotification()
         for idx in indices:
             propVals[idx].enableNotification()
 
             if changedVals[idx]:
                 propVals[idx].notify()
+        self.enableNotification() 
 
         if any(changedVals):
             self.notify()
