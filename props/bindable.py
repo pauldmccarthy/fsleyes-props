@@ -365,18 +365,15 @@ def notify(self):
             bpv.disableNotification()
             bpvChanged = _syncPropValLists(self, bpv)
             bpv.enableNotification()
-            self._syncing.remove(bpv)
-
             if bpvChanged:
                 bpv.notify()
+            self._syncing.remove(bpv)
+            
     else:
         for bpv in boundPropVals:
-
             if self == bpv: continue
-
             bpv.set(self.get())
-            bpv.notify()
-
+            
     self._orig_notify()
 
 
