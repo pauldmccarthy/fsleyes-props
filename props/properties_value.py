@@ -422,17 +422,17 @@ class PropertyValue(object):
         changed = (self.__valid != self.__lastValid) or \
                   not self._equalityFunc(self.__value, self.__lastValue)
                   
-
         if not changed: return
+
+        log.debug('Value {}.{} changed: {} -> {} ({})'.format(
+            self._context.__class__.__name__,
+            self._name,
+            self.__lastValue,
+            newValue,
+            'valid' if valid else 'invalid - {}'.format(validStr)))
         
         self.__lastValue = self.__value
         self.__lastValid = self.__valid
-
-        log.debug('Value {}.{} changed: {} ({})'.format(
-            self._context.__class__.__name__,
-            self._name,
-            newValue,
-            'valid' if valid else 'invalid - {}'.format(validStr)))
 
         # Notify any registered listeners
         self.notify()

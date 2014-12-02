@@ -264,10 +264,14 @@ class PropertyBase(object):
         # against the HasProperties instance registering an 'internal' listener
         # with every property?
         #
+
+        log.debug('Revalidating all instance properties '
+                  '(due to {} change)'.format(self.getLabel(instance)))
+        
         propNames, props = instance.getAllProperties()
         for prop in props:
             if prop is not self:
-                prop.revalidate(instance) 
+                prop.revalidate(instance)
 
             
     def validate(self, instance, attributes, value):
