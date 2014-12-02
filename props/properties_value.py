@@ -117,23 +117,24 @@ class PropertyValue(object):
         if castFunc is not None: value = castFunc(context, attributes, value)
         if equalityFunc is None: equalityFunc = lambda a, b: a == b
         
-        self._context            = context
-        self._validate           = validateFunc
-        self._name               = name
-        self._equalityFunc       = equalityFunc
-        self._castFunc           = castFunc
-        self._preNotifyFunc      = preNotifyFunc
-        self._postNotifyFunc     = postNotifyFunc
-        self._allowInvalid       = allowInvalid
-        self._attributes         = attributes.copy()
-        self._changeListeners    = OrderedDict()
-        self._attributeListeners = OrderedDict()
+        self._context              = context
+        self._validate             = validateFunc
+        self._name                 = name
+        self._equalityFunc         = equalityFunc
+        self._castFunc             = castFunc
+        self._preNotifyFunc        = preNotifyFunc
+        self._postNotifyFunc       = postNotifyFunc
+        self._allowInvalid         = allowInvalid
+        self._attributes           = attributes.copy()
+        self._changeListeners      = OrderedDict()
+        self._changeListenerStates = {}
+        self._attributeListeners   = OrderedDict()
 
-        self.__value             = value
-        self.__valid             = False
-        self.__lastValue         = None
-        self.__lastValid         = False
-        self.__notification      = True
+        self.__value               = value
+        self.__valid               = False
+        self.__lastValue           = None
+        self.__lastValid           = False
+        self.__notification        = True
 
 
     def __repr__(self):
@@ -188,6 +189,16 @@ class PropertyValue(object):
     def setNotificationState(self, value):
         """Sets the current notification state."""
         self.__notification = bool(value)
+
+
+    def _saltListenerName(self, name):
+        """Adds a constant string to the given listener name.
+
+        This is done for debug output, so we can better differentiate between
+        listeners with the same name registered on different PV objects.
+
+        """
+        return 'PropertyValue_{}_{}'.format(self._name, name)
  
         
     def addAttributeListener(self, name, listener):
@@ -210,7 +221,7 @@ class PropertyValue(object):
         log.debug('Adding attribute listener on {}.{}: {}'.format(
             self._context.__class__.__name__, self._name, name))
         
-        name = 'PropertyValue_{}_{}'.format(self._name, name) 
+        name = self._saltListenerName(name)
         self._attributeListeners[name] = listener
 
         
@@ -219,7 +230,7 @@ class PropertyValue(object):
         log.debug('Removing attribute listener on {}.{}: {}'.format(
             self._context.__class__.__name__, self._name, name))
         
-        name = 'PropertyValue_{}_{}'.format(self._name, name) 
+        name = self._saltListenerName(name)
         self._attributeListeners.pop(name, None)
 
 
@@ -306,14 +317,17 @@ class PropertyValue(object):
             self._context.__class__.__name__,
             self._name,
             name))
-        fullName = 'PropertyValue_{}_{}'.format(self._name, name)
 
-        prior = self._changeListeners.get(fullName, None)
+        
+        fullName = self._saltListenerName(name)
+        prior    = self._changeListeners.get(fullName, None)
 
         if   prior is None: self._changeListeners[fullName] = callback
         elif overwrite:     self._changeListeners[fullName] = callback
         else:               raise RuntimeError('Listener {} already '
                                                'exists'.format(name))
+
+        self._changeListenerStates[fullName] = True
 
 
     def removeListener(self, name):
@@ -343,8 +357,19 @@ class PropertyValue(object):
             srcMod,
             srcLine))
 
-        name = 'PropertyValue_{}_{}'.format(self._name, name)
-        self._changeListeners.pop(name, None)
+        name = self._saltListenerName(name)
+        self._changeListeners     .pop(name, None)
+        self._changeListenerStates.pop(name, None)
+
+
+    def enableListener(self, name):
+        name = self._saltListenerName(name)
+        self._changeListenerStates[name] = True
+
+    
+    def disableListener(self, name):
+        name = self._saltListenerName(name)
+        self._changeListenerStates[name] = False
 
 
     def hasListener(self, name):
@@ -352,7 +377,7 @@ class PropertyValue(object):
         ``False`` otherwise.
         """
 
-        name = 'PropertyValue_{}_{}'.format(self._name, name)
+        name = self._saltListenerName(name)
 
         return name in self._changeListeners.keys()
 
@@ -363,6 +388,7 @@ class PropertyValue(object):
         """
         self._preNotifyFunc = preNotifyFunc
 
+        
     def setPostNotifyFunction(self, postNotifyFunc):
         """Sets the function to be called on value changes, after any
         registered listeners.
@@ -466,6 +492,10 @@ class PropertyValue(object):
 
         # registered listeners second
         for name, listener in self._changeListeners.items():
+            
+            if not self._changeListenerStates[name]:
+                continue
+            
             allListeners.append(('{} ({})'.format(name, desc),
                                  listener,
                                  args))
