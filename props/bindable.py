@@ -167,18 +167,22 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
         elif len(myPropVal) < len(otherPropVal):
             myPropVal.extend(otherPropVal[len(myPropVal):])
 
-    # Bind item level values and attributes
-    # between the two lists, and create a
-    # mapping between the PropertyValue
-    # pairs across the two lists
+    # Create a mapping between the
+    # PropertyValue pairs across
+    # the two lists
     myPropValList    = myPropVal   .getPropertyValueList()
     otherPropValList = otherPropVal.getPropertyValueList()
     propValMap       = Bidict()
-    
-    for myItem, otherItem in zip(myPropValList, otherPropValList):
-        myItem.set(otherItem.get())
-        _bindPropVals(myItem, otherItem, unbind=unbind)
 
+    # Copy item values from the master list
+    # to the slave list, and save the mapping
+    for myItem, otherItem in zip(myPropValList, otherPropValList):
+
+        # Bind attributes between PV item pairs,
+        # but not value - value change of items
+        # in a list is handled at the list level
+        _bindPropVals(myItem, otherItem, val=False, unbind=unbind)
+        myItem.set(otherItem.get())
         propValMap[myItem] = otherItem
 
     # This mapping is stored on the PVL objects,
@@ -196,8 +200,8 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
     myPropVal   ._syncing = set()
     otherPropVal._syncing = set()
 
-    # Bind list-level attributes between
-    # the PropertyValueList objects
+    # Bind list-level value/attributes
+    # between the PropertyValueList objects
     _bindPropVals(myPropVal, otherPropVal, unbind=unbind)
 
 
@@ -259,6 +263,7 @@ def _syncPropValLists(masterList, slaveList):
     # an individual value in the list (which is
     # not handled by this callback)
     slaveListChanged = True
+    propValsChanged  = []
     
     # one or more items have been
     # added to the master list
@@ -288,8 +293,9 @@ def _syncPropValLists(masterList, slaveList):
                 # new master and slave PV objects
                 propValMap[mpv] = spv
 
-                # Bind the two new PV objects
-                _bindPropVals(mpv, spv)
+                # Bind the attributes of
+                # the two new PV objects
+                _bindPropVals(mpv, spv, val=False)
 
     # one or more items have been
     # removed from the master list
@@ -319,8 +325,8 @@ def _syncPropValLists(masterList, slaveList):
                 del slaveList[ i]
                 del propValMap[mpv]
                 
-    # list re-order (or individual value
-    # change, which we don't care about)
+    # list re-order, or individual
+    # value change
     else:
         
         mpvs     = masterList.getPropertyValueList()
@@ -337,26 +343,72 @@ def _syncPropValLists(masterList, slaveList):
         # If the master list order has been
         # changed, re-order the slave list
         if newOrder != range(len(slaveList)):
-            slaveListChanged = True
             slaveList.reorder(newOrder)
 
         # The list order hasn't changed, so
         # this call must have been triggered
-        # by a value change, which we don't
-        # care about
-        else: slaveListChanged = False
+        # by a value change. Find the items
+        # which have changed, and copy the
+        # new value across to the slave list
+        # 
+        # TODO  I don't think I need to use
+        # the propValMap here, but is there
+        # any reason not to?
+        else:
+            
+            for i, (masterVal, slaveVal) in \
+              enumerate(
+                  zip(masterList.getPropertyValueList(),
+                      slaveList .getPropertyValueList())):
 
-    return slaveListChanged
+                if masterVal == slaveVal: continue
+                
+                notifState = slaveVal.getNotificationState()
+                slaveVal.disableNotification()
+ 
+                slaveVal.set(masterVal.get())
+                propValsChanged.append(i)
+                    
+                slaveVal.setNotificationState(notifState)
+
+    return propValsChanged
 
 
 def notify(self):
-    """
+    """This method replaces
+    :meth:`~props.properties_value.PropertyValue.notify`. It ensures that
+    bound :class:`~props.properties_value.ProperyValue` objects are
+    synchronised to have the same value, before any registered listeners
+    are notified.
     """
     
     boundPropVals = self.__dict__.get('boundPropVals', [])
-    
-    if isinstance(self, properties_value.PropertyValueList):
-        for i, bpv in enumerate(boundPropVals):
+    changeState   = [False] * len(boundPropVals)
+
+    # Sync all the values that need syncing    
+    for i, bpv in enumerate(boundPropVals):
+
+        # Normal PropertyValue object (i.e. not a PropertyValueList)
+        if not isinstance(self, properties_value.PropertyValueList):
+
+            # Don't bother if the values are already equal
+            if self == bpv: continue
+
+            # Make a note of the fact that the 
+            # value of this slave PV is changing
+            changeState[i] = True
+
+            log.debug('Syncing bound property values {} - {}'.format(
+                self._name, bpv._name))
+
+            # Sync the PV, but don't notify
+            notifState = bpv.getNotificationState()
+            bpv.disableNotification()
+            bpv.set(self.get())
+            bpv.setNotificationState(notifState)
+
+        # PropertyValueList instances
+        else:
 
             # lists already contain the same value,
             # or the other list is already in the
@@ -364,34 +416,90 @@ def notify(self):
             if (self == bpv) or self in bpv._syncing:
                 continue
 
+            log.debug('Syncing bound property value lists '
+                      '{}.{} ({}) - {}.{} ({})'.format(
+                          self._context.__class__.__name__,
+                          self._name,
+                          id(self._context),
+                          bpv._context.__class__.__name__,
+                          bpv._name,
+                          id(bpv._context)))
+
             self._syncing.add(bpv)
+
+            notifState = bpv.getNotificationState()
             bpv.disableNotification()
+            
+            changeState[i] = _syncPropValLists(self, bpv)
 
-            log.debug('Syncing bound property value lists {} - {}'.format(
-                self._name, bpv._name))
+            bpv.setNotificationState(notifState)
 
-            bpvChanged = _syncPropValLists(self, bpv)
-            bpv.enableNotification()
-            if bpvChanged:
-                bpv.notify()
             self._syncing.remove(bpv)
-            
-    else:
-        for bpv in boundPropVals:
-            if self == bpv: continue
-            log.debug('Syncing bound property values {} - {}'.format(
-                self._name, bpv._name))
-            bpv.set(self.get())
-            
+
+        # Call the registered property listeners 
+        # of any slave PVs which changed value
+        for i, bpv in enumerate(boundPropVals):
+
+            if not changeState[i]: continue
+
+            # Normal PropertyValue objects
+            if not isinstance(bpv, properties_value.PropertyValueList):
+                bpv.notify()
+                
+            # PropertyValueList objects
+            else:
+                bpvVals     = bpv.getPropertyValueList()
+                valsChanged = changeState[i]
+
+                # Call the notify method on any individual
+                # list items which changed value
+                for i in valsChanged:
+                    bpvVals[i].notify()
+
+                # Notify any list-level
+                # listeners on the slave list
+                bpv.notify()
+
+    # Now that the master-slave values are synced,
+    # call the real PropertyValue.notify method
     self._orig_notify()
 
 
 def notifyAttributeListeners(self, name, value):
+    """This method replaces the
+    :meth:`~props.properties_value.PropertyValue.notifyAttributeListeners`
+    method. It ensures that the attributes of any bound
+    :class:`~props.properties_value.PropertyValue` instances are synchronised
+    before any attribute listeners are notified.
+    """
     
     boundPropVals = self.__dict__.get('boundAttPropVals', [])
-    
-    for bpv in boundPropVals:
+    changeState   = [False] * len(boundPropVals)
+
+    # synchronise the attribute value
+    for i, bpv in enumerate(boundPropVals):
+
+        try:
+            if bpv.getAttribute(name) == value: continue
+        except KeyError:
+            pass
+
+        changeState[i] = True
+        notifState     = bpv.getNotificationState()
+        
+        bpv.disableNotification()
         bpv.setAttribute(name, value)
+        bpv.setNotificationState(notifState)
+
+    # Notify the attribute listeners of any slave
+    # PVs for which the attribute changed value
+    #
+    # TODO what if the attribute change caused
+    # a change to the property value?
+    # 
+    for bpv in boundPropVals:
+        if changeState[i]:
+            bpv.notifyAttributeListeners(name, value)
 
     self._orig_notifyAttributeListeners(name, value)
 
@@ -404,8 +512,8 @@ properties.HasProperties.isBound     = isBound
 properties_value.PropertyValue._orig_notify = \
     properties_value.PropertyValue.notify
 properties_value.PropertyValue._orig_notifyAttributeListeners = \
-    properties_value.PropertyValue._notifyAttributeListeners
+    properties_value.PropertyValue.notifyAttributeListeners
 
-properties_value.PropertyValue.notify                    = notify
-properties_value.PropertyValue._notifyAttributeListeners = \
+properties_value.PropertyValue.notify                   = notify
+properties_value.PropertyValue.notifyAttributeListeners = \
     notifyAttributeListeners

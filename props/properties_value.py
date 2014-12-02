@@ -153,14 +153,19 @@ class PropertyValue(object):
         """
         if isinstance(other, PropertyValue):
             other = other.get()
-
         return self._equalityFunc(self.get(), other)
 
+    
+    def __ne__(self, other):
+        """Returns ``True`` if the given object has a different value to
+        this instance, ``False`` otherwise.
+        """ 
+        return not self.__eq__(other)
+ 
         
     def enableNotification(self):
         """Enables notification of property value and attribute listeners for
         this :class:`PropertyValue` object.
-
         """
         self.__notification = True
 
@@ -169,12 +174,20 @@ class PropertyValue(object):
         """Disables notification of property value and attribute listeners for
         this :class:`PropertyValue` object. Notification can be re-enabled via
         the :meth:`enableNotification` method.
-
         """
         self.__notification = False
 
-    def isNotificationEnabled(self):
+        
+    def getNotificationState(self):
+        """Returns ``True`` if notification is currently enabled, ``False``
+        otherwise.
+        """
         return self.__notification
+
+        
+    def setNotificationState(self, value):
+        """Sets the current notification state."""
+        self.__notification = bool(value)
  
         
     def addAttributeListener(self, name, listener):
@@ -244,12 +257,12 @@ class PropertyValue(object):
         log.debug('Attribute on {} changed: {} = {}'.format(
             self._name, name, value))
 
-        self._notifyAttributeListeners(name, value)
+        self.notifyAttributeListeners(name, value)
 
         self.revalidate()
 
 
-    def _notifyAttributeListeners(self, name, value):
+    def notifyAttributeListeners(self, name, value):
         """Notifies all registered attribute listeners of an attribute change
         (unless notification has been disabled via the
         :meth:`disableNotification` method). This method is separated so that
@@ -349,6 +362,12 @@ class PropertyValue(object):
         registered listeners.
         """
         self._preNotifyFunc = preNotifyFunc
+
+    def setPostNotifyFunction(self, postNotifyFunc):
+        """Sets the function to be called on value changes, after any
+        registered listeners.
+        """
+        self._postNotifyFunc = postNotifyFunc 
 
         
     def get(self):
@@ -728,7 +747,7 @@ class PropertyValueList(PropertyValue):
         # Attribute listeners on the list object are
         # notified of changes to item attributes
         def itemAttChanged(ctx, name, value):
-            self._notifyAttributeListeners(name, value)
+            self.notifyAttributeListeners(name, value)
 
         propVal.addAttributeListener(self._name, itemAttChanged)
         
@@ -737,7 +756,7 @@ class PropertyValueList(PropertyValue):
     
     def _itemChanged(self, *a):
 
-        if self.isNotificationEnabled():
+        if self.getNotificationState():
             log.debug('List item {}.{} changed ({}) - nofiying '
                       'list-level listeners ({})'.format(
                           self._context.__class__.__name__,
@@ -869,35 +888,45 @@ class PropertyValueList(PropertyValue):
         oldVals     = [pv.get() for pv in propVals]
         changedVals = [False] * len(self)
 
-        log.debug('Propagating list change {}.{} to list items'.format(
-            self._context.__class__.__name__,
-            self._name)) 
-
+        # Update the PV instances that
+        # correspond to the new values,
+        # but suppress notification on them
         for idx, val in zip(indices, values):
 
-            propVal = propVals[idx]
+            propVal    = propVals[idx]
+            notifState = propVal.getNotificationState()
 
             propVal.disableNotification()
             propVal.set(val)
+            propVal.setNotificationState(notifState)
+            
             changedVals[idx] = not self._itemEqualityFunc(
                 propVal.get(), oldVals[idx])
 
-
-        self.disableNotification()
-
-        log.debug('Notifying item-level listeners')
-        
-        for idx in indices:
-            propVals[idx].enableNotification()
-
-            if changedVals[idx]:
-                propVals[idx].notify()
-        self.enableNotification()
-
-        log.debug('Notifying list-level listeners')
-
         if any(changedVals):
+            
+            log.debug('Notifying list-level listeners ({}.{} {})'.format(
+                self._context.__class__.__name__,
+                self._name,
+                id(self._context))) 
             self.notify()
+
+            log.debug('Notifying item-level listeners ({}.{} {})'.format(
+                self._context.__class__.__name__,
+                self._name,
+                id(self._context)))
+        
+            for idx in indices:
+                if changedVals[idx]:
+
+                    # Make sure that the self._itemChanged
+                    # method (which is set as the postNotify
+                    # function for all PV items) is not
+                    # called, otherwise there will be some
+                    # nasty recursiveness
+                    propVals[idx].setPostNotifyFunction(None)
+                    propVals[idx].notify()
+                    propVals[idx].setPostNotifyFunction(self._itemChanged)
 
         
     def __delitem__(self, key):
