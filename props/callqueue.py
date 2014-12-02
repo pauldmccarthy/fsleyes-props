@@ -14,7 +14,24 @@ import logging
 log = logging.getLogger(__name__)
 
 import Queue
+import inspect
 import traceback
+
+def _getCallbackDetails(cb):
+    
+    members = inspect.getmembers(cb)
+
+    funcName  = ''
+    modName   = ''
+
+    for name, val in members:
+        if name == '__func__':
+            funcName  = val.__name__
+            modName   = val.__module__
+            break
+
+    return funcName, modName
+
 
 
 class CallQueue(object):
@@ -39,7 +56,10 @@ class CallQueue(object):
             try:
                 desc, func, args = self._queue.get_nowait()
 
-                log.debug('Calling listener {}'.format(desc))
+                funcName, modName = _getCallbackDetails(func)
+
+                log.debug('Calling listener {} [{}.{}] ({} in queue)'.format(
+                    desc, modName, funcName, self._queue.qsize()))
 
                 try: func(*args)
                 except Exception as e:
@@ -55,6 +75,10 @@ class CallQueue(object):
     def call(self, desc, func, *args):
         """
         """
+
+        funcName, modName = _getCallbackDetails(func)
+        log.debug('Adding listener {} [{}.{}] to queue ({} in queue)'.format(
+            desc, modName, funcName, self._queue.qsize())) 
         self._queue.put_nowait((desc, func, args))
         self._call()
 
@@ -64,6 +88,10 @@ class CallQueue(object):
         """
         for func in funcs:
             desc, func, args = func
+            funcName, modName = _getCallbackDetails(func)
+            log.debug('Adding listener {} [{}.{}] to queue ({} in queue)'.format(
+                desc, modName, funcName, self._queue.qsize())) 
+            
             self._queue.put_nowait((desc, func, args))
         self._call()
 

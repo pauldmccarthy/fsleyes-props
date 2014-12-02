@@ -22,6 +22,9 @@ the :class:`~props.properties_value.PropertyValue` methods of the same
 names.
 """
 
+import logging
+log = logging.getLogger(__name__)
+
 
 import properties
 import properties_value
@@ -363,6 +366,10 @@ def notify(self):
 
             self._syncing.add(bpv)
             bpv.disableNotification()
+
+            log.debug('Syncing bound property value lists {} - {}'.format(
+                self._name, bpv._name))
+
             bpvChanged = _syncPropValLists(self, bpv)
             bpv.enableNotification()
             if bpvChanged:
@@ -372,6 +379,8 @@ def notify(self):
     else:
         for bpv in boundPropVals:
             if self == bpv: continue
+            log.debug('Syncing bound property values {} - {}'.format(
+                self._name, bpv._name))
             bpv.set(self.get())
             
     self._orig_notify()

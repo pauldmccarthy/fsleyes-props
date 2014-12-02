@@ -172,6 +172,9 @@ class PropertyValue(object):
 
         """
         self.__notification = False
+
+    def isNotificationEnabled(self):
+        return self.__notification
  
         
     def addAttributeListener(self, name, listener):
@@ -733,7 +736,15 @@ class PropertyValueList(PropertyValue):
 
     
     def _itemChanged(self, *a):
-        self.notify()
+
+        if self.isNotificationEnabled():
+            log.debug('List item {}.{} changed ({}) - nofiying '
+                      'list-level listeners ({})'.format(
+                          self._context.__class__.__name__,
+                          self._name,
+                          a[0],
+                          self[:]))
+            self.notify()
     
     
     def __getitem__(self, key):
@@ -858,6 +869,10 @@ class PropertyValueList(PropertyValue):
         oldVals     = [pv.get() for pv in propVals]
         changedVals = [False] * len(self)
 
+        log.debug('Propagating list change {}.{} to list items'.format(
+            self._context.__class__.__name__,
+            self._name)) 
+
         for idx, val in zip(indices, values):
 
             propVal = propVals[idx]
@@ -869,12 +884,17 @@ class PropertyValueList(PropertyValue):
 
 
         self.disableNotification()
+
+        log.debug('Notifying item-level listeners')
+        
         for idx in indices:
             propVals[idx].enableNotification()
 
             if changedVals[idx]:
                 propVals[idx].notify()
-        self.enableNotification() 
+        self.enableNotification()
+
+        log.debug('Notifying list-level listeners')
 
         if any(changedVals):
             self.notify()

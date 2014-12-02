@@ -615,6 +615,15 @@ class HasProperties(object):
         return self.getProp(propName).getPropVal(self)
 
 
+    def enableNotification(self, propName):
+        self.getPropVal(propName).enableNotification()
+
+    
+    def disableNotification(self, propName):
+        self.getPropVal(propName).disableNotification()
+    
+
+
     def getConstraint(self, propName, constraint):
         """Convenience method, returns the value of the named constraint for
         the named property. See :meth:`PropertyBase.getConstraint`.
