@@ -61,7 +61,6 @@ class PropertyBase(object):
                  default=None,
                  validateFunc=None,
                  equalityFunc=None,
-                 preNotifyFunc=None,
                  required=False,
                  allowInvalid=True,
                  **constraints):
@@ -86,12 +85,8 @@ class PropertyBase(object):
 
         :param equalityFunc:  Function for testing equality of two
                               property values. See
-                              :class:`~props.properties_value.PropertyValue`. 
-
-        :param preNotifyFunc: Function to be called whenever the property
-                              value(s) changes. See
                               :class:`~props.properties_value.PropertyValue`.
-
+        
         :param allowInvalid:  If ``False``, a :exc:`ValueError` will be
                               raised on all attempts to set this property
                               to an invalid value. This does not guarantee
@@ -111,7 +106,6 @@ class PropertyBase(object):
         self._required           = required
         self._validateFunc       = validateFunc
         self._equalityFunc       = equalityFunc
-        self._preNotifyFunc      = preNotifyFunc
         self._allowInvalid       = allowInvalid
         self._defaultConstraints = constraints
 
@@ -151,18 +145,6 @@ class PropertyBase(object):
         
         if instData is None: return
         else:                instData.propVal.removeListener(name)
-
-
-    def setPreNotifyFunction(self, instance, preNotifyFunc):
-        """Sets the function to be called on property value changes, before any
-        registered listeners.
-        """ 
-        instData = self._getInstanceData(instance)
-        
-        if instData is None:
-            return
-        else:
-            instData.propVal.setPreNotifyFunction(preNotifyFunc) 
 
         
     def addConstraintListener(self, instance, name, listener):
@@ -253,8 +235,7 @@ class PropertyBase(object):
                              castFunc=self.cast,
                              validateFunc=self.validate,
                              equalityFunc=self._equalityFunc,
-                             preNotifyFunc=self._preNotifyFunc,
-                             postNotifyFunc=self._valChanged,
+                             preNotifyFunc=self._valChanged,
                              allowInvalid=self._allowInvalid,
                              **self._defaultConstraints)
 
@@ -435,7 +416,7 @@ class ListPropertyBase(PropertyBase):
             itemEqualityFunc=itemEqualityFunc,
             listValidateFunc=self.validate,
             itemAllowInvalid=itemAllowInvalid,
-            postNotifyFunc=self._valChanged,
+            preNotifyFunc=self._valChanged,
             listAttributes=self._defaultConstraints,
             itemAttributes=itemAttributes)
 
@@ -657,14 +638,6 @@ class HasProperties(object):
         """ 
         return self.getProp(propName).setItemConstraint(
             self, index, constraint, value)
-
-        
-    def setPreNotifyFunction(self, instance, preNotifyFunc):
-        """Convenience method, sets the pre-notify function. See
-        :meth:`PropertyBase.setPreNotifyFunction`.
-        """ 
-        self.getProp().setPreNotifyFunction(preNotifyFunc) 
- 
 
 
     def addListener(self, propName, listenerName, callback, overwrite=False):
