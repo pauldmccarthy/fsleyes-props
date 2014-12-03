@@ -648,17 +648,30 @@ class HasProperties(object):
         """Convenience method, adds the specified listener to the specified
         property. See :meth:`PropertyBase.addListener`.
         """
-        self.getProp(propName).addListener(self,
-                                           listenerName,
-                                           callback,
-                                           overwrite)
+        self.getPropVal(propName).addListener(listenerName,
+                                              callback,
+                                              overwrite)
 
         
     def removeListener(self, propName, listenerName):
         """Convenience method, removes the specified listener from the specified
         property. See :meth:`PropertyBase.addListener`.
         """
-        self.getProp(propName).removeListener(self, listenerName)
+        self.getPropVal(propName).removeListener(listenerName)
+
+        
+    def enableListener(self, propName, name):
+        """(Re-)Enables the listener on the specified property with the
+        specified ``name``.
+        """
+        self.getPropVal(propName).enableListener(name)
+
+    
+    def disableListener(self, propName, name):
+        """Disables the listener on the specified property with the specified
+        ``name``, but does not remove it from the list of listeners.
+        """
+        self.getPropVal(propName).disableListener(name)
 
 
     def addConstraintListener(self, propName, listenerName, callback):

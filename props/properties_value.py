@@ -188,7 +188,8 @@ class PropertyValue(object):
         
     def setNotificationState(self, value):
         """Sets the current notification state."""
-        self.__notification = bool(value)
+        if value: self.enableNotification()
+        else:     self.disableNotification()
 
 
     def _saltListenerName(self, name):
@@ -363,11 +364,15 @@ class PropertyValue(object):
 
 
     def enableListener(self, name):
+        """(Re-)Enables the listener with the specified ``name``."""
         name = self._saltListenerName(name)
         self._changeListenerStates[name] = True
 
     
     def disableListener(self, name):
+        """Disables the listener with the specified ``name``, but does not
+        remove it from the list of listeners.
+        """
         name = self._saltListenerName(name)
         self._changeListenerStates[name] = False
 
@@ -378,7 +383,6 @@ class PropertyValue(object):
         """
 
         name = self._saltListenerName(name)
-
         return name in self._changeListeners.keys()
 
 
@@ -783,8 +787,28 @@ class PropertyValueList(PropertyValue):
         
         return propVal
 
+
+    def enableNotification(self):
+        """Enables notification of list-level listeners. """
+        for val in self.getPropertyValueList():
+            val.setPostNotifyFunction(self._itemChanged)
+        PropertyValue.enableNotification(self)
+
+        
+    def disableNotification(self):
+        """Disables notification of list-level listeners. Listeners on
+        individual :class:`PropertyValue` items will still be notified
+        of item changes.
+        """
+        for val in self.getPropertyValueList():
+            val.setPostNotifyFunction(None)
+        PropertyValue.disableNotification(self)
+
     
     def _itemChanged(self, *a):
+        """This function is called when any list item value changes. 
+        List-level listeners are notified of the change.
+        """
 
         if self.getNotificationState():
             log.debug('List item {}.{} changed ({}) - nofiying '
