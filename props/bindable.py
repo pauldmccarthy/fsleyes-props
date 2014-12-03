@@ -441,7 +441,7 @@ def notify(self):
         # of any slave PVs which changed value
         for i, bpv in enumerate(boundPropVals):
 
-            if not changeState[i]: continue
+            if changeState[i] == False: continue
 
             # Normal PropertyValue objects
             if not isinstance(bpv, properties_value.PropertyValueList):
@@ -452,6 +452,9 @@ def notify(self):
                 bpvVals     = bpv.getPropertyValueList()
                 valsChanged = changeState[i]
 
+                listNotifState = bpv.getNotificationState()
+                bpv.disableNotification()
+
                 # Call the notify method on any individual
                 # list items which changed value
                 for i in valsChanged:
@@ -459,6 +462,7 @@ def notify(self):
 
                 # Notify any list-level
                 # listeners on the slave list
+                bpv.setNotificationState(listNotifState)
                 bpv.notify()
 
     # Now that the master-slave values are synced,

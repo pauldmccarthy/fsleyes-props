@@ -957,6 +957,8 @@ class PropertyValueList(PropertyValue):
             changedVals[idx] = not self._itemEqualityFunc(
                 propVal.get(), oldVals[idx])
 
+        # Notify list-level and item-level listeners
+        # if any values in the list were changed
         if any(changedVals):
             
             log.debug('Notifying list-level listeners ({}.{} {})'.format(
