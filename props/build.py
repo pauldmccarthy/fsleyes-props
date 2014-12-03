@@ -609,8 +609,11 @@ def _prepareView(hasProps, viewItem, labels, tooltips, showUnlink):
           isinstance(viewItem, parts.Widget)                   and
           isinstance(hasProps, syncable.SyncableHasProperties) and
           hasProps.getParent() is not None):
+        
         linkBox  = parts.LinkBox(viewItem)
-        viewItem = parts.HGroup((linkBox, viewItem), showLabels=False)
+        viewItem = parts.HGroup((linkBox, viewItem),
+                                showLabels=False,
+                                label=viewItem.label)
 
     return viewItem
 
