@@ -56,6 +56,9 @@ class ViewItem(object):
         self.visibleWhen = visibleWhen
         self.enabledWhen = enabledWhen
 
+    def __str__( self): return '{}()'.format(self.__class__.__name__)
+    def __repr__(self): return self.__str__()
+
 
 class Button(ViewItem):
     """Represents a button which, when clicked, will call a specified callback
@@ -70,6 +73,10 @@ class Button(ViewItem):
         self.callback = callback
         self.text     = text
         ViewItem.__init__(self, key, **kwargs)
+
+    def __str__( self): return '{}({})'.format(self.__class__.__name__,
+                                               self.text)
+    def __repr__(self): return self.__str__() 
 
 
 class Label(ViewItem):
@@ -91,6 +98,10 @@ class Label(ViewItem):
             kwargs['enabledWhen'] = viewItem.enabledWhen
             
         ViewItem.__init__(self, **kwargs)
+
+    def __str__( self): return '{}({})'.format(self.__class__.__name__,
+                                               self.label)
+    def __repr__(self): return self.__str__() 
 
 
 class LinkBox(ViewItem):
@@ -165,6 +176,21 @@ class Group(ViewItem):
         self.children   = children
         self.border     = border
         self.showLabels = showLabels
+
+    def __str__(self):
+
+        def doStr(viewItem, depth):
+
+            if isinstance(viewItem, Group):
+                
+                s = '{}{}\n'.format(' ' * depth, ViewItem.__str__(viewItem))
+                for child in viewItem.children:
+                    s = s + doStr(child, depth + 1)
+            else:
+                s = '{}{}\n'.format(' ' * depth, str(viewItem))
+            return s
+
+        return doStr(self, 0)
 
 
 class NotebookGroup(Group):

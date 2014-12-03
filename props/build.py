@@ -108,6 +108,7 @@ HasProperties object, with respective names ``_view``, ``_labels``, and
 
 """
 
+import copy
 import sys
 import wx
 
@@ -681,7 +682,7 @@ def buildGUI(parent,
     """
 
     if view is None:
-        if hasattr(hasProps, '_view'):     view = hasProps._view
+        if hasattr(hasProps, '_view'):     view = copy.deepcopy(hasProps._view)
         else:                              view = _defaultView(hasProps)
     if labels is None:
         if hasattr(hasProps, '_labels'):   labels = hasProps._labels
