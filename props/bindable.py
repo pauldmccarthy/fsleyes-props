@@ -136,7 +136,11 @@ def _bindProps(self, myProp, other, otherProp, unbind=False):
 
     myPropVal    = myProp   .getPropVal(self)
     otherPropVal = otherProp.getPropVal(other)
-    myPropVal.set(otherPropVal.get())
+
+    if not unbind:
+        myPropVal.set(          otherPropVal.get())
+        myPropVal.setAttributes(otherPropVal.getAttributes())
+        
     _bindPropVals(myPropVal, otherPropVal, unbind=unbind)
 
 
@@ -157,6 +161,9 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
 
     myPropVal    = myProp   .getPropVal(self)
     otherPropVal = otherProp.getPropVal(other)
+
+    # TODO You're almost certainly not handling
+    # unbind=True properly in this code
 
     # Force the two lists to have
     # the same number of elements
@@ -182,13 +189,18 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
         # but not value - value change of items
         # in a list is handled at the list level
         _bindPropVals(myItem, otherItem, val=False, unbind=unbind)
-        myItem.set(otherItem.get())
+        myItem.set(          otherItem.get())
+        myItem.setAttributes(otherItem.getAttributes())
         propValMap[myItem] = otherItem
 
     # This mapping is stored on the PVL objects,
     # and used by the _syncListPropVals function
-    setattr(myPropVal,    '_{}_propValMap'.format(id(otherPropVal)), propValMap)
-    setattr(otherPropVal, '_{}_propValMap'.format(id(myPropVal)),    propValMap)
+    setattr(myPropVal,
+            '_{}_propValMap'.format(id(otherPropVal)),
+            propValMap)
+    setattr(otherPropVal,
+            '_{}_propValMap'.format(id(myPropVal)),
+            propValMap)
 
     # When a master list is synchronised to a slave list,
     # it stores the slave list ID in the _syncing set.
@@ -203,6 +215,7 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
     # Bind list-level value/attributes
     # between the PropertyValueList objects
     _bindPropVals(myPropVal, otherPropVal, unbind=unbind)
+    myPropVal.setAttributes(otherPropVal.getAttributes())
 
 
 def _bindPropVals(myPropVal,
@@ -222,7 +235,16 @@ def _bindPropVals(myPropVal,
     myBoundPropVals       = mine .__dict__.get('boundPropVals',    set())
     myBoundAttPropVals    = mine .__dict__.get('boundAttPropVals', set())
     otherBoundPropVals    = other.__dict__.get('boundPropVals',    set())
-    otherBoundAttPropVals = other.__dict__.get('boundAttPropVals', set()) 
+    otherBoundAttPropVals = other.__dict__.get('boundAttPropVals', set())
+
+    log.debug('Binding property values '
+              '(val={}, att={}) {}.{} <-> {}.{}'.format(
+                  val,
+                  att,
+                  myPropVal._context.__class__.__name__,
+                  myPropVal._name,
+                  otherPropVal._context.__class__.__name__,
+                  otherPropVal._name))
 
     if val:
         if unbind:
@@ -262,7 +284,6 @@ def _syncPropValLists(masterList, slaveList):
     # the call to this function was a change to
     # an individual value in the list (which is
     # not handled by this callback)
-    slaveListChanged = True
     propValsChanged  = []
     
     # one or more items have been
@@ -358,9 +379,9 @@ def _syncPropValLists(masterList, slaveList):
         else:
             
             for i, (masterVal, slaveVal) in \
-              enumerate(
-                  zip(masterList.getPropertyValueList(),
-                      slaveList .getPropertyValueList())):
+                enumerate(
+                    zip(masterList.getPropertyValueList(),
+                        slaveList .getPropertyValueList())):
 
                 if masterVal == slaveVal: continue
                 
@@ -441,7 +462,7 @@ def notify(self):
         # of any slave PVs which changed value
         for i, bpv in enumerate(boundPropVals):
 
-            if changeState[i] == False: continue
+            if changeState[i] is False: continue
 
             # Normal PropertyValue objects
             if not isinstance(bpv, properties_value.PropertyValueList):

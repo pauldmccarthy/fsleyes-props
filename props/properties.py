@@ -185,11 +185,6 @@ class PropertyBase(object):
         default value if instance is ``None``.
 
         """
-        log.debug('Changing {} constraint on {}: {} = {}'.format(
-            self.getLabel(instance),
-            'default' if instance is None else 'instance',
-            constraint,
-            value))
 
         instData = self._getInstanceData(instance)
 
@@ -197,6 +192,12 @@ class PropertyBase(object):
         else:                oldVal = instData.propVal.getAttribute(constraint)
 
         if value == oldVal: return
+
+        log.debug('Changing {} constraint on {}: {} = {}'.format(
+            self.getLabel(instance),
+            'default' if instance is None else 'instance',
+            constraint,
+            value))
 
         if instData is None: self._defaultConstraints[constraint] = value
         else:                instData.propVal.setAttribute(constraint, value)
