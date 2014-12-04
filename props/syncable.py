@@ -104,6 +104,53 @@ class SyncableHasProperties(props.HasProperties):
     
     __metaclass__ = SyncablePropertyOwner
 
+
+    @classmethod
+    def _saltSyncPropertyName(cls, propName):
+        """Adds a prefix to the given property name, to be used as the
+        name for the corresponding boolean sync property.
+        """
+        return '{}{}'.format(_SYNC_SALT_, propName)
+ 
+
+    @classmethod
+    def getSyncPropertyName(cls, propName):
+        """Returns the name of the boolean property which can be used to
+        toggle binding of the given property to the parent property of
+        this instance.
+        """
+        return cls._saltSyncPropertyName(propName)
+
+    
+    @classmethod
+    def getSyncProperty(cls, propName):
+        """Returns the :class:`~props.properties.PropertyBase` instance
+        which can be used to toggle binding of the given property to the
+        parent property of this instance.
+        """
+        return cls.getProp(cls.getSyncPropertyName(propName))
+
+
+    @classmethod 
+    def getAllProperties(cls):
+        """Returns all of the properties of this :class:`SyncableHasProperties`
+        class, not including the hidden boolean properties which control 
+        sync states.
+        """
+
+        # TODO this code will crash for SHP
+        # objects which have no properties
+        
+        propNames, propObjs = super(
+            SyncableHasProperties,
+            cls).getAllProperties()
+
+        propNames, propObjs  = zip(
+            *filter(lambda (pn, p) : not pn.startswith(_SYNC_SALT_),
+                    zip(propNames, propObjs)))
+
+        return propNames, propObjs
+
     
     def __init__(self, parent=None, nobind=None, nounbind=None):
         """Create a :class:`SyncableHasProperties` object.
@@ -164,6 +211,22 @@ class SyncableHasProperties(props.HasProperties):
             for propName in propNames:
                 self._initSyncProperty(propName)
 
+                    
+    def getParent(self):
+        """Returns the parent of this instance, or ``None`` if there is no
+        parent.
+        """
+        return self._parent
+                
+    
+    def _saltSyncListenerName(self, propName):
+        """Adds a prefix and a suffix to the given property name, to be used
+        as the name for an internal listener on the corresponding boolean sync
+        property.
+
+        """
+        return '{}{}_{}'.format(_SYNC_SALT_, propName, id(self))
+
 
     def _initSyncProperty(self, propName):
         """Called by child instances from __init__.
@@ -172,7 +235,7 @@ class SyncableHasProperties(props.HasProperties):
         specified property.
         """
         
-        bindPropName  = '{}{}'.format(_SYNC_SALT_, propName)
+        bindPropName  = self._saltSyncPropertyName(propName)
         bindPropObj   = self.getProp(bindPropName)
         bindPropVal   = bindPropObj.getPropVal(self)
 
@@ -183,14 +246,14 @@ class SyncableHasProperties(props.HasProperties):
         bindPropVal.set(True)
 
         if self.canBeUnsyncedFromParent(propName):
-            lName = '{}{}_{}'.format(_SYNC_SALT_, propName, id(self))
+            lName = self._saltSyncListenerName(propName)
             bindPropVal.addListener(
                 lName,
                 lambda *a: self._syncPropChanged(propName, *a))
 
         self.bindProps(propName, self._parent)        
 
-            
+        
     def _syncPropChanged(self, propName, *a):
         """Called when a hidden boolean property controlling the sync
         state of the specified real property changes.
@@ -198,7 +261,7 @@ class SyncableHasProperties(props.HasProperties):
         Changes the sync state of the property accordingly.
         """
 
-        bindPropName = '{}{}'.format(_SYNC_SALT_, propName)
+        bindPropName = self._saltSyncPropertyName(propName)
         bindPropVal  = getattr(self, bindPropName)
 
         if bindPropVal and (propName in self._nobind):
@@ -211,34 +274,6 @@ class SyncableHasProperties(props.HasProperties):
         self.bindProps(propName, self._parent, unbind=(not bindPropVal)) 
 
         
-    @classmethod 
-    def getAllProperties(cls):
-        """Returns all of the properties of this :class:`SyncableHasProperties`
-        class, not including the hidden boolean properties which control 
-        sync states.
-        """
-
-        # TODO this code will crash for SHP
-        # objects which have no properties
-        
-        propNames, propObjs = super(
-            SyncableHasProperties,
-            cls).getAllProperties()
-
-        propNames, propObjs  = zip(
-            *filter(lambda (pn, p) : not pn.startswith(_SYNC_SALT_),
-                    zip(propNames, propObjs)))
-
-        return propNames, propObjs
-        
-                    
-    def getParent(self):
-        """Returns the parent of this instance, or ``None`` if there is no
-        parent.
-        """
-        return self._parent
-
-
     def syncToParent(self, propName):
         """Synchronise the given property with the parent instance.
 
@@ -254,7 +289,7 @@ class SyncableHasProperties(props.HasProperties):
             raise RuntimeError('{} cannot be bound to '
                                'parent'.format(propName))
 
-        bindPropName = '{}{}'.format(_SYNC_SALT_, propName)
+        bindPropName = self._saltSyncPropertyName(propName)
         setattr(self, bindPropName, True)
 
     
@@ -272,7 +307,7 @@ class SyncableHasProperties(props.HasProperties):
             raise RuntimeError('{} cannot be unbound from '
                                'parent'.format(propName))        
         
-        bindPropName = '{}{}'.format(_SYNC_SALT_, propName)
+        bindPropName = self._saltSyncPropertyName(propName)
         setattr(self, bindPropName, False) 
 
         
@@ -280,7 +315,7 @@ class SyncableHasProperties(props.HasProperties):
         """Returns true if the specified property is synced to the parent of
         this :class:`HasProperties` instance, ``False`` otherwise.
         """
-        return getattr(self, '{}{}'.format(_SYNC_SALT_, propName))
+        return getattr(self, self._saltSyncPropertyName(propName))
 
     
     def canBeSyncedToParent(self, propName):
@@ -303,7 +338,7 @@ class SyncableHasProperties(props.HasProperties):
         """Registers the given callback function to be called when
         the sync state of the specified property changes.
         """
-        bindPropName = '{}{}'.format(_SYNC_SALT_, propName)
+        bindPropName = self._saltSyncPropertyName(propName)
         self.addListener(bindPropName, listenerName, callback)
 
         
@@ -311,5 +346,5 @@ class SyncableHasProperties(props.HasProperties):
         """De-registers the given listener from receiving sync
         state changes.
         """ 
-        bindPropName = '{}{}'.format(_SYNC_SALT_, propName)
+        bindPropName = self._saltSyncPropertyName(propName)
         self.removeListener(bindPropName, listenerName)
