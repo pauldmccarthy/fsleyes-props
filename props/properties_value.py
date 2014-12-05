@@ -440,7 +440,7 @@ class PropertyValue(object):
                               self._context.__class__.__name__,
                               self._name,
                               newValue,
-                              e, exc_info=True))
+                              e), exc_info=True)
                 traceback.print_stack()
                 raise e
 

@@ -195,13 +195,13 @@ class Percentage(Real):
     """A property which represents a percentage.
 
     A :class:`Percentage` property is just a :class:`Real` property with
-    a minimum value of ``0`` and maximum value of ``100``.
+    a default minimum value of ``0`` and maximum value of ``100``.
     """
 
     def __init__(self, **kwargs):
-        kwargs['minval']  = 0.0
-        kwargs['maxval']  = 100.0
-        kwargs['default'] = kwargs.get('default', 50.0)
+        kwargs['minval']  = kwargs.get('minval',    0.0)
+        kwargs['maxval']  = kwargs.get('maxval',  100.0)
+        kwargs['default'] = kwargs.get('default',  50.0)
         Real.__init__(self, **kwargs)
 
 
