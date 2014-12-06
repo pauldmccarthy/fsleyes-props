@@ -109,6 +109,25 @@ class PropertyBase(object):
         self._allowInvalid       = allowInvalid
         self._defaultConstraints = constraints
 
+        
+    def setLabel(self, cls, label):
+        """Sets the property label for the given class. A RuntimeError is raised
+        if a label already exists for the given class.
+        """
+        
+        if cls in self._label:
+            raise RuntimeError('The {} instance assigned to {}.{} is '
+                               'already present as {}.{}. A PropertyBase '
+                               'instance may only be present on a class '
+                               'once. Declare a new instance.'.format(
+                                   self.__class__.__name__,
+                                   cls.__name__,
+                                   label,
+                                   cls.__name__,
+                                   self._label[cls]))
+        
+        self._label[cls] = label
+
 
     def getLabel(self, instance):
         """Returns the property label for the given instance (more specifically, for
@@ -520,7 +539,7 @@ class PropertyOwner(type):
         
         for n, v in allAttrs(newCls):
             if isinstance(v, PropertyBase):
-                v._label[newCls] = n
+                v.setLabel(newCls, n)
 
         return newCls
 
