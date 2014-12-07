@@ -109,6 +109,21 @@ class PropertyBase(object):
         self._allowInvalid       = allowInvalid
         self._defaultConstraints = constraints
 
+
+    def __copy__(self):
+        """Returns a copy of this :class:`PropertyBase` instance.
+        
+        NOTE: This has not been rigorously tested.
+        """
+        newProp = type(self)()
+        newProp.__dict__.update(self.__dict__)
+
+        # This is the critical step - make sure
+        # that the class labels from this instance
+        # are not copied across to the new instance
+        newProp._label = {}
+        return newProp
+
         
     def setLabel(self, cls, label):
         """Sets the property label for the given class. A RuntimeError is raised
