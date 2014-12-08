@@ -256,6 +256,7 @@ class PropertyBase(object):
         instance, is created by that :class:`HasProperties` instance when it
         is created (see :meth:`HasProperties.__new__`).
         """
+        if instance is None: return None
         return instance.__dict__.get(self.getLabel(instance), None)
 
         

@@ -488,9 +488,8 @@ class ColourMap(props.PropertyBase):
         if cmapNames is None:
             cmapNames = sorted(mplcm.cmap_d.keys())
         
-        self._cmapNames = cmapNames
-
-        kwargs['default'] = default
+        kwargs['cmapNames'] = cmapNames
+        kwargs['default']   = default
         props.PropertyBase.__init__(self, **kwargs)
 
 
