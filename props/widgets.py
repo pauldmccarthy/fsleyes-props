@@ -57,7 +57,18 @@ def _propBind(hasProps,
     label}`` pairs where the label is what is displayed to the user, and the
     value is what is assigned to the property value when a corresponding label
     is selected. It is basically here to support
-    :class:`~props.properties_types.Choice` properties.
+    :class:`~props.properties_types.Choice` and
+    :class:`~props.properties_types.ColourMap` properties. Similarly,
+    ``valMap`` should be a dictionary of ``{label : value}`` pairs. If a
+    ``labelMap`` is provided, but a ``valMap`` is not, a ``valMap`` is created
+    from the ``labelMap``.
+
+    A little trickery is used for :class:`~props.properties_types.ColourMap`
+    properties, as the list of available colour maps may change at runtime.
+    If a ``labelMap`` and ``valMap`` are provided, a reference to them is
+    stored, rather than a copy being created. This means that the two maps
+    may be updated externally, with the listeners registered in this function
+    still functioning with the updates.
 
     :param hasProps: The owning :class:`~props.properties.HasProperties`
                      instance.
@@ -72,8 +83,9 @@ def _propBind(hasProps,
     :param evType:   The event type (or list of event types) which should be
                      listened for on the ``guiObj``.
     
-    :param dict      labelMap: Dictionary of ``{value : label}`` pairs
-
+    :param labelMap: Dictionary of ``{value : label}`` pairs
+    
+    :param valMap:   Dictionary of ``{label : value}`` pairs
     """
 
     if not isinstance(evType, Iterable): evType = [evType]
@@ -403,6 +415,9 @@ def _ColourMap(parent, hasProps, propObj, propVal):
     cbox = wx.combo.BitmapComboBox(
         parent, style=wx.CB_READONLY | wx.CB_DROPDOWN)
 
+    # Called when the list of available 
+    # colour maps changes - updates the 
+    # options displayed in the combobox 
     def cmapsChanged(*a):
         
         cbox.Clear()
@@ -418,6 +433,8 @@ def _ColourMap(parent, hasProps, propObj, propVal):
             bitmap = _makeColourMapBitmap(cmap)
             cbox.Append(name, bitmap)
 
+        # Update the value/label maps used by the
+        # _propBind listeners (see _propBind docs)
         valMap.update(newValMap)
         lblMap.update(newLblMap)
  
@@ -428,7 +445,8 @@ def _ColourMap(parent, hasProps, propObj, propVal):
     # Bind the combobox to the property
     _propBind(hasProps, propObj, propVal, cbox, wx.EVT_COMBOBOX,
               valMap, lblMap)
-    propVal.addAttributeListener('asareabd', cmapsChanged)
+    propVal.addAttributeListener(
+        'ColourMap_ComboBox_{}'.format(id(cbox), cmapsChanged))
 
     currentVal = propVal.get().name
     if currentVal is None: currentVal = 0
