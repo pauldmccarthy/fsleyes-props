@@ -446,7 +446,7 @@ def _ColourMap(parent, hasProps, propObj, propVal):
     _propBind(hasProps, propObj, propVal, cbox, wx.EVT_COMBOBOX,
               valMap, lblMap)
     propVal.addAttributeListener(
-        'ColourMap_ComboBox_{}'.format(id(cbox), cmapsChanged))
+        'ColourMap_ComboBox_{}'.format(id(cbox)), cmapsChanged)
 
     currentVal = propVal.get().name
     if currentVal is None: currentVal = 0
