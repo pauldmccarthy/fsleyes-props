@@ -25,9 +25,9 @@ between two instances can be set up as follows::
     >>> myParent = MyObj()
     >>> myChild  = MyObj(myParent)
 
-The ``myint`` properties of both instances are now bound to each
-other - when it changes in one instance, that change is propagated to the
-other instance::
+The ``myint`` properties of both instances are now bound to each other (see
+the :mod:`~props.bindable` module) - when it changes in one instance, that
+change is propagated to the other instance::
 
     >>> def parentPropChanged(*a):
     >>>     print 'myParent.myint changed: {}'.format(myParent.myint)

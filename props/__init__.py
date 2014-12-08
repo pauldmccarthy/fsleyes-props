@@ -110,6 +110,17 @@ available on both :class:`~props.properties.PropertyBase` and
 :class:`~props.properties.HasProperties` objects.
 
 
+Properties from different :class:`~props.properties.HasProperties` instances
+may be bound to each other, so that changes in one are propagated to the other
+- see the :mod:`~props.bindable` module.  Building on this is the
+:mod:`~props.syncable` module and its
+:class:`~props.syncable.SyncableHasProperties` class, which allows a
+one-to-many (one parent, multiple children) synchronisation hierarchy to be
+maintained, whereby all the properties of a child instance are by default
+synchronised to those of the parent, and this synchronisation can be
+independently enabled/disabled for each property.
+
+
 Application code may be notified of property changes by registering a callback
 listener on a :class:`~props.properties_value.PropertyValue` object, via the
 equivalent methods:

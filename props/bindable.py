@@ -278,13 +278,11 @@ def _syncPropValLists(masterList, slaveList):
 
     propValMap = getattr(masterList, '_{}_propValMap'.format(id(slaveList)))
 
-    # This flag (used as the return value of this
-    # function) will be set to False if it turns
-    # out that the list change which triggered
-    # the call to this function was a change to
-    # an individual value in the list (which is
-    # not handled by this callback)
-    propValsChanged  = []
+    # If the change was due to the values of one or more PV
+    # items changing (as opposed to a list modification -
+    # addition/removal/reorder), the indices of the PV objects
+    # which changed are stored in this list and returned
+    propValsChanged = []
     
     # one or more items have been
     # added to the master list
@@ -372,10 +370,6 @@ def _syncPropValLists(masterList, slaveList):
         # by a value change. Find the items
         # which have changed, and copy the
         # new value across to the slave list
-        # 
-        # TODO  I don't think I need to use
-        # the propValMap here, but is there
-        # any reason not to?
         else:
             
             for i, (masterVal, slaveVal) in \

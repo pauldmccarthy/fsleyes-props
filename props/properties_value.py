@@ -531,20 +531,13 @@ class PropertyValue(object):
 
 class PropertyValueList(PropertyValue):
     """A :class:`PropertyValue` object which stores other
-    :class:`PropertyValue` objects in a list.
+    :class:`PropertyValue` objects in a list. Instances of this class are
+    managed by a :class:`~props.properties.ListPropertyBase` instance.
 
     When created, separate validation functions may be passed in for
     individual items, and for the list as a whole. Listeners may be registered
     on individual items (accessible via the :meth:`getPropertyValueList`
     method), or on the entire list.
-
-    This code hurts my head, as it's a bit complicated. The ``__value``
-    encapsulated by this :class:`PropertyValue` object (a
-    :class:`PropertyValueList` is itself a :class:`PropertyValue`) is just the
-    list of raw values.  Alongside this, a separate list is maintained, which
-    contains :class:`PropertyValue` objects.  Whenever a list-modifying
-    operation occurs on this :class:`PropertyValueList` (which also acts a bit
-    like a Python list), both lists are updated.
 
     The values contained in this :class:`PropertyValueList` may be accessed
     through standard Python list operations, including slice-based access and
@@ -552,43 +545,44 @@ class PropertyValueList(PropertyValue):
     :meth:`index`, :meth:`count`, :meth:`move`, :meth:`insertAll`,
     :meth:`removeAll`, and :meth:`reorder` (these last few are non-standard).
 
-    The main restriction of this list-like functionality is that value
-    assigments via indexing must not change the length of the list. For
-    example, this is a valid assignment::
+    Because the values contained in this list are :class:`PropertyValue`
+    instances themselves, some limitations are present on list modifying
+    operations. First of all, it is not possible to simply assign an arbitrary
+    sequence of values to a :class:`~props.properties.ListPropertyBase`
+    instance::
+
+      class MyObj(props.HasProperties):
+        mylist = props.List(default[1, 2, 3])
+
+      myobj = MyObj()
+
+      # This will result in a ValueError
+      myobj.mylist = [1,2,3,4,5]
+
+    It *is* possible to perform assignment in this manner if the list lengths
+    match. In this case, each of the individual :class:`PropertyValue`
+    instances contained in the list will be assigned to each of the values in
+    the input sequence::
+
+      # This will work as expected
+      myobj.mylist = [4, 5, 6]
+
+    
+    In a similar vein, value assigments via indexing must not change the length
+    of the list. For example, this is a valid assignment::
 
       mylist[2:7] = [3,4,5,6,7]
 
     Whereas this would result in an :exc:`IndexError`::
 
       mylist[2:7] = [3,4,5,6]
-
-
-    When a :class:`PropertyValueList` is accessed as an attribute of a
-    :class:`~props.properties.HasProperties` instance (by far the most
-    common use-case), there is an important semantic difference between
-    an assignment like this::
-
-      myObj.mylist = [1,2,3,4,5]
-
-    and one like this::
-
-      myObj.mylist[:] = [1,2,3,4,5]
-
-    The first approach will result in any existing :class:`PropertyValue`
-    objects in the list being discarded, and new ones created for the new list
-    values. In contrast, the second approach, in addition to raising a
-    :exc:`IndexError` if the existing list length is not ``5``, will not
-    result in creation of new :class:`PropertyValue` instances; rather, the
-    values of the existing :class:`PropertyValue` objects will be
-    updated.
-
-    This is a very important distinction to keep in mind when working with
-    list properties and values which may exist for long periods of time and,
-    more importantly, for which listeners have been registered with individual
-    :class:`PropertyValue` objects contained in the list. If you register
-    a listener with a :class:`PropertyValue` item, and then assign values to
-    the list using the first assignment approach above, your listener will be
-    lost in the ether.
+    
+    A listener registered on a :class:`PropertyValueList` will be notified
+    whenever the list is modified (e.g. additions, removals, reorderings), and
+    whenever any individual value in the list changes. Alternately, listeners
+    may be registered on the individual :class:`~PropertyValue` items (which
+    are accessible through the :meth:`getPropertyValueList` method) to be
+    nofitied of changes to those values only.
 
     There are some interesting type-specific subclasses of the
     :class:`PropertyValueList`, which provide additional functionality:
@@ -741,10 +735,8 @@ class PropertyValueList(PropertyValue):
         """Overrides :meth:`PropertyValue.set`.
 
         Sets the values stored in this :class:`PropertyValueList`.  If the
-        ``recreate`` flag is ``True`` (default) all of the
-        :class:`PropertyValue` objects managed by this ``PVL`` object are
-        discarded, and new ones recreated. This flag is intended for internal
-        use only.
+        length of the ``newValues`` argument does not match the current list
+        length,  a ``ValueError`` is raised.
         """
 
         if len(newValues) != len(self):
