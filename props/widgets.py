@@ -419,13 +419,14 @@ def _ColourMap(parent, hasProps, propObj, propVal):
     # colour maps changes - updates the 
     # options displayed in the combobox 
     def cmapsChanged(*a):
-        
-        cbox.Clear()
+
+        selected  = cbox.GetSelection()
         cmapNames = propVal.getAttribute('cmapNames')
         cmapObjs  = map(mplcm.get_cmap, cmapNames)
         newValMap = OrderedDict(zip(cmapObjs,   cmapNames))
-        newLblMap = OrderedDict(zip(cmapNames,  cmapObjs)) 
-        selected  = cbox.GetSelection()
+        newLblMap = OrderedDict(zip(cmapNames,  cmapObjs))
+
+        cbox.Clear()
 
         # Make a little bitmap for every colour
         # map, and add it to the combobox
@@ -439,6 +440,7 @@ def _ColourMap(parent, hasProps, propObj, propVal):
         lblMap.update(newLblMap)
  
         cbox.SetSelection(selected)
+        cbox.Refresh()
  
     cmapsChanged()
     
