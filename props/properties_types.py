@@ -19,6 +19,22 @@ import properties       as props
 import properties_value as propvals
 
 
+class Object(props.PropertyBase):
+    """A property which encapsulates any value. """
+
+    def __init__(self, **kwargs):
+        """Create a :class:`Object` property. If an ``equalityFunc`` is not
+        provided, any writes to this property will be treated as if the value
+        has changed (and any listeners will be notified).
+        """
+
+        def defaultEquals(this, other):
+            return False
+
+        kwargs['equalityFunc'] = kwargs.get('equalityFunc', defaultEquals)
+        props.PropertyBase.__init__(self, **kwargs)
+
+
 class Boolean(props.PropertyBase):
     """A property which encapsulates a ``bool`` value."""
 

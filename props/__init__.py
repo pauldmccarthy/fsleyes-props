@@ -172,6 +172,7 @@ from syncable import (
     SyncableHasProperties)
 
 from properties_types import (
+    Object,
     Boolean,
     Int,
     Real,
