@@ -846,7 +846,7 @@ class PropertyValueList(PropertyValue):
 
         propVals = self.getPropertyValueList()
         propVals.append(self.__newItem(item))
-        PropertyValue.get(self, propVals)
+        PropertyValue.set(self, propVals)
 
 
     def extend(self, iterable):
