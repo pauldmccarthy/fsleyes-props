@@ -284,7 +284,7 @@ class Choice(props.PropertyBase):
     """A property which may only be set to one of a set of predefined values.
     """
 
-    def __init__(self, choices, choiceLabels=None, **kwargs):
+    def __init__(self, choices=None, labels=None, **kwargs):
         """Define a :class:`Choice` property.
 
         As an alternative to passing in separate ``choice`` and
@@ -293,31 +293,73 @@ class Choice(props.PropertyBase):
         labels. Make sure to use a :class:`collections.OrderedDict` if the
         display order is important.
         
-        :param list choices:      List of values, the possible values that
-                                  this property can take.
+        :param list choices: List of values, the possible values that
+                             this property can take.
 
-        :param list choiceLabels: List of string labels, one for each choice,
-                                  to be used for display purposes.
-
+        :param list labels:  List of string labels, one for each choice,
+                             to be used for display purposes.
         """
 
         if choices is None:
-            raise ValueError('A list of choices must be provided')
+            choices = []
+            labels  = []
 
-        if isinstance(choices, dict):
-            self._choices, self._choiceLabels = zip(*choices.items())
-            
-        else:
-            self._choices      = choices
-            self._choiceLabels = choiceLabels
+        elif isinstance(choices, dict):
+            choices, labels = zip(*choices.items())
 
-        if self._choiceLabels is None:
-            self._choiceLabels = map(str, self._choices)
+        elif labels is None:
+            labels = map(str, choices)
 
-        kwargs['default']      = kwargs.get('default',      self._choices[0])
+        if len(choices) > 0: default = choices[0]
+        else:                default = None
+
+        if len(choices) != len(labels):
+            raise ValueError('A label is required for every choice')
+
+        kwargs['choices']      = list(choices)
+        kwargs['labels']       = list(labels)
+        kwargs['default']      = kwargs.get('default',      default)
         kwargs['allowInvalid'] = kwargs.get('allowInvalid', False)
 
         props.PropertyBase.__init__(self, **kwargs)
+
+
+    def getChoices(self, instance=None):
+        """Returns a list of the current choices. """
+        return list(self.getConstraint(instance, 'choices'))
+
+    
+    def getLabels(self, instance=None):
+        """Returns a list of the current choice labels. """
+        return list(self.getConstraint(instance, 'labels'))
+
+
+    def setChoices(self, choices, labels=None, instance=None):
+        """Sets the list of possible choices (and their labels, if not None).
+        """
+        if labels is None: labels = map(str, choices)
+
+        if len(choices) != len(labels):
+            raise ValueError('A label is required for every choice')
+
+        self.setConstraint(instance, 'choices', choices)
+        self.setConstraint(instance, 'labels',  labels)
+
+
+    def addChoice(self, choice, label=None, instance=None):
+        """Adds a new choice to the list of possible choices."""
+
+        if label is None:
+            label = choice
+
+        choices = list(self.getConstraint(instance, 'choices'))
+        labels  = list(self.getConstraint(instance, 'labels'))
+
+        choices.append(choice)
+        labels .append(label)
+
+        self.setConstraint(instance, 'choices', choices)
+        self.setConstraint(instance, 'labels',  labels)
 
         
     def validate(self, instance, attributes, value):
@@ -326,7 +368,12 @@ class Choice(props.PropertyBase):
         """
         props.PropertyBase.validate(self, instance, attributes, value)
 
-        if value not in self._choices:
+        choices = self.getChoices(instance)
+
+        if len(choices) == 0: return
+        if value is None:     return
+
+        if value not in choices:
             raise ValueError('Invalid choice ({})'.format(value))
 
 

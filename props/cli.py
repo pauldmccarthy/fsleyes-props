@@ -195,10 +195,10 @@ def _Choice(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     # python builtin (e.g. str, int, float, etc)
     parser.add_argument(shortArg,
                         longArg,
-                        type=type(propObj._choices[0]),
+                        type=type(propObj._default),
                         help=propHelp,
                         default=propObj._default,
-                        choices=propObj._choices)
+                        choices=propObj.getChoices())
     
     
 def _Boolean(parser, propObj, propCls, propName, propHelp, shortArg, longArg):

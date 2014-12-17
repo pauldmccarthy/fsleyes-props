@@ -289,8 +289,8 @@ def _Choice(parent, hasProps, propObj, propVal):
     See the :func:`_String` documentation for details on the parameters.
     """
 
-    choices = propObj._choices
-    labels  = propObj._choiceLabels
+    choices = propObj.getChoices(hasProps)
+    labels  = propObj.getLabels(hasProps)
     valMap  = OrderedDict(zip(choices, labels))
     widget  = wx.ComboBox(
         parent,
