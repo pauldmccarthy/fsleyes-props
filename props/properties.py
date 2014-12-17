@@ -581,15 +581,10 @@ class HasProperties(object):
             prop = getattr(instance.__class__, propName)
             if not isinstance(prop, PropertyBase): continue
 
-            # Create a PropertyValue and an _InstanceData
-            # object, which bind the PropertyBase object
-            # to this HasProperties instance.
-            propVal  = prop._makePropVal(instance)
-            instData = _InstanceData(instance, propVal)
-
-            # Store the _InstanceData object
-            # on the instance itself
-            instance.__dict__[propName] = instData
+            # Add each class level PropertyBase
+            # object as a property of the new
+            # HasProperties instance
+            instance.addProperty(propName, prop)
 
         # Perform validation of the initial
         # value for each property
@@ -600,6 +595,28 @@ class HasProperties(object):
                 prop.revalidate(instance)
 
         return instance
+
+
+    def addProperty(self, propName, propObj):
+        """Add the given property to this :class:`HasProperties` instance. """
+        if not isinstance(propObj, PropertyBase):
+            raise ValueError('propObj must be a PropertyBase instance')
+
+        if propName in self.__dict__:
+            raise RuntimeError('This {} instance already has '
+                               'an attribute ''called {}'.format(
+                                   self.__class__.__name__, propName))
+
+
+        # Create a PropertyValue and an _InstanceData
+        # object, which bind the PropertyBase object
+        # to this HasProperties instance. 
+        propVal = propObj._makePropVal(self)
+        instData = _InstanceData(self, propVal)
+
+        # Store the _InstanceData object
+        # on this instance itself
+        self.__dict__[propName] = instData
 
 
     @classmethod
