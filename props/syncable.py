@@ -130,27 +130,6 @@ class SyncableHasProperties(props.HasProperties):
         """
         return cls.getProp(cls.getSyncPropertyName(propName))
 
-
-    @classmethod 
-    def getAllProperties(cls):
-        """Returns all of the properties of this :class:`SyncableHasProperties`
-        class, not including the hidden boolean properties which control 
-        sync states.
-        """
-
-        # TODO this code will crash for SHP
-        # objects which have no properties
-        
-        propNames, propObjs = super(
-            SyncableHasProperties,
-            cls).getAllProperties()
-
-        propNames, propObjs  = zip(
-            *filter(lambda (pn, p) : not pn.startswith(_SYNC_SALT_),
-                    zip(propNames, propObjs)))
-
-        return propNames, propObjs
-
     
     def __init__(self, parent=None, nobind=None, nounbind=None):
         """Create a :class:`SyncableHasProperties` object.
@@ -177,11 +156,16 @@ class SyncableHasProperties(props.HasProperties):
         self._nounbind = nounbind
 
         # Get a list of all the
-        # properties of this class
-        propNames, propObjs  = super(
-            SyncableHasProperties,
-            self).getAllProperties()
+        # properties of this class,
+        # including private ones
+        attNames  = dir(type(self))
+        propNames = []
+        for attName in attNames:
+            att = getattr(type(self), attName)
 
+            if isinstance(att, props.PropertyBase):
+                propNames.append(attName)
+        
         # If parent is none, then this instance
         # is a 'parent' instance, and doesn't need
         # to worry about being bound. So we'll

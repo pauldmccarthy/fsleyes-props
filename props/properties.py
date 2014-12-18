@@ -642,6 +642,9 @@ class HasProperties(object):
         """Returns two lists, the first containing the names of all properties
         of this object, and the second containing the corresponding
         :class:`PropertyBase` objects.
+
+        Properties which have a name beginning with an underscore are not
+        returned by this method
         """
 
         propNames = []
@@ -651,7 +654,7 @@ class HasProperties(object):
             
             att = getattr(cls, attName)
 
-            if isinstance(att, PropertyBase):
+            if isinstance(att, PropertyBase) and (not attName.startswith('_')):
                 propNames.append(attName)
                 props    .append(att)
 
@@ -672,12 +675,20 @@ class HasProperties(object):
 
 
     def enableNotification(self, propName):
+        """Enables notification of listeners on the given property."""
         self.getPropVal(propName).enableNotification()
 
     
     def disableNotification(self, propName):
+        """Disables notification of listeners on the given property."""
         self.getPropVal(propName).disableNotification()
-    
+
+
+    def notify(self, propName):
+        """Force notification of listeners on the given property. This will
+        have no effect if notification for the property is disabled.
+        """
+        self.getPropVal(propName).notify()
 
 
     def getConstraint(self, propName, constraint):
