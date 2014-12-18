@@ -545,7 +545,7 @@ class PropertyOwner(type):
         newCls = super(PropertyOwner, cls).__new__(cls, name, bases, attrs)
 
         # Return *all* attributes of the new class,
-        # including those of its subclasses
+        # including those of its super classes
         def allAttrs(cls):
             atts = cls.__dict__.items()
             if hasattr(cls, '__bases__'):
@@ -607,12 +607,30 @@ class HasProperties(object):
                                'an attribute ''called {}'.format(
                                    self.__class__.__name__, propName))
 
+        # If this property does not exist on the class,
+        # add it. This is a bit hacky, as the labels
+        # for all the properties that exist in the class
+        # definition are handled by the metaclass. What's
+        # stopping me from throwing out the metaclass,
+        # and doing everything in HasProps.__new__, and
+        # this method? Related - is there a reason why
+        # PropertyBase labels are tied to the HasProps
+        # class, rather than to the instance?
+        if not hasattr(self.__class__, propName):
+            setattr(         self.__class__, propName, propObj)
+            propObj.setLabel(self.__class__, propName)
 
         # Create a PropertyValue and an _InstanceData
         # object, which bind the PropertyBase object
         # to this HasProperties instance. 
         propVal = propObj._makePropVal(self)
         instData = _InstanceData(self, propVal)
+
+        log.debug('Adding property to {}.{} [{}] ({})'.format(
+            self.__class__.__name__,
+            propName,
+            id(self),
+            propObj.__class__.__name__))
 
         # Store the _InstanceData object
         # on this instance itself

@@ -16,6 +16,9 @@ automatically builds a GUI for the properties of a
 :class:`~props.properties.HasProperties` instance.
 """
 
+import logging
+log = logging.getLogger(__name__)
+
 import sys
 
 import os
@@ -97,6 +100,13 @@ def _propBind(hasProps,
 
     elif valMap is None:
         valMap = dict([(lbl, val) for (val, lbl) in labelMap.items()])
+
+
+    log.debug('Binding PropertyValue ({}.{} [{}]) to widget {} ({})'.format(
+        hasProps.__class__.__name__,
+        propVal._name,
+        id(hasProps),
+        guiObj.__class__.__name__, id(guiObj)))
 
     def _guiUpdate(value, *a):
         """
