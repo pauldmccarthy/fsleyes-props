@@ -141,9 +141,6 @@ def _configureEnabledWhen(viewItem, guiObj, hasProps):
 
     if viewItem.enabledWhen is None: return None
 
-    parent         = guiObj.GetParent()
-    isNotebookPage = isinstance(parent, nb.Notebook)
-
     def toggleAll(obj, state):
 
         obj.Enable(state)
@@ -156,6 +153,9 @@ def _configureEnabledWhen(viewItem, guiObj, hasProps):
         enables/disables the GUI object, depending
         upon the result.
         """
+
+        parent         = guiObj.GetParent()
+        isNotebookPage = isinstance(parent, nb.Notebook)
 
         if viewItem.enabledWhen(hasProps): state = True
         else:                              state = False
@@ -177,12 +177,11 @@ def _configureVisibleWhen(viewItem, guiObj, hasProps):
 
     if viewItem.visibleWhen is None: return None
 
-    parent         = guiObj.GetParent()
-    isNotebookPage = isinstance(parent, nb.Notebook)
-
     def _toggleVis():
 
-        visible = viewItem.visibleWhen(hasProps)
+        parent         = guiObj.GetParent()
+        isNotebookPage = isinstance(parent, nb.Notebook)
+        visible        = viewItem.visibleWhen(hasProps)
 
         if isNotebookPage:
             if visible: parent.ShowPage(parent.FindPage(guiObj))
