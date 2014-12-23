@@ -356,19 +356,36 @@ def _layoutHGroup(group, parent, children, labels):
                      objects, one for each child.
     """
 
-    sizer = wx.BoxSizer(wx.HORIZONTAL)
+    if group.wrap: sizer = wx.WrapSizer(wx.HORIZONTAL)
+    else:          sizer = wx.BoxSizer(wx.HORIZONTAL)
 
     for cidx in range(len(children)):
 
         vItem = group.children[cidx]
 
-        if labels is not None and labels[cidx] is not None:
-            sizer.Add(labels[cidx], flag=wx.EXPAND)
-
         if isinstance(vItem, parts.LinkBox):
             sizer.Add(children[cidx], flag=wx.EXPAND)
+
         else:
-            sizer.Add(children[cidx], flag=wx.EXPAND, proportion=1)
+
+            if labels is not None and labels[cidx] is not None:
+
+                if group.vertLabels:
+                    panel  = wx.Panel(parent, style=wx.SUNKEN_BORDER)
+                    pSizer = wx.BoxSizer(wx.VERTICAL)
+                    panel.SetSizer(pSizer)
+
+                    labels[  cidx].Reparent(panel)
+                    children[cidx].Reparent(panel)
+                    
+                    pSizer.Add(labels[  cidx], flag=wx.EXPAND)
+                    pSizer.Add(children[cidx], flag=wx.EXPAND)
+                    sizer .Add(panel,          flag=wx.EXPAND)
+                else:
+                    sizer.Add(labels[  cidx], flag=wx.EXPAND)
+                    sizer.Add(children[cidx], flag=wx.EXPAND)
+            else:
+                sizer.Add(children[cidx], flag=wx.EXPAND)
 
         # TODO I have not added support
         # for child groups with borders

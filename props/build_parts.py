@@ -64,8 +64,8 @@ class Button(ViewItem):
     """Represents a button which, when clicked, will call a specified callback
     function.
 
-    When the button is clicked, it is passed two arguemnts - the
-    :class:`~props.properties.HasProperties` instance, and the
+    When the button is clicked, the callback function is passed two arguemnts
+    - the :class:`~props.properties.HasProperties` instance, and the
     :class:`wx.Button` instance.
     """
 
@@ -210,7 +210,22 @@ class HGroup(Group):
     """A group representing a GUI panel, whose children are laid out
     horizontally.
     """
-    pass
+
+    def __init__(self, children, wrap=False, vertLabels=False, **kwargs):
+        """Create a :class:`HGroup`.
+
+        :arg wrap:       If ``True`` the children are wrapped, via a
+                         :class:`wx.WrapSizer`; if there is not enough
+                         horizontal space to display all children in a
+                         single row, the remaining children are
+                         displayed on a new row.
+        
+        :arg vertLabels: If ``True`` child labels are displayed above
+                         the child.
+        """
+        self.wrap       = wrap
+        self.vertLabels = vertLabels
+        Group.__init__(self, children, **kwargs)
 
 
 class VGroup(Group): 
