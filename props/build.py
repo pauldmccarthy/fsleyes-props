@@ -201,9 +201,9 @@ def _createLinkBox(parent, viewItem, hasProps, propGui):
     propName = viewItem.propKey
     value    = hasProps.isSyncedToParent(propName)
     
-    # label=u'\U0001F512') - 32 bit
-    # unicode doesn't seem to work
-    linkBox = wx.CheckBox(parent, label='L')
+    linkBox = wx.ToggleButton(parent,
+                              label=u'\u21cb',
+                              style=wx.BU_EXACTFIT)
     linkBox.SetValue(value)
 
     if (not hasProps.canBeSyncedToParent(    propName)) or \
@@ -227,7 +227,7 @@ def _createLinkBox(parent, viewItem, hasProps, propGui):
             propName,
             'build_pyLinkBox_{}_{}'.format(propName, linkBox),
             onSyncProp)
-        linkBox.Bind(wx.EVT_CHECKBOX, onLinkBox)
+        linkBox.Bind(wx.EVT_TOGGLEBUTTON, onLinkBox)
 
     return linkBox
 
@@ -363,7 +363,8 @@ def _layoutHGroup(group, parent, children, labels):
         vItem = group.children[cidx]
 
         if isinstance(vItem, parts.LinkBox):
-            sizer.Add(children[cidx], flag=wx.EXPAND)
+            sizer.Add(children[cidx], flag=wx.ALIGN_CENTER_VERTICAL |
+                                           wx.ALIGN_CENTER_HORIZONTAL)
 
         else:
 
@@ -382,9 +383,9 @@ def _layoutHGroup(group, parent, children, labels):
                     sizer .Add(panel,          flag=wx.EXPAND)
                 else:
                     sizer.Add(labels[  cidx], flag=wx.EXPAND)
-                    sizer.Add(children[cidx], flag=wx.EXPAND)
+                    sizer.Add(children[cidx], flag=wx.EXPAND, proportion=1)
             else:
-                sizer.Add(children[cidx], flag=wx.EXPAND)
+                sizer.Add(children[cidx], flag=wx.EXPAND, proportion=1)
 
         # TODO I have not added support
         # for child groups with borders
