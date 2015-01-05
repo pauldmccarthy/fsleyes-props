@@ -165,10 +165,11 @@ def _editListDialog(parent, hasProps, propObj):
         newLen   = numRowsCtrl.GetValue()
 
         # add rows
+        default = listType.getConstraint(hasProps, 'default')
         while oldLen < newLen:
 
             # add a new element to the list
-            listObj.append(listType._default)
+            listObj.append(default)
             propVal = listObj.getPropertyValueList()[-1]
 
             # add a widget

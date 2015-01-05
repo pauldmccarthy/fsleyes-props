@@ -193,11 +193,12 @@ def _Choice(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     # I'm assuming here that all choices are of the
     # same type, and that said type is a standard
     # python builtin (e.g. str, int, float, etc)
+    default = propObj.getConstraint(None, 'default')
     parser.add_argument(shortArg,
                         longArg,
-                        type=type(propObj._default),
+                        type=type(default),
                         help=propHelp,
-                        default=propObj._default,
+                        default=default,
                         choices=propObj.getChoices())
     
     

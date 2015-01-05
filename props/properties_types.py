@@ -346,10 +346,10 @@ class Choice(props.PropertyBase):
         self.setConstraint(instance, 'labels',  labels)
 
         if len(choices) > 0:
-            self._default = choices[0]
+            self.setConstraint(instance, 'default', choices[0])
             self.__set__(instance, choices[0])
         else:
-            self._default = None
+            self.setConstraint(instance, 'default', None)
 
 
     def addChoice(self, choice, label=None, instance=None):
@@ -368,7 +368,7 @@ class Choice(props.PropertyBase):
         self.setConstraint(instance, 'labels',  labels)
 
         if len(choices) == 1:
-            self._default = choices[0]
+            self.setConstraint(instance, 'default', choices[0])
             self.__set__(instance, choices[0])
 
         
@@ -874,10 +874,12 @@ class Bounds(List):
         convenience methods/attributes defined in the BVL class.
         """
 
+        default = self._defaultConstraints.get('default', None)
+
         bvl = BoundsValueList(
             instance,
             name=self.getLabel(instance),
-            values=self._default,
+            values=default,
             itemCastFunc=self._listType.cast,
             itemEqualityFunc=self._listType._equalityFunc,
             itemValidateFunc=self._listType.validate,
@@ -1119,10 +1121,12 @@ class Point(List):
         use the convenience methods/attributes defined in the PVL class.
         """
 
+        default = self._defaultConstraints.get('default', None)
+
         pvl = PointValueList(
             instance,
             name=self.getLabel(instance),
-            values=self._default,
+            values=default,
             itemCastFunc=self._listType.cast,
             itemEqualityFunc=self._listType._equalityFunc,
             itemValidateFunc=self._listType.validate,

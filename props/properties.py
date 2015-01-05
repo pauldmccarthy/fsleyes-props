@@ -99,10 +99,12 @@ class PropertyBase(object):
                               validity.
         """
 
+        constraints['default'] = default
+
         # A _label is added by the PropertyOwner metaclass
         # for each new HasProperties class that is defined
+        
         self._label              = {}
-        self._default            = default
         self._required           = required
         self._validateFunc       = validateFunc
         self._equalityFunc       = equalityFunc
@@ -265,9 +267,10 @@ class PropertyBase(object):
         :class:`~props.properties_value.PropertyValue` object for the given
         :class:`HasProperties` instance.  
         """
+        default = self._defaultConstraints.get('default', None)
         return PropertyValue(instance,
                              name=self.getLabel(instance),
-                             value=self._default,
+                             value=default,
                              castFunc=self.cast,
                              validateFunc=self.validate,
                              equalityFunc=self._equalityFunc,
@@ -446,11 +449,13 @@ class ListPropertyBase(PropertyBase):
             itemEqualityFunc = None
             itemAllowInvalid = True
             itemAttributes   = None
+
+        default = self._defaultConstraints.get('default', None)
         
         return PropertyValueList(
             instance,
             name=self.getLabel(instance), 
-            values=self._default,
+            values=default,
             itemCastFunc=itemCastFunc,
             itemValidateFunc=itemValidateFunc,
             itemEqualityFunc=itemEqualityFunc,
