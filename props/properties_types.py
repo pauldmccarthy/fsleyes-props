@@ -333,6 +333,17 @@ class Choice(props.PropertyBase):
         """Returns a list of the current choice labels. """
         return list(self.getConstraint(instance, 'labels'))
 
+    
+    def setLabel(self, choice, label, instance=None):
+        """Sets the label for the specified choice."""
+        choices = list(self.getConstraint(instance, 'choices'))
+        labels  = list(self.getConstraint(instance, 'labels'))
+
+        labels[choices.index(choice)] = label
+
+        self.setConstraint(instance, 'labels',  labels)
+
+
 
     def setChoices(self, choices, labels=None, instance=None):
         """Sets the list of possible choices (and their labels, if not None).

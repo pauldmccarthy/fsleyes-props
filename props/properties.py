@@ -127,7 +127,7 @@ class PropertyBase(object):
         return newProp
 
         
-    def setLabel(self, cls, label):
+    def _setLabel(self, cls, label):
         """Sets the property label for the given class. A RuntimeError is raised
         if a label already exists for the given class.
         """
@@ -560,7 +560,7 @@ class PropertyOwner(type):
         
         for n, v in allAttrs(newCls):
             if isinstance(v, PropertyBase):
-                v.setLabel(newCls, n)
+                v._setLabel(newCls, n)
 
         return newCls
 
@@ -622,8 +622,8 @@ class HasProperties(object):
         # PropertyBase labels are tied to the HasProps
         # class, rather than to the instance?
         if not hasattr(self.__class__, propName):
-            setattr(         self.__class__, propName, propObj)
-            propObj.setLabel(self.__class__, propName)
+            setattr(          self.__class__, propName, propObj)
+            propObj._setLabel(self.__class__, propName)
 
         # Create a PropertyValue and an _InstanceData
         # object, which bind the PropertyBase object
