@@ -345,6 +345,12 @@ class Choice(props.PropertyBase):
         self.setConstraint(instance, 'choices', choices)
         self.setConstraint(instance, 'labels',  labels)
 
+        if len(choices) > 0:
+            self._default = choices[0]
+            self.__set__(instance, choices[0])
+        else:
+            self._default = None
+
 
     def addChoice(self, choice, label=None, instance=None):
         """Adds a new choice to the list of possible choices."""
@@ -360,6 +366,10 @@ class Choice(props.PropertyBase):
 
         self.setConstraint(instance, 'choices', choices)
         self.setConstraint(instance, 'labels',  labels)
+
+        if len(choices) == 1:
+            self._default = choices[0]
+            self.__set__(instance, choices[0])
 
         
     def validate(self, instance, attributes, value):
