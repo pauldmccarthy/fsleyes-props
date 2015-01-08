@@ -274,45 +274,10 @@ class PropertyBase(object):
                              castFunc=self.cast,
                              validateFunc=self.validate,
                              equalityFunc=self._equalityFunc,
-                             preNotifyFunc=self._valChanged,
                              allowInvalid=self._allowInvalid,
                              **self._defaultConstraints)
 
-        
-    def _valChanged(self, value, valid, instance):
-        """This function is called by
-        :class:`~props.properties_value.PropertyValue` objects which are
-        managed by this :class:`PropertyBase` object. It notifies any
-        listeners which have been registered to this property of any
-        value changes.
-        """
-
-        instData = self._getInstanceData(instance)
-
-        if instData is None: return
-
-        # Force validation for all other properties of the instance, and
-        # notification of their registered listeners, This is done because the
-        # validity of some properties may be dependent upon the values of this
-        # one. So when the value of this property changes, it may have changed
-        # the validity of another property, meaning that the listeners of the
-        # latter property need to be notified of this change in validity.
-
-        #
-        # I don't like this here. It should be in HasProperties. Any reason
-        # against the HasProperties instance registering an 'internal' listener
-        # with every property?
-        #
-
-        log.debug('Revalidating all instance properties '
-                  '(due to {} change)'.format(self.getLabel(instance)))
-        
-        propNames, props = instance.getAllProperties()
-        for prop in props:
-            if prop is not self:
-                prop.revalidate(instance)
-
-            
+    
     def validate(self, instance, attributes, value):
         """Called when an attempt is made to set the property value on the
         given instance.
@@ -461,7 +426,6 @@ class ListPropertyBase(PropertyBase):
             itemEqualityFunc=itemEqualityFunc,
             listValidateFunc=self.validate,
             itemAllowInvalid=itemAllowInvalid,
-            preNotifyFunc=self._valChanged,
             listAttributes=self._defaultConstraints,
             itemAttributes=itemAttributes)
 
@@ -591,6 +555,12 @@ class HasProperties(object):
             # HasProperties instance
             instance.addProperty(propName, prop)
 
+        # By default, when a property changes,
+        # all other properties are not validated.
+        # This behaviour can be changed by passing
+        # validateOnChange=True to __init__.
+        instance.__validateOnChange = False
+
         # Perform validation of the initial
         # value for each property
         for propName in propNames:
@@ -600,6 +570,35 @@ class HasProperties(object):
                 prop.revalidate(instance)
 
         return instance
+
+
+    def __init__(self, validateOnChange=False):
+        """Create a HasProperties instance.
+        """
+
+        # TODO
+        #
+        # The point of validating all other properties when one
+        # property changes is to handle the scenario where
+        # the validity of one property is dependent upon the
+        # values of other properties.
+        #
+        # Currently, the only option is to enable this globally;
+        # i.e. whenever the value of any property changes, all
+        # other properties are validated.
+        #
+        # At some stage, I may allow more fine grained control;
+        # e.g. validation only occurs for specific properties,
+        # and/or only specific properties are validated. This
+        # should be fairly straightforward - just maintain a
+        # dict of {propName -> [propNames ..]}  mappings,
+        # where the key is the name of a property that should
+        # trigger validation, and the value is a list of
+        # properties that need to be validated when that property
+        # changes.
+        #
+        # I'll make this change if/when I need the functionality.
+        self.__validateOnChange = validateOnChange
 
 
     def addProperty(self, propName, propObj):
@@ -641,7 +640,37 @@ class HasProperties(object):
         # on this instance itself
         self.__dict__[propName] = instData
 
+        # validate other properties when
+        # this property changes - does
+        # nothing if validation is enabled
+        propVal.setPreNotifyFunction(self.__valueChanged)
 
+        
+    def __valueChanged(self, ctx, value, valid, name):
+        """This function is called by
+        :class:`~props.properties_value.PropertyValue` objects which are
+        managed by this :class:`PropertyBase` object. 
+        """
+
+        if not self.__validateOnChange:
+            return
+        
+        # Force validation for all other properties of the instance, and
+        # notification of their registered listeners, This is done because the
+        # validity of some properties may be dependent upon the values of this
+        # one. So when the value of this property changes, it may have changed
+        # the validity of another property, meaning that the listeners of the
+        # latter property need to be notified of this change in validity.
+
+        log.debug('Revalidating all instance properties '
+                  '(due to {} change)'.format(self.getLabel(instance)))
+        
+        propNames, props = self.getAllProperties()
+        for propName, prop in zip(propNames, props):
+            if propName is not name:
+                prop.revalidate(instance)
+
+        
     @classmethod
     def getAllProperties(cls):
         """Returns two lists, the first containing the names of all properties

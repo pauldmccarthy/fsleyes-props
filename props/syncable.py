@@ -131,7 +131,12 @@ class SyncableHasProperties(props.HasProperties):
         return cls.getProp(cls.getSyncPropertyName(propName))
 
     
-    def __init__(self, parent=None, nobind=None, nounbind=None):
+    def __init__(self,
+                 parent=None,
+                 nobind=None,
+                 nounbind=None,
+                 *args,
+                 **kwargs):
         """Create a :class:`SyncableHasProperties` object.
 
         If this :class:`SyncableHasProperties` object does not have a parent,
@@ -148,6 +153,8 @@ class SyncableHasProperties(props.HasProperties):
         :arg nounbind: A sequence of property names which cannot be unbound
                        from the parent.
         """
+        props.HasProperties.__init__(self, *args, **kwargs)
+        
         if nobind   is None: nobind   = []
         if nounbind is None: nounbind = []
 

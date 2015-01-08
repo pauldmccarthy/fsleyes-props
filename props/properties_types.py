@@ -895,7 +895,6 @@ class Bounds(List):
             itemEqualityFunc=self._listType._equalityFunc,
             itemValidateFunc=self._listType.validate,
             listValidateFunc=self.validate,
-            preNotifyFunc=self._valChanged,
             listAttributes=self._defaultConstraints,
             itemAttributes=self._listType._defaultConstraints)
         
@@ -1142,7 +1141,6 @@ class Point(List):
             itemEqualityFunc=self._listType._equalityFunc,
             itemValidateFunc=self._listType.validate,
             listValidateFunc=self.validate,
-            preNotifyFunc=self._valChanged,
             listAttributes=self._defaultConstraints,
             itemAttributes=self._listType._defaultConstraints)
         
