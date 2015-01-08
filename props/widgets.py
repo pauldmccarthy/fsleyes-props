@@ -176,7 +176,7 @@ def _setupValidation(widget, hasProps, propObj, propVal):
     invalidBGColour = '#ff9999'
     validBGColour   = widget.GetBackgroundColour()
 
-    def _changeBGOnValidate(value, valid, instance):
+    def _changeBGOnValidate(value, valid, *a):
         """
         Called whenever the property value changes. Checks
         to see if the new value is valid and changes the

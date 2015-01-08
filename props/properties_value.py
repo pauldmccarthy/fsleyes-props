@@ -79,10 +79,9 @@ class PropertyValue(object):
 
         :param preNotifyFunc:  Function to be called whenever the property
                                value changes, but before any registered
-                               listeners are called. Must accept three
-                               parameters - the new value, a boolean value
-                               which is ``True`` if the new value is valid,
-                               ``False`` otherwise, and the context object.
+                               listeners are called. See the
+                               :meth:`addListener` method for details of the
+                               parameters this function must accept.
         
         :param postNotifyFunc: Function to be called whenever the property
                                value changes, but after any registered
@@ -207,11 +206,13 @@ class PropertyValue(object):
         listener callback function must accept the following arguments:
         
           - ``context``:   The context associated with this
-            :class:`PropertyValue`.
+                           :class:`PropertyValue`.
         
           - ``attribute``: The name of the attribute that changed.
         
           - ``value``:     The new attribute value.
+
+          - ``name``:      The name of this :class:`PropertyValue` instance.
 
         :param str name: A unique name for the listener. If a listener with
                          the specified name already exists, it will be
@@ -285,7 +286,7 @@ class PropertyValue(object):
         if not self.__notification: return
 
         attListeners = []
-        args         = (self._context, name, value)
+        args         = (self._context, name, value, self._name)
         desc         = '{}.{}'.format(self._context.__class__.__name__,
                                       self._name) 
         
@@ -299,11 +300,12 @@ class PropertyValue(object):
         """Adds a listener for this value.
 
         When the value changes, the listener callback function is called. The
-        callback function must accept these arguments:
+        callback function must accept the following arguments:
 
           - ``value``:   The property value
           - ``valid``:   Whether the value is valid or invalid
           - ``context``: The context object passed to :meth:`__init__`.
+          - ``name``:    The name of this :class:`PropertyValue` instance.
 
         :param str name:  A unique name for this listener. If a listener with
                           the name already exists, a RuntimeError will be
@@ -484,7 +486,7 @@ class PropertyValue(object):
         valid        = self.__valid
         allListeners = []
 
-        args         = (value, valid, self._context)
+        args         = (value, valid, self._context, self._name)
         desc         = '{}.{}'.format(self._context.__class__.__name__,
                                       self._name)
 
@@ -772,8 +774,8 @@ class PropertyValueList(PropertyValue):
 
         # Attribute listeners on the list object are
         # notified of changes to item attributes
-        def itemAttChanged(ctx, name, value):
-            self.notifyAttributeListeners(name, value)
+        def itemAttChanged(ctx, attName, value, valName):
+            self.notifyAttributeListeners(attName, value)
 
         propVal.addAttributeListener(self._name, itemAttChanged)
         
