@@ -188,10 +188,24 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
         # Bind attributes between PV item pairs,
         # but not value - value change of items
         # in a list is handled at the list level
+
+        log.debug('Binding list item {}.{} ({}) <- {}.{} ({})'.format(
+            self.__class__.__name__,
+            myProp.getLabel(self),
+            myItem.get(),
+            other.__class__.__name__,
+            otherProp.getLabel(other),
+            otherItem.get()))
+
+        notifState = myItem.getNotificationState()
+        myItem.disableNotification()
+        
         _bindPropVals(myItem, otherItem, val=False, unbind=unbind)
         myItem.set(          otherItem.get())
         myItem.setAttributes(otherItem.getAttributes())
         propValMap[myItem] = otherItem
+
+        myItem.setNotificationState(notifState)
 
     # This mapping is stored on the PVL objects,
     # and used by the _syncListPropVals function
