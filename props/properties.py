@@ -544,6 +544,12 @@ class HasProperties(object):
         
         instance  = super(HasProperties, cls).__new__(cls, *args, **kwargs)
         propNames = dir(instance.__class__)
+
+        # By default, when a property changes,
+        # all other properties are not validated.
+        # This behaviour can be changed by passing
+        # validateOnChange=True to __init__.
+        instance.__validateOnChange = False
         
         for propName in propNames:
             
@@ -554,12 +560,6 @@ class HasProperties(object):
             # object as a property of the new
             # HasProperties instance
             instance.addProperty(propName, prop)
-
-        # By default, when a property changes,
-        # all other properties are not validated.
-        # This behaviour can be changed by passing
-        # validateOnChange=True to __init__.
-        instance.__validateOnChange = False
 
         return instance
 
@@ -592,7 +592,21 @@ class HasProperties(object):
         # I'll make this change if/when I need the functionality.
         self.__validateOnChange = validateOnChange
 
+        # The prenotify function is added to new properties
+        # in the addProperty method, but not for properties
+        # defined at the class level (because the
+        # __validateOnChange attribute is initially set to
+        # false in __new__). So here we make sure that the
+        # prenotify is set if needed.
+        
+        if validateOnChange:
+            propNames, props = self.getAllProperties()
 
+            for prop, propName in zip(propNames, props):
+                propVal = prop.getPropVal(self)
+                propVal.setPreNotifyFunction(self.__valueChanged)
+
+                
     def addProperty(self, propName, propObj):
         """Add the given property to this :class:`HasProperties` instance. """
         if not isinstance(propObj, PropertyBase):
@@ -635,7 +649,8 @@ class HasProperties(object):
         # validate other properties when
         # this property changes - does
         # nothing if validation is enabled
-        propVal.setPreNotifyFunction(self.__valueChanged)
+        if self.__validateOnChange:
+            propVal.setPreNotifyFunction(self.__valueChanged)
 
         
     def __valueChanged(self, ctx, value, valid, name):
