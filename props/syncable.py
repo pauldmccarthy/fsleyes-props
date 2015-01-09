@@ -181,6 +181,11 @@ class SyncableHasProperties(props.HasProperties):
         if parent is None:
             for propName in propNames:
                 if propName.startswith(_SYNC_SALT_):
+                    log.debug('Clearing sync property '
+                              'from parent ({}.{}) [{}]'.format(
+                                  self.__class__.__name__,
+                                  propName,
+                                  id(self)))
                     self.__dict__[propName] = None
 
         # Otherwise, this instance is a 'child'
