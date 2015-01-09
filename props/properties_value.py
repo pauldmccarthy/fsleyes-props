@@ -34,6 +34,14 @@ class PropertyValue(object):
     registered for notification of value and validity changes.
     """
 
+
+    queue = callqueue.CallQueue(skipDuplicates=True)
+    """A :class:`~props.callqueue.CallQueue` instance shared by all
+    :class:`PropertyValue` objects for notifying listeners of value
+    and attribute changes.
+    """
+    
+
     def __init__(self,
                  context,
                  name=None,
@@ -293,7 +301,7 @@ class PropertyValue(object):
         for cbName, cb in self._attributeListeners.items():
             attListeners.append(('{} ({})'.format(cbName, desc), cb, args))
 
-        callqueue.queue.callAll(attListeners)
+        self.queue.callAll(attListeners)
         
         
     def addListener(self, name, callback, overwrite=False):
@@ -512,7 +520,7 @@ class PropertyValue(object):
                                  self._postNotifyFunc,
                                  args)) 
 
-        callqueue.queue.callAll(allListeners)
+        self.queue.callAll(allListeners)
 
 
     def revalidate(self):
