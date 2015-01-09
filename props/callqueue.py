@@ -73,18 +73,21 @@ class CallQueue(object):
 
                 funcName, modName = _getCallbackDetails(func)
 
-                log.debug('Calling listener {} [{}.{}] ({} in queue)'.format(
-                    desc, modName, funcName, self._queue.qsize()))
+                log.debug('Calling listener {} [{}.{}] '
+                          '({} remaining in queue)'.format(
+                              desc, modName, funcName, self._queue.qsize()))
 
                 try: func(*args)
                 except Exception as e:
                     log.warn('Listener {} raised exception: {}'.format(
                         desc, e), exc_info=True)
                     traceback.print_stack()
+                    
             except Queue.Empty:
                 break
-
-        self._calling = False
+            
+            finally:
+                self._calling = False
 
 
     def _push(self, desc, func, args):
@@ -97,22 +100,48 @@ class CallQueue(object):
 
         Otherwise, this method returnes ``True``.
         """
+        
+        funcName, modName = _getCallbackDetails(func)
+        
         if self._skipDuplicates:
 
-            # We can't assume that the args will be hashable
-            # (e.g. numpy arrays), so i'm taking a hash of
-            # the string representation. This is not ideal,
-            # and could break, as there's no guarantee that
-            # two things with the same string representation
-            # actually have the same value.
+            # I'm only taking into account the function
+            # reference when checking for duplicates,
+            # meaning that the callqueue does not support
+            # enqueueing the same function with different
+            # arguments.
             #
-            # Something to come back to if things are
-            # breaking because of it.
-            if (func, str(args)) in self._queued:
-                return False
-            else:
-                self._queued.add((func, str(args)))
+            # I can't take the hash of the arguments, as
+            # I can't assume that they are hashable (e.g.
+            # numpy arrays).
+            #
+            # I can't test for identity, as things which
+            # have the same value may not have the same
+            # id (e.g. strings).
+            #
+            # I can't test argument equality, because in
+            # some cases the argument may be a mutable
+            # type, and its value may have changed between
+            # the time the function was queued, and the
+            # time it is called.
+            # 
+            # So this is quite a pickle. Something to come
+            # back to if things are breaking because of it.
+            if func in self._queued:
+
+                log.debug('Skipping listener {} [{}.{}] '
+                          '({} in queue)'.format(
+                              desc, modName, funcName, self._queue.qsize()))
                 
+                return False
+            
+            else:
+                self._queued.add(func)
+               
+        log.debug('Adding listener {} [{}.{}] '
+                  'to queue ({} in queue)'.format(
+                      desc, modName, funcName, self._queue.qsize()))
+
         self._queue.put_nowait((desc, func, args))
         return True
 
@@ -126,7 +155,7 @@ class CallQueue(object):
         desc, func, args = self._queue.get_nowait()
 
         if self._skipDuplicates:
-            self._queued.remove((func, str(args)))
+            self._queued.remove(func)
             
         return desc, func, args
         
@@ -138,10 +167,6 @@ class CallQueue(object):
         being called from the queue).
         """
 
-        funcName, modName = _getCallbackDetails(func)
-        log.debug('Adding listener {} [{}.{}] to queue ({} in queue)'.format(
-            desc, modName, funcName, self._queue.qsize()))
-        
         if self._push(desc, func, args):
             self._call()
 
@@ -155,14 +180,9 @@ class CallQueue(object):
         """
         
         anyEnqueued = False
+        
         for func in funcs:
-            desc, func, args = func
-            funcName, modName = _getCallbackDetails(func)
-            log.debug('Adding listener {} [{}.{}] '
-                      'to queue ({} in queue)'.format(
-                          desc, modName, funcName, self._queue.qsize())) 
-
-            if self._push(desc, func, args):
+            if self._push(*func):
                 anyEnqueued = True
 
         if anyEnqueued:
