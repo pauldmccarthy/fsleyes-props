@@ -561,14 +561,6 @@ class HasProperties(object):
         # validateOnChange=True to __init__.
         instance.__validateOnChange = False
 
-        # Perform validation of the initial
-        # value for each property
-        for propName in propNames:
-            
-            prop = getattr(instance.__class__, propName)
-            if isinstance(prop, PropertyBase): 
-                prop.revalidate(instance)
-
         return instance
 
 
