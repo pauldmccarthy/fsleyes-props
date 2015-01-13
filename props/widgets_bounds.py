@@ -54,10 +54,14 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis):
         highProp.set(ev.high)
         ev.Skip()
 
-    def updateSliderRange(*a):
+    def updateSliderRange(ctx, att, *a):
+
+        if att not in ('minval', 'maxval'):
+            return
+        
         minval = propVal.getMin(axis)
         maxval = propVal.getMax(axis)
-        
+
         if minval is not None: sliderPanel.SetMin(minval)
         if maxval is not None: sliderPanel.SetMax(maxval) 
 

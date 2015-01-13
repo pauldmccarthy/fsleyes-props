@@ -138,8 +138,8 @@ def _bindProps(self, myProp, other, otherProp, unbind=False):
     otherPropVal = otherProp.getPropVal(other)
 
     if not unbind:
-        myPropVal.set(          otherPropVal.get())
         myPropVal.setAttributes(otherPropVal.getAttributes())
+        myPropVal.set(          otherPropVal.get())
         
     _bindPropVals(myPropVal, otherPropVal, unbind=unbind)
 
@@ -181,13 +181,16 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
     otherPropValList = otherPropVal.getPropertyValueList()
     propValMap       = Bidict()
 
+    # Inhibit list-level notification due to item
+    # changes during the initial sync - we'll
+    # manually do a list-level notification after
+    # all the list values have been synced
+    notifState = myPropVal.getNotificationState()
+    myPropVal.disableNotification()
+
     # Copy item values from the master list
     # to the slave list, and save the mapping
     for myItem, otherItem in zip(myPropValList, otherPropValList):
-
-        # Bind attributes between PV item pairs,
-        # but not value - value change of items
-        # in a list is handled at the list level
 
         log.debug('Binding list item {}.{} ({}) <- {}.{} ({})'.format(
             self.__class__.__name__,
@@ -197,15 +200,43 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
             otherProp.getLabel(other),
             otherItem.get()))
 
-        notifState = myItem.getNotificationState()
+        # Disable item notification - we'll
+        # manually force a notify after the
+        # sync
+        itemNotifState = myItem.getNotificationState()
         myItem.disableNotification()
-        
-        _bindPropVals(myItem, otherItem, val=False, unbind=unbind)
-        myItem.set(          otherItem.get())
-        myItem.setAttributes(otherItem.getAttributes())
-        propValMap[myItem] = otherItem
 
-        myItem.setNotificationState(notifState)
+        # Bind attributes between PV item pairs,
+        # but not value - value change of items
+        # in a list is handled at the list level
+        _bindPropVals(myItem, otherItem, val=False, unbind=unbind)
+        propValMap[myItem] = otherItem
+        
+        atts = otherItem.getAttributes()
+
+        # Set attributes first, because the attribute
+        # values may influence/modify the property value
+        myItem.setAttributes(atts)
+        myItem.set(otherItem.get())
+
+        # Notify item level listeners of the value
+        # change (if notification was enabled).
+        #
+        # TODO This notification occurs even
+        # if the two PV objects had the same
+        # value before the sync - you should
+        # notify only if the myItem PV value
+        # has changed.
+        myItem.setNotificationState(itemNotifState)
+        if itemNotifState:
+
+            # notify attribute listeners first
+            for name, val in atts.items():
+                print 'notifyAtt {}: {}'.format(name, val)
+                myItem._orig_notifyAttributeListeners(name, val)            
+            
+            myItem._orig_notify()
+
 
     # This mapping is stored on the PVL objects,
     # and used by the _syncListPropVals function
@@ -228,8 +259,26 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
 
     # Bind list-level value/attributes
     # between the PropertyValueList objects
+    atts = otherPropVal.getAttributes()
+    myPropVal.setAttributes(atts)
+    
     _bindPropVals(myPropVal, otherPropVal, unbind=unbind)
-    myPropVal.setAttributes(otherPropVal.getAttributes())
+
+    # Manually notify list-level listeners
+    #
+    # TODO This notification will occur
+    # even if the two lists had the same
+    # value before being bound. It might
+    # be worth only performing the
+    # notification if the list has changed
+    # value
+    myPropVal.setNotificationState(notifState)
+    if notifState:
+        # Notify attribute listeners first
+        for name, val in atts.items():
+            myPropVal._orig_notifyAttributeListeners(name, val)
+        
+        myPropVal._orig_notify()
 
 
 def _bindPropVals(myPropVal,
