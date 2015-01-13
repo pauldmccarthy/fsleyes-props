@@ -143,6 +143,9 @@ class PropertyValue(object):
         self.__lastValid           = False
         self.__notification        = True
 
+        self._changeListenerStates['prenotify']  = True
+        self._changeListenerStates['postnotify'] = True
+
 
     def __repr__(self):
         """Returns a string representation of this PropertyValue object."""
@@ -315,6 +318,10 @@ class PropertyValue(object):
           - ``context``: The context object passed to :meth:`__init__`.
           - ``name``:    The name of this :class:`PropertyValue` instance.
 
+        Listener names 'prenotify' and 'postnotify' are reserved - if
+        either of these are passed in for the listener name, a ``ValueError``
+        is raised.
+
         :param str name:  A unique name for this listener. If a listener with
                           the name already exists, a RuntimeError will be
                           raised, or it will be overwritten, depending upon
@@ -322,8 +329,12 @@ class PropertyValue(object):
         :param callback:  The callback function.
         :param overwrite: If ``True`` any previous listener with the same name
                           will be overwritten. 
-
         """
+
+        if name in ('prenotify', 'postnotify'):
+            raise ValueError('Reserved listener name used: {}. '
+                             'Use a different name.'.format(name))
+        
         log.debug('Adding listener on {}.{}: {}'.format(
             self._context.__class__.__name__,
             self._name,
@@ -492,35 +503,35 @@ class PropertyValue(object):
         
         value        = self.get()
         valid        = self.__valid
-        allListeners = []
-
+        listeners    = []
+        allListeners = OrderedDict()
+        
         args         = (value, valid, self._context, self._name)
         desc         = '{}.{}'.format(self._context.__class__.__name__,
                                       self._name)
 
-        # Call prenotify first
+        # call prenotify listener first
         if self._preNotifyFunc is not None:
-            allListeners.append(('PreNotify ({})'.format(desc),
-                                 self._preNotifyFunc,
-                                 args))
+            allListeners['prenotify'] = self._preNotifyFunc
 
         # registered listeners second
-        for name, listener in self._changeListeners.items():
+        allListeners.update(self._changeListeners)
+
+        # and postnotify last
+        if self._postNotifyFunc is not None:
+            allListeners['postnotify'] = self._postNotifyFunc
+
+        # filter out listeners which have been disabled
+        for name, listener in allListeners.items():
             
             if not self._changeListenerStates[name]:
                 continue
             
-            allListeners.append(('{} ({})'.format(name, desc),
-                                 listener,
-                                 args))
+            listeners.append(('{} ({})'.format(name, desc),
+                              listener,
+                              args))
 
-        # And postnotify last
-        if self._postNotifyFunc is not None:
-            allListeners.append(('PostNotify ({})'.format(desc),
-                                 self._postNotifyFunc,
-                                 args)) 
-
-        self.queue.callAll(allListeners)
+        self.queue.callAll(listeners)
 
 
     def revalidate(self):
