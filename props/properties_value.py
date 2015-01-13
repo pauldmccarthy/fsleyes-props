@@ -274,9 +274,9 @@ class PropertyValue(object):
         """
         oldVal = self._attributes.get(name, None)
 
-        if oldVal == value: return
-
         self._attributes[name] = value
+
+        if oldVal == value: return
 
         log.debug('Attribute on {} changed: {} = {}'.format(
             self._name, name, value))
@@ -790,13 +790,6 @@ class PropertyValueList(PropertyValue):
             equalityFunc=self._itemEqualityFunc,
             validateFunc=self._itemValidateFunc,
             **itemAtts)
-
-        # Attribute listeners on the list object are
-        # notified of changes to item attributes
-        def itemAttChanged(ctx, attName, value, valName):
-            self.notifyAttributeListeners(attName, value)
-
-        propVal.addAttributeListener(self._name, itemAttChanged)
         
         return propVal
 
