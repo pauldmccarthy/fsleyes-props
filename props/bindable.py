@@ -232,7 +232,6 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
 
             # notify attribute listeners first
             for name, val in atts.items():
-                print 'notifyAtt {}: {}'.format(name, val)
                 myItem._orig_notifyAttributeListeners(name, val)            
             
             myItem._orig_notify()
