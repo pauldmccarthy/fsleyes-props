@@ -702,7 +702,7 @@ def buildGUI(parent,
     """
 
     if view is None:
-        if hasattr(hasProps, '_view'):     view = copy.deepcopy(hasProps._view)
+        if hasattr(hasProps, '_view'):     view = hasProps._view
         else:                              view = _defaultView(hasProps)
     if labels is None:
         if hasattr(hasProps, '_labels'):   labels = hasProps._labels
@@ -713,6 +713,8 @@ def buildGUI(parent,
 
     if parent is None: parentObj = wx.Frame(None)
     else:              parentObj = parent
+
+    view = copy.deepcopy(view)
 
     propGui   = PropGUI()
     view      = _prepareView(hasProps, view, labels, tooltips, showUnlink) 
