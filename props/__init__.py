@@ -181,6 +181,7 @@ from properties_types import (
     FilePath,
     Choice,
     List,
+    Colour,
     ColourMap,
     Bounds,
     Point)

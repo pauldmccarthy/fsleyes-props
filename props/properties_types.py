@@ -12,6 +12,8 @@ subclasses which define properties of different types.
 
 import os.path as op
 
+import collections
+
 import matplotlib.colors as mplcolors
 import matplotlib.cm     as mplcm
 
@@ -532,6 +534,55 @@ class List(props.ListPropertyBase):
         if maxlen is not None and len(value) > maxlen:
             raise ValueError('Must have length at most {}'.format(maxlen))
      
+
+class Colour(props.PropertyBase):
+    """A property which represents a RGB colour, stored as three floating
+    point values in the range ``0.0 - 1.0``.
+    """
+
+    
+    def __init__(self, **kwargs):
+        """Create a :class:`Colour` property.
+
+        If the ``default`` ``kwarg`` is not provided, the default is set
+        to white.
+
+        :param kwargs: All passed through to the
+                       :class:`~props.properties.PropertyBase`
+                       constructor.
+        """
+
+        kwargs['default'] = kwargs.get('default', (1.0, 1.0, 1.0))
+        props.PropertyBase.__init__(self, **kwargs)
+
+
+    def validate(self, instance, attributes, value):
+        """Checks the given ``value``, and raises a ``ValueError`` if
+        it does not consist of three floating point numbers in the
+        range ``(0.0 - 1.0)``.
+        """
+        props.PropertyBase.validate(self, instance, attributes, value)
+
+        if (not isinstance(value, collections.Sequence)) or (len(value) != 3):
+            raise ValueError('Colour must be a sequence of three values')
+
+        for v in value:
+            if (v < 0.0) or (v > 1.0):
+                raise ValueError('Colour values must be between 0.0 and 1.0')
+    
+        
+    def cast(self, instance, attributes, value):
+        """Ensures that the given ``value`` contains three floating point
+        numbers, in the range ``(0.0 - 1.0)``.
+        """
+
+        value = map(float, value[:3])
+
+        for i, v in enumerate(value):
+            if v < 0.0: value[i] = 0.0
+            if v > 1.0: value[i] = 1.0
+        
+        return value
 
 
 class ColourMap(props.PropertyBase):

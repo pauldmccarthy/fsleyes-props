@@ -383,6 +383,36 @@ def _Boolean(parent, hasProps, propObj, propVal):
     return checkBox
 
 
+def _Colour(parent, hasProps, propObj, propVal):
+    """Creates and returns a :class:`wx.ColourPickerCtrl` widget, allowing
+    the user to modify the given :class:`props.properties_types.Colour`
+    value.
+    """
+    colourPicker = wx.ColourPickerCtrl(parent)
+
+    # Add GetValue/SetValue methods to the
+    # colour picker so the _propBind function
+    # can bind the widget in the same way as
+    # all the other widget types
+    def GetValue():
+        vals = colourPicker.GetColour()[:3]
+        return [v / 255.0 for v in vals]
+    
+    def SetValue(vals):
+        colourPicker.SetColour([v * 255.0 for v in vals])
+
+    colourPicker.GetValue = GetValue
+    colourPicker.SetValue = SetValue
+
+    _propBind(hasProps,
+              propObj,
+              propVal,
+              colourPicker,
+              wx.EVT_COLOURPICKER_CHANGED)
+
+    return colourPicker
+
+
 def _makeColourMapBitmap(cmap):
     """Makes a little bitmap image from a :class:`~matplotlib.colors.Colormap`
     instance.
