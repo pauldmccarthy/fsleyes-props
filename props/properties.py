@@ -797,6 +797,24 @@ class HasProperties(object):
         self.getPropVal(propName).disableListener(name)
 
 
+    def addGlobalListener(self, listenerName, callback):
+        """Registers the given listener so that it will be notified of
+        changes to any of the properties of this HasProperties instance.
+        """
+        propNames, props = self.getAllProperties()
+        for propName in propNames:
+            self.getPropVal(propName).addListener(listenerName, callback)
+    
+    
+    def removeGlobalListener(self, listenerName):
+        """De-registers the specified global listener (see
+        :meth:`addGlobalListener`).
+        """
+        propNames, props = self.getAllProperties()
+        for propName in propNames:
+            self.getPropVal(propName).removeListener(listenerName) 
+
+
     def addConstraintListener(self, propName, listenerName, callback):
         """Convenience method, adds the specified constraint listener to the
         specified property. See :meth:`PropertyBase.addConstraintListener`.
