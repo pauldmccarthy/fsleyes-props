@@ -346,6 +346,31 @@ class Choice(props.PropertyBase):
         self.setConstraint(instance, 'labels',  labels)
 
 
+    def _updateChoices(self, choices, labels, instance=None):
+        
+        propVal = self.getPropVal(instance)
+
+        # Prevent notification during the period
+        # where the length of the labels list
+        # may not match the length of the choices
+        # list
+        if propVal is not None:
+            notifState = propVal.getNotificationState()
+            propVal.disableNotification()
+
+        print
+        print 'Updating choices:'
+        print '  choices: {}'.format(choices)
+        print '  labels:  {}'.format(labels)
+        print
+
+        self.setConstraint(instance, 'labels',  labels)
+
+        if propVal is not None:
+            propVal.setNotificationState(notifState)
+             
+        self.setConstraint(instance, 'choices', choices)
+
 
     def setChoices(self, choices, labels=None, instance=None):
         """Sets the list of possible choices (and their labels, if not None).
@@ -355,8 +380,7 @@ class Choice(props.PropertyBase):
         if len(choices) != len(labels):
             raise ValueError('A label is required for every choice')
 
-        self.setConstraint(instance, 'choices', choices)
-        self.setConstraint(instance, 'labels',  labels)
+        self._updateChoices(choices, labels, instance)
 
         if len(choices) > 0:
             self.setConstraint(instance, 'default', choices[0])
@@ -377,8 +401,7 @@ class Choice(props.PropertyBase):
         choices.append(choice)
         labels .append(label)
 
-        self.setConstraint(instance, 'choices', choices)
-        self.setConstraint(instance, 'labels',  labels)
+        self._updateChoices(choices, labels, instance)
 
         if len(choices) == 1:
             self.setConstraint(instance, 'default', choices[0])
@@ -392,6 +415,8 @@ class Choice(props.PropertyBase):
         props.PropertyBase.validate(self, instance, attributes, value)
 
         choices = self.getChoices(instance)
+
+        print '{} in {}?'.format(value, choices)
 
         if len(choices) == 0: return
         if value is None:     return

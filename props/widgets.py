@@ -302,12 +302,40 @@ def _Choice(parent, hasProps, propObj, propVal):
     choices = propObj.getChoices(hasProps)
     labels  = propObj.getLabels(hasProps)
     valMap  = OrderedDict(zip(choices, labels))
+    lblMap  = OrderedDict(zip(labels,  choices))
     widget  = wx.ComboBox(
         parent,
         choices=labels,
         style=wx.CB_READONLY | wx.CB_DROPDOWN)
 
-    _propBind(hasProps, propObj, propVal, widget, wx.EVT_COMBOBOX, valMap)
+    # Update the combobox choices
+    # when they change.
+    def choicesChanged(ctx, name, *a):
+        if name not in ('choices', 'labels'):
+            return
+
+        # current = widget.GetValue()
+
+        labels  = propObj.getLabels(hasProps)
+        choices = propObj.getLabels(hasProps)
+
+        valMap.update(OrderedDict(zip(choices, labels)))
+        lblMap.update(OrderedDict(zip(labels,  choices)))
+        
+        widget.Set(labels)
+
+        # TODO reset widget value
+        
+
+    propVal.addAttributeListener('ababss', choicesChanged)
+
+    _propBind(hasProps,
+              propObj,
+              propVal,
+              widget,
+              wx.EVT_COMBOBOX,
+              valMap,
+              lblMap)
     
     return widget
 
@@ -337,7 +365,6 @@ def _String(parent, hasProps, propObj, propVal):
     _setupValidation(widget, hasProps, propObj, propVal)
     
     return widget
-
 
 
 def _Real(parent, hasProps, propObj, propVal):
