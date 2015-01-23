@@ -358,12 +358,6 @@ class Choice(props.PropertyBase):
             notifState = propVal.getNotificationState()
             propVal.disableNotification()
 
-        print
-        print 'Updating choices:'
-        print '  choices: {}'.format(choices)
-        print '  labels:  {}'.format(labels)
-        print
-
         self.setConstraint(instance, 'labels',  labels)
 
         if propVal is not None:
@@ -415,8 +409,6 @@ class Choice(props.PropertyBase):
         props.PropertyBase.validate(self, instance, attributes, value)
 
         choices = self.getChoices(instance)
-
-        print '{} in {}?'.format(value, choices)
 
         if len(choices) == 0: return
         if value is None:     return

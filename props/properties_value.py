@@ -472,7 +472,7 @@ class PropertyValue(object):
         # changed, listeners are not notified
         changed = (self.__valid != self.__lastValid) or \
                   not self._equalityFunc(self.__value, self.__lastValue)
-                  
+
         if not changed: return
 
         log.debug('Value {}.{} changed: {} -> {} ({})'.format(
@@ -994,6 +994,6 @@ class PropertyValueList(PropertyValue):
     def __delitem__(self, key):
         """Remove items at the specified index/slice from the list."""
         
-        propVals = PropertyValue.get(self)
+        propVals = self.getPropertyValueList()
         propVals.__delitem__(key)
         PropertyValue.set(self, propVals)

@@ -301,8 +301,8 @@ def _Choice(parent, hasProps, propObj, propVal):
 
     choices = propObj.getChoices(hasProps)
     labels  = propObj.getLabels(hasProps)
-    valMap  = OrderedDict(zip(choices, labels))
-    lblMap  = OrderedDict(zip(labels,  choices))
+    valMap  = OrderedDict(zip(labels,  choices))
+    lblMap  = OrderedDict(zip(choices, labels))
     widget  = wx.ComboBox(
         parent,
         choices=labels,
@@ -313,18 +313,14 @@ def _Choice(parent, hasProps, propObj, propVal):
     def choicesChanged(ctx, name, *a):
         if name not in ('choices', 'labels'):
             return
-
-        # current = widget.GetValue()
-
-        labels  = propObj.getLabels(hasProps)
-        choices = propObj.getLabels(hasProps)
-
-        valMap.update(OrderedDict(zip(choices, labels)))
-        lblMap.update(OrderedDict(zip(labels,  choices)))
         
-        widget.Set(labels)
+        choices = propObj.getChoices(hasProps)
+        labels  = propObj.getLabels( hasProps)
 
-        # TODO reset widget value
+        valMap.update(OrderedDict(zip(labels,  choices)))
+        lblMap.update(OrderedDict(zip(choices, labels)))
+
+        widget.Set(labels)
         
 
     propVal.addAttributeListener('ababss', choicesChanged)
@@ -334,8 +330,8 @@ def _Choice(parent, hasProps, propObj, propVal):
               propVal,
               widget,
               wx.EVT_COMBOBOX,
-              valMap,
-              lblMap)
+              lblMap,
+              valMap)
     
     return widget
 
@@ -475,8 +471,8 @@ def _ColourMap(parent, hasProps, propObj, propVal):
 
     cmapNames = propVal.getAttribute('cmapNames')
     cmapObjs  = map(mplcm.get_cmap, cmapNames)
-    valMap    = OrderedDict(zip(cmapObjs,   cmapNames))
-    lblMap    = OrderedDict(zip(cmapNames,  cmapObjs))
+    valMap    = OrderedDict(zip(cmapNames,  cmapObjs))
+    lblMap    = OrderedDict(zip(cmapObjs,   cmapNames))
 
     # create the combobox
     cbox = wx.combo.BitmapComboBox(
@@ -490,8 +486,8 @@ def _ColourMap(parent, hasProps, propObj, propVal):
         selected  = cbox.GetSelection()
         cmapNames = propVal.getAttribute('cmapNames')
         cmapObjs  = map(mplcm.get_cmap, cmapNames)
-        newValMap = OrderedDict(zip(cmapObjs,   cmapNames))
-        newLblMap = OrderedDict(zip(cmapNames,  cmapObjs))
+        newValMap = OrderedDict(zip(cmapNames,  cmapObjs))
+        newLblMap = OrderedDict(zip(cmapObjs,   cmapNames))
 
         cbox.Clear()
 
@@ -513,7 +509,7 @@ def _ColourMap(parent, hasProps, propObj, propVal):
     
     # Bind the combobox to the property
     _propBind(hasProps, propObj, propVal, cbox, wx.EVT_COMBOBOX,
-              valMap, lblMap)
+              lblMap, valMap)
     propVal.addAttributeListener(
         'ColourMap_ComboBox_{}'.format(id(cbox)), cmapsChanged)
 
