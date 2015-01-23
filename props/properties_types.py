@@ -360,8 +360,14 @@ class Choice(props.PropertyBase):
 
         self.setConstraint(instance, 'labels',  labels)
 
+        oldChoice = propVal.get()
+        default   = self.getConstraint(instance, 'default')
+
         if propVal is not None:
             propVal.setNotificationState(notifState)
+
+        if oldChoice not in choices:
+            propVal.set(default)
              
         self.setConstraint(instance, 'choices', choices)
 

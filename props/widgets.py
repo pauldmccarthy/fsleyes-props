@@ -24,7 +24,6 @@ import sys
 import os
 import os.path as op
 
-from collections import OrderedDict
 from collections import Iterable
 
 import wx
@@ -46,8 +45,8 @@ def _propBind(hasProps,
               propVal,
               guiObj,
               evType,
-              labelMap=None,
-              valMap=None):
+              widgetGet=None,
+              widgetSet=None):
     """Binds a :class:`~props.properties_value.PropertyValue` to a widget.
     
     Sets up event callback functions such that, on a change to the given
@@ -56,51 +55,33 @@ def _propBind(hasProps,
     you may pass in a list of event types) occurs, the property value will be
     set to the value controlled by the GUI widget.
 
-    If ``labelMap`` is provided, it should be a dictionary of ``{value :
-    label}`` pairs where the label is what is displayed to the user, and the
-    value is what is assigned to the property value when a corresponding label
-    is selected. It is basically here to support
-    :class:`~props.properties_types.Choice` and
-    :class:`~props.properties_types.ColourMap` properties. Similarly,
-    ``valMap`` should be a dictionary of ``{label : value}`` pairs. If a
-    ``labelMap`` is provided, but a ``valMap`` is not, a ``valMap`` is created
-    from the ``labelMap``.
-
-    A little trickery is used for :class:`~props.properties_types.ColourMap`
-    properties, as the list of available colour maps may change at runtime.
-    If a ``labelMap`` and ``valMap`` are provided, a reference to them is
-    stored, rather than a copy being created. This means that the two maps
-    may be updated externally, with the listeners registered in this function
-    still functioning with the updates.
-
-    :param hasProps: The owning :class:`~props.properties.HasProperties`
-                     instance.
+    :param hasProps:  The owning :class:`~props.properties.HasProperties`
+                      instance.
     
-    :param propObj:  The :class:`~props.properties.PropertyBase` property type.
+    :param propObj:   The :class:`~props.properties.PropertyBase` property
+                      type.
     
-    :param propVal:  The :class:`~props.properties_value.PropertyValue` to be
-                     bound.
+    :param propVal:   The :class:`~props.properties_value.PropertyValue` to 
+                      be bound.
     
-    :param guiObj:   The :mod:`wx` GUI widget
+    :param guiObj:    The :mod:`wx` GUI widget
     
-    :param evType:   The event type (or list of event types) which should be
-                     listened for on the ``guiObj``.
+    :param evType:    The event type (or list of event types) which should 
+                      be listened for on the ``guiObj``.
     
-    :param labelMap: Dictionary of ``{value : label}`` pairs
-    
-    :param valMap:   Dictionary of ``{label : value}`` pairs
+    :param widgetGet: Function which returns the current widget value. If
+                      ``None``, the ``guiObj.GetValue`` method is used.
+ 
+    :param widgetSet: Function which sets the current widget value. If
+                      ``None``, the ``guiObj.SetValue`` method is used. 
     """
 
     if not isinstance(evType, Iterable): evType = [evType]
 
     listenerName = 'WidgetBind_{}'.format(id(guiObj))
 
-    if labelMap is None:
-        valMap = None
-
-    elif valMap is None:
-        valMap = dict([(lbl, val) for (val, lbl) in labelMap.items()])
-
+    if widgetGet is None: widgetGet = guiObj.GetValue
+    if widgetSet is None: widgetSet = guiObj.SetValue
 
     log.debug('Binding PropertyValue ({}.{} [{}]) to widget {} ({})'.format(
         hasProps.__class__.__name__,
@@ -114,13 +95,20 @@ def _propBind(hasProps,
         Sets the GUI widget value to that of the property.
         """
 
-        if guiObj.GetValue() == value: return
-
-        if valMap is not None: value = labelMap[value]
+        if widgetGet() == value: return
 
         # most wx widgets complain if you try to set their value to None
         if value is None: value = ''
-        guiObj.SetValue(value)
+
+        log.debug('Updating Widget {} ({}) from {}.{} ({}): {}'.format(
+            guiObj.__class__.__name__,
+            id(guiObj),
+            hasProps.__class__.__name__,
+            propVal._name,
+            id(hasProps),
+            value))
+        
+        widgetSet(value)
         
     def _propUpdate(*a):
         """
@@ -128,12 +116,19 @@ def _propBind(hasProps,
         is changed. Updates the property value.
         """
 
-        value = guiObj.GetValue()
+        value = widgetGet()
 
         if propVal.get() == value: return
 
-        if labelMap is not None: propVal.set(valMap[value])
-        else:                    propVal.set(value)
+        log.debug('Updating {}.{} ({}) from widget  {} ({}): {}'.format(
+            hasProps.__class__.__name__,
+            propVal._name,
+            id(hasProps),
+            guiObj.__class__.__name__,
+            id(guiObj),
+            value)) 
+
+        propVal.set(value)
 
     _guiUpdate(propVal.get())
 
@@ -299,29 +294,39 @@ def _Choice(parent, hasProps, propObj, propVal):
     See the :func:`_String` documentation for details on the parameters.
     """
 
-    choices = propObj.getChoices(hasProps)
-    labels  = propObj.getLabels(hasProps)
-    valMap  = OrderedDict(zip(labels,  choices))
-    lblMap  = OrderedDict(zip(choices, labels))
-    widget  = wx.ComboBox(
+    widget = wx.ComboBox(
         parent,
-        choices=labels,
+        choices=propObj.getLabels(hasProps),
         style=wx.CB_READONLY | wx.CB_DROPDOWN)
+
+    def widgetGet():
+        choices = propObj.getChoices(hasProps)
+        return choices[widget.GetSelection()]
+
+    def widgetSet(value):
+        choices = propObj.getChoices(hasProps)
+        widget.SetSelection(choices.index(value))
 
     # Update the combobox choices
     # when they change.
     def choicesChanged(ctx, name, *a):
+
         if name not in ('choices', 'labels'):
             return
-        
-        choices = propObj.getChoices(hasProps)
-        labels  = propObj.getLabels( hasProps)
 
-        valMap.update(OrderedDict(zip(labels,  choices)))
-        lblMap.update(OrderedDict(zip(choices, labels)))
+        labels = propObj.getLabels( hasProps)
+
+        log.debug('Updating options for Widget '
+                  '{} ({}) from {}.{} ({}): {}'.format(
+                      widget.__class__.__name__,
+                      id(widget),
+                      hasProps.__class__.__name__,
+                      propVal._name,
+                      id(hasProps),
+                      labels))
 
         widget.Set(labels)
-        
+        widgetSet(propVal.get())
 
     propVal.addAttributeListener('ababss', choicesChanged)
 
@@ -330,8 +335,8 @@ def _Choice(parent, hasProps, propObj, propVal):
               propVal,
               widget,
               wx.EVT_COMBOBOX,
-              lblMap,
-              valMap)
+              widgetGet,
+              widgetSet)
     
     return widget
 
@@ -413,25 +418,20 @@ def _Colour(parent, hasProps, propObj, propVal):
     """
     colourPicker = wx.ColourPickerCtrl(parent)
 
-    # Add GetValue/SetValue methods to the
-    # colour picker so the _propBind function
-    # can bind the widget in the same way as
-    # all the other widget types
-    def GetValue():
+    def widgetGet():
         vals = colourPicker.GetColour()[:3]
         return [v / 255.0 for v in vals]
     
-    def SetValue(vals):
+    def widgetSet(vals):
         colourPicker.SetColour([v * 255.0 for v in vals])
-
-    colourPicker.GetValue = GetValue
-    colourPicker.SetValue = SetValue
 
     _propBind(hasProps,
               propObj,
               propVal,
               colourPicker,
-              wx.EVT_COLOURPICKER_CHANGED)
+              wx.EVT_COLOURPICKER_CHANGED,
+              widgetGet,
+              widgetSet)
 
     return colourPicker
 
@@ -471,12 +471,16 @@ def _ColourMap(parent, hasProps, propObj, propVal):
 
     cmapNames = propVal.getAttribute('cmapNames')
     cmapObjs  = map(mplcm.get_cmap, cmapNames)
-    valMap    = OrderedDict(zip(cmapNames,  cmapObjs))
-    lblMap    = OrderedDict(zip(cmapObjs,   cmapNames))
 
     # create the combobox
     cbox = wx.combo.BitmapComboBox(
         parent, style=wx.CB_READONLY | wx.CB_DROPDOWN)
+
+    def widgetGet():
+        return cmapObjs[cbox.GetSelection()]
+
+    def widgetSet(value):
+        cbox.SetSelection(cmapObjs.index(value))
 
     # Called when the list of available 
     # colour maps changes - updates the 
@@ -486,8 +490,6 @@ def _ColourMap(parent, hasProps, propObj, propVal):
         selected  = cbox.GetSelection()
         cmapNames = propVal.getAttribute('cmapNames')
         cmapObjs  = map(mplcm.get_cmap, cmapNames)
-        newValMap = OrderedDict(zip(cmapNames,  cmapObjs))
-        newLblMap = OrderedDict(zip(cmapObjs,   cmapNames))
 
         cbox.Clear()
 
@@ -497,22 +499,27 @@ def _ColourMap(parent, hasProps, propObj, propVal):
             bitmap = _makeColourMapBitmap(cmap)
             cbox.Append(name, bitmap)
 
-        # Update the value/label maps used by the
-        # _propBind listeners (see _propBind docs)
-        valMap.update(newValMap)
-        lblMap.update(newLblMap)
- 
         cbox.SetSelection(selected)
         cbox.Refresh()
- 
+
+    # Initialise the combobox options
     cmapsChanged()
     
     # Bind the combobox to the property
-    _propBind(hasProps, propObj, propVal, cbox, wx.EVT_COMBOBOX,
-              lblMap, valMap)
+    _propBind(hasProps,
+              propObj,
+              propVal,
+              cbox,
+              wx.EVT_COMBOBOX,
+              widgetGet,
+              widgetSet)
+
+    # Make sure the combobox options are updated
+    # when the property options change
     propVal.addAttributeListener(
         'ColourMap_ComboBox_{}'.format(id(cbox)), cmapsChanged)
 
+    # Set the initial combobox selection
     currentVal = propVal.get().name
     if currentVal is None: currentVal = 0
     else:                  currentVal = cmapNames.index(currentVal)
