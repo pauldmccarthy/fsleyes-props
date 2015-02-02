@@ -328,7 +328,8 @@ def _Choice(parent, hasProps, propObj, propVal):
         widget.Set(labels)
         widgetSet(propVal.get())
 
-    propVal.addAttributeListener('ababss', choicesChanged)
+    listenerName = 'WidgetChoiceUpdate_{}'.format(id(widget))
+    propVal.addAttributeListener(listenerName, choicesChanged)
 
     _propBind(hasProps,
               propObj,

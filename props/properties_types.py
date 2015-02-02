@@ -318,12 +318,25 @@ class Choice(props.PropertyBase):
         if len(choices) != len(labels):
             raise ValueError('A label is required for every choice')
 
-        kwargs['choices']      = list(choices)
-        kwargs['labels']       = list(labels)
-        kwargs['default']      = kwargs.get('default',      default)
-        kwargs['allowInvalid'] = kwargs.get('allowInvalid', False)
+        kwargs['choices']       = list(choices)
+        kwargs['labels']        = list(labels)
+        kwargs['default']       = kwargs.get('default',      default)
+        kwargs['allowInvalid']  = kwargs.get('allowInvalid', False)
+        # kwargs['choiceEnabled'] = {choice: True for choice in choices}
 
         props.PropertyBase.__init__(self, **kwargs)
+
+        
+    # def enableChoice(self, choice, instance=None):
+    #     self.getConstraint(instance, 'choiceEnabled')[choice] = True
+
+        
+    # def disableChoice(self, choice, instance=None):
+    #     self.getConstraint(instance, 'choiceEnabled')[choice] = False
+
+
+    # def choiceEnabled(self, choice, instance=None):
+    #     return self.getConstraint(instance, 'choiceEnabled')[choice]
 
 
     def getChoices(self, instance=None):
@@ -348,26 +361,33 @@ class Choice(props.PropertyBase):
 
     def _updateChoices(self, choices, labels, instance=None):
         
-        propVal = self.getPropVal(instance)
+        propVal    = self.getPropVal(instance)
+        default    = self.getConstraint(instance, 'default')
+        # oldEnabled = self.getConstraint(instance, 'choiceEnabled')
+        # newEnabled = {}
 
         # Prevent notification during the period
         # where the length of the labels list
         # may not match the length of the choices
         # list
         if propVal is not None:
+            oldChoice  = propVal.get()
             notifState = propVal.getNotificationState()
             propVal.disableNotification()
 
-        self.setConstraint(instance, 'labels',  labels)
+        # for choice in choices:
+        #     if choice in oldEnabled: newEnabled[choice] = oldEnabled[choice]
+        #     else:                    newEnabled[choice] = True
 
-        oldChoice = propVal.get()
-        default   = self.getConstraint(instance, 'default')
+        self.setConstraint(instance, 'labels',        labels)
+        # self.setConstraint(instance, 'choiceEnabled', newEnabled)
 
         if propVal is not None:
             propVal.setNotificationState(notifState)
 
-        if oldChoice not in choices:
-            propVal.set(default)
+            if oldChoice not in choices:
+                if default in choices: propVal.set(default)
+                else:                  propVal.set(choices[0])
              
         self.setConstraint(instance, 'choices', choices)
 
@@ -414,13 +434,17 @@ class Choice(props.PropertyBase):
         """
         props.PropertyBase.validate(self, instance, attributes, value)
 
+        # enabled = self.getConstraint(instance, 'choiceEnabled')
         choices = self.getChoices(instance)
 
         if len(choices) == 0: return
         if value is None:     return
 
         if value not in choices:
-            raise ValueError('Invalid choice ({})'.format(value))
+            raise ValueError('Invalid choice ({})'    .format(value))
+        # if not enabled[value]:
+        #     raise ValueError('Choice is disabled ({})'.format(value))
+                
 
 
 class FilePath(String):
