@@ -130,11 +130,16 @@ def _propBind(hasProps,
 
         propVal.set(value)
 
+    def _attUpdate(ctx, att, val, name):
+        if att == 'enabled': 
+            guiObj.Enable(val)
+
     _guiUpdate(propVal.get())
 
     # set up the callback functions
     for ev in evType: guiObj.Bind(ev, _propUpdate)
-    propVal.addListener(listenerName, _guiUpdate)
+    propVal.addListener(         listenerName, _guiUpdate)
+    propVal.addAttributeListener(listenerName, _attUpdate)
 
     def onDestroy(ev):
         propVal.removeListener(listenerName)

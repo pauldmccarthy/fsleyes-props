@@ -100,6 +100,7 @@ class PropertyBase(object):
         """
 
         constraints['default'] = default
+        constraints['enabled'] = constraints.get('enabled', True)
 
         # A _label is added by the PropertyOwner metaclass
         # for each new HasProperties class that is defined
@@ -154,7 +155,44 @@ class PropertyBase(object):
         if instance is None: return None
         return self._label.get(type(instance), None)
 
+    
+    def enable(self, instance):
+        """Enables this property for the given :class:`HasProperties`
+        instance.
+
+        See the :meth:`disable` method for more details.
+        """
+        propVal = self.getPropVal(instance)
+        propVal.setAttribute('enabled', True)
+
         
+    def disable(self, instance):
+        """Disables this property for the given :class:`HasProperties`
+        instance.
+
+        An attempt to set the value of a disabled property will result
+        in a ``RuntimeError``. This behaviour can be circumvented by
+        dealing directly with the underlying
+        :class:`props.properties_value.PropertyValue` object.
+
+        Changes to the enabled state of a property may be detected by
+        registering a constraint listener (see :meth:`addConstraintListener`)
+        and listening for changes to the ``enabled`` constraint.
+        """
+        propVal = self.getPropVal(instance)
+        propVal.setAttribute('enabled', False) 
+
+
+    def isEnabled(self, instance):
+        """Returns ``True``if this property is enabled for the given
+        :class:`HasProperties` instance, ``False`` otherwise.
+
+        See the :meth:`disable` method for more details.
+        """
+        propVal = self.getPropVal(instance)
+        return propVal.getAttribute('enabled')
+
+    
     def addListener(self, instance, name, callback, overwrite=False):
         """Register a listener with the
         :class:`~props.properties_value.PropertyValue` object managed by
@@ -375,6 +413,12 @@ class PropertyBase(object):
         """
         
         propVal = self.getPropVal(instance)
+
+        if not propVal.getAttribute('enabled'):
+            raise RuntimeError('Property {}.{} is disabled'.format(
+                instance.__class__.__name__,
+                self.getLabel(instance)))
+        
         propVal.set(value)
 
 
@@ -723,6 +767,23 @@ class HasProperties(object):
     def disableNotification(self, propName):
         """Disables notification of listeners on the given property."""
         self.getPropVal(propName).disableNotification()
+
+
+    def enableProperty(self, propName):
+        """Enables the given property - see :meth:`PropertyBase.enable`."""
+        self.getProp(propName).enable(self)
+
+        
+    def disableProperty(self, propName):
+        """Disables the given property - see :meth:`PropertyBase.disable`."""
+        self.getProp(propName).disable(self)
+
+
+    def propertyIsEnabled(self, propName):
+        """Returns the enabled state of the given property - see
+        :meth:`PropertyBase.isEnabled`.
+        """
+        return self.getProp(propName).isEnabled()
 
 
     def notify(self, propName):
