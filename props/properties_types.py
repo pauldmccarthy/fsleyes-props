@@ -284,6 +284,11 @@ class String(props.PropertyBase):
 
 class Choice(props.PropertyBase):
     """A property which may only be set to one of a set of predefined values.
+
+    Individual choices can be enabled/disabled via the :meth:`enableChoice`
+    and :meth:`disableChoice` methods. The ``choiceEnabled`` property
+    constraint/attribute contains a list of boolean values representing the
+    enabled/disabled state of each choice.
     """
 
     def __init__(self, choices=None, labels=None, **kwargs):
@@ -322,21 +327,33 @@ class Choice(props.PropertyBase):
         kwargs['labels']        = list(labels)
         kwargs['default']       = kwargs.get('default',      default)
         kwargs['allowInvalid']  = kwargs.get('allowInvalid', False)
-        # kwargs['choiceEnabled'] = {choice: True for choice in choices}
+        kwargs['choiceEnabled'] = {choice: True for choice in choices}
 
         props.PropertyBase.__init__(self, **kwargs)
 
         
-    # def enableChoice(self, choice, instance=None):
-    #     self.getConstraint(instance, 'choiceEnabled')[choice] = True
+    def enableChoice(self, choice, instance=None):
+        """Enables the given choice.
+        """
+        choiceEnabled = dict(self.getConstraint(instance, 'choiceEnabled'))
+        choiceEnabled[choice] = True
+        self.setConstraint(instance, 'choiceEnabled', choiceEnabled)
 
         
-    # def disableChoice(self, choice, instance=None):
-    #     self.getConstraint(instance, 'choiceEnabled')[choice] = False
+    def disableChoice(self, choice, instance=None):
+        """Disables the given choice. An attempt to set the property to
+        a disabled value will result in a ``ValueError``.
+        """
+        choiceEnabled = dict(self.getConstraint(instance, 'choiceEnabled'))
+        choiceEnabled[choice] = False
+        self.setConstraint(instance, 'choiceEnabled', choiceEnabled) 
 
 
-    # def choiceEnabled(self, choice, instance=None):
-    #     return self.getConstraint(instance, 'choiceEnabled')[choice]
+    def choiceEnabled(self, choice, instance=None):
+        """Returns ``True`` if the given choice is enabled, ``False``
+        otherwise.
+        """
+        return self.getConstraint(instance, 'choiceEnabled')[choice]
 
 
     def getChoices(self, instance=None):
@@ -363,8 +380,8 @@ class Choice(props.PropertyBase):
         
         propVal    = self.getPropVal(instance)
         default    = self.getConstraint(instance, 'default')
-        # oldEnabled = self.getConstraint(instance, 'choiceEnabled')
-        # newEnabled = {}
+        oldEnabled = self.getConstraint(instance, 'choiceEnabled')
+        newEnabled = {}
 
         # Prevent notification during the period
         # where the length of the labels list
@@ -375,12 +392,12 @@ class Choice(props.PropertyBase):
             notifState = propVal.getNotificationState()
             propVal.disableNotification()
 
-        # for choice in choices:
-        #     if choice in oldEnabled: newEnabled[choice] = oldEnabled[choice]
-        #     else:                    newEnabled[choice] = True
+        for choice in choices:
+            if choice in oldEnabled: newEnabled[choice] = oldEnabled[choice]
+            else:                    newEnabled[choice] = True
 
         self.setConstraint(instance, 'labels',        labels)
-        # self.setConstraint(instance, 'choiceEnabled', newEnabled)
+        self.setConstraint(instance, 'choiceEnabled', newEnabled)
 
         if propVal is not None:
             propVal.setNotificationState(notifState)
@@ -434,7 +451,7 @@ class Choice(props.PropertyBase):
         """
         props.PropertyBase.validate(self, instance, attributes, value)
 
-        # enabled = self.getConstraint(instance, 'choiceEnabled')
+        enabled = self.getConstraint(instance, 'choiceEnabled')
         choices = self.getChoices(instance)
 
         if len(choices) == 0: return
@@ -442,8 +459,8 @@ class Choice(props.PropertyBase):
 
         if value not in choices:
             raise ValueError('Invalid choice ({})'    .format(value))
-        # if not enabled[value]:
-        #     raise ValueError('Choice is disabled ({})'.format(value))
+        if not enabled[value]:
+            raise ValueError('Choice is disabled ({})'.format(value))
                 
 
 

@@ -316,10 +316,18 @@ def _Choice(parent, hasProps, propObj, propVal):
     # when they change.
     def choicesChanged(ctx, name, *a):
 
-        if name not in ('choices', 'labels'):
+        if name not in ('choices', 'labels', 'choiceEnabled'):
             return
 
-        labels = propObj.getLabels( hasProps)
+        choices = propObj.getChoices(hasProps)
+        labels  = propObj.getLabels( hasProps)
+
+        # Remove any disabled choices from the list.
+        # It would be nice if wx.ComboBox allowed
+        # us to enable/disable individual items.
+        for i, choice in enumerate(choices):
+            if not propObj.choiceEnabled(choice, hasProps):
+                labels.pop(i)
 
         log.debug('Updating options for Widget '
                   '{} ({}) from {}.{} ({}): {}'.format(
