@@ -600,7 +600,7 @@ class List(props.ListPropertyBase):
      
 
 class Colour(props.PropertyBase):
-    """A property which represents a RGB colour, stored as three floating
+    """A property which represents a RGBA colour, stored as four floating
     point values in the range ``0.0 - 1.0``.
     """
 
@@ -616,7 +616,7 @@ class Colour(props.PropertyBase):
                        constructor.
         """
 
-        kwargs['default'] = kwargs.get('default', (1.0, 1.0, 1.0))
+        kwargs['default'] = kwargs.get('default', (1.0, 1.0, 1.0, 1.0))
         props.PropertyBase.__init__(self, **kwargs)
 
 
@@ -627,8 +627,9 @@ class Colour(props.PropertyBase):
         """
         props.PropertyBase.validate(self, instance, attributes, value)
 
-        if (not isinstance(value, collections.Sequence)) or (len(value) != 3):
-            raise ValueError('Colour must be a sequence of three values')
+        if (not isinstance(value, collections.Sequence)) or \
+           (len(value) not in (3, 4)):
+            raise ValueError('Colour must be a sequence of three/four values')
 
         for v in value:
             if (v < 0.0) or (v > 1.0):
@@ -636,11 +637,22 @@ class Colour(props.PropertyBase):
     
         
     def cast(self, instance, attributes, value):
-        """Ensures that the given ``value`` contains three floating point
-        numbers, in the range ``(0.0 - 1.0)``.
+        """Ensures that the given ``value`` contains three or four floating
+        point numbers, in the range ``(0.0 - 1.0)``.
         """
 
-        value = map(float, value[:3])
+        pv = self.getPropVal(instance)
+        if pv is not None:
+            currentVal = pv.get()
+        else:
+            currentVal = self._defaultConstraints['default']
+
+        value = map(float, value)
+
+        if len(value) == 3:
+            value = value + [currentVal[3]]
+
+        value = value[:4]
 
         for i, v in enumerate(value):
             if v < 0.0: value[i] = 0.0

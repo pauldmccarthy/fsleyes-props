@@ -433,7 +433,7 @@ def _Colour(parent, hasProps, propObj, propVal):
     colourPicker = wx.ColourPickerCtrl(parent)
 
     def widgetGet():
-        vals = colourPicker.GetColour()[:3]
+        vals = colourPicker.GetColour()
         return [v / 255.0 for v in vals]
     
     def widgetSet(vals):
