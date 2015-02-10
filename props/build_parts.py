@@ -21,7 +21,7 @@ class ViewItem(object):
     """
 
     def __init__(self, key=None, label=None, tooltip=None,
-                 visibleWhen=None, enabledWhen=None):
+                 visibleWhen=None, enabledWhen=None, setup=None):
         """Define a :class:`ViewItem`.
 
         :param str key:     An identifier for this item. If this item is a
@@ -48,6 +48,13 @@ class ViewItem(object):
                             state of the item (and its children) is changed
                             between enabled and disabled.
 
+        :param setup:       Optional function which is called when te GUI 
+                            object represented by this ViewItem is first 
+                            created. The function is passed the
+                            :class:`~props.properties.HasProperties` instance,
+                            the :mod:`wx` GUI parent object, and the
+                            :mod:`wx` object.
+
         """
 
         self.key         = key
@@ -55,6 +62,7 @@ class ViewItem(object):
         self.tooltip     = tooltip
         self.visibleWhen = visibleWhen
         self.enabledWhen = enabledWhen
+        self.setup       = setup
 
     def __str__( self): return '{}()'.format(self.__class__.__name__)
     def __repr__(self): return self.__str__()

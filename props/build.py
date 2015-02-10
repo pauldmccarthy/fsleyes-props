@@ -547,6 +547,9 @@ def _create(parent, viewItem, hasProps, propGui):
         
         setToolTip(guiObject)
 
+    if viewItem.setup is not None:
+        viewItem.setup(hasProps, parent, guiObject)
+
     propGui.guiObjects[viewItem.key] = guiObject
 
     return guiObject
