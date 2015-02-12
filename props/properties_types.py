@@ -619,7 +619,7 @@ class Colour(props.PropertyBase):
         default = kwargs.get('default', (1.0, 1.0, 1.0, 1.0))
 
         if len(default) == 3:
-            default = default + [1.0]
+            default = list(default) + [1.0]
 
         kwargs['default'] = default
 
