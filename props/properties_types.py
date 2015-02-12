@@ -616,7 +616,13 @@ class Colour(props.PropertyBase):
                        constructor.
         """
 
-        kwargs['default'] = kwargs.get('default', (1.0, 1.0, 1.0, 1.0))
+        default = kwargs.get('default', (1.0, 1.0, 1.0, 1.0))
+
+        if len(default) == 3:
+            default = default + [1.0]
+
+        kwargs['default'] = default
+
         props.PropertyBase.__init__(self, **kwargs)
 
 
