@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# properties.py - Python descriptor framework. 
+# properties.py - Python descriptor framework.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
