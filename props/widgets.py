@@ -302,9 +302,16 @@ def _Choice(parent, hasProps, propObj, propVal):
     See the :func:`_String` documentation for details on the parameters.
     """
 
+    choices = propObj.getChoices(hasProps)
+    labels  = propObj.getLabels( hasProps)
+    cl      = filter(lambda (c, l): propObj.choiceEnabled(c, hasProps),
+                     zip(choices, labels))
+
+    choices, labels = zip(*cl)
+
     widget = wx.ComboBox(
         parent,
-        choices=propObj.getLabels(hasProps),
+        choices=labels,
         style=wx.CB_READONLY | wx.CB_DROPDOWN)
 
     def widgetGet():
