@@ -6,10 +6,19 @@
 #
 """Generate wx GUI widgets for :class:`~props.properties.PropertyBase` objects.
 
-The entry points for this module are the :func:`makeWidget` and
-:func:`bindWidget` functions. The ``makeWidget`` function is called by
-functions in the :mod:`props.build` module when they automatically build a
-GUI for the properties of a :class:`~props.properties.HasProperties` instance.
+This module provides the following functions:
+
+  - :func:`makeWidget`: Creates a widget for a ``PropertyBase`` object. This
+    function is called by functions in the :mod:`props.build` module when
+    they automatically build a GUI for the properties of a
+    :class:`~props.properties.HasProperties` instance.
+
+  - :func:`makeSyncWidget`: Creates a widget to control synchronisation of a
+    ``PropertyBase`` object of a :class:`~props.syncable.SyncableHasProperties`
+    instance with its parent.
+
+  - :func:`bindWidget`: Binds an existing widget with a ``PropertyBase``
+    instance.
 """
 
 import logging
@@ -551,6 +560,62 @@ def _ColourMap(parent, hasProps, propObj, propVal):
     cbox.SetSelection(currentVal)
  
     return cbox
+
+
+def _LinkBox(parent, hasProps, propObj, propVal):
+    """Creates a 'link' button which toggles synchronisation
+    between the property on the given ``hasProps`` instance,
+    and its parent.
+    """
+    propName = propObj.getLabel(hasProps)
+    value    = hasProps.isSyncedToParent(propName)
+    linkBox  = wx.ToggleButton(parent,
+                               label=u'\u21cb',
+                               style=wx.BU_EXACTFIT)
+    linkBox.SetValue(value)
+
+    if (hasProps.getParent() is None)                   or \
+       (not hasProps.canBeSyncedToParent(    propName)) or \
+       (not hasProps.canBeUnsyncedFromParent(propName)):
+        linkBox.Enable(False)
+        
+    else:
+
+        # Update the binding state when the linkbox is modified
+        def onLinkBox(ev):
+            value = linkBox.GetValue()
+            if value: hasProps.syncToParent(    propName)
+            else:     hasProps.unsyncFromParent(propName)
+
+        # And update the linkbox when the binding state is modified
+        def onSyncProp(*a):
+            linkBox.SetValue(hasProps.isSyncedToParent(propName))
+
+        def onDestroy(ev):
+            ev.Skip()
+            hasProps.removeSyncChangeListener(propName, lName)
+
+        lName = 'widget_LinkBox_{}_{}'.format(propName, linkBox)
+        
+        linkBox.Bind(wx.EVT_TOGGLEBUTTON,   onLinkBox)
+        linkBox.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
+        hasProps.addSyncChangeListener(propName, lName, onSyncProp)
+
+    return linkBox    
+
+
+def makeSyncWidget(parent, hasProps, propName):
+    """Creates a button which controls synchronisation of the specified
+    property on the given ``hasProps`` instance, with the corresponding
+    property on its parent.
+
+    See the :func:`makeWidget` function for a description of the
+    arguments.
+    """
+    propObj = hasProps.getProp(propName)
+    propVal = propObj.getPropVal(hasProps)
+
+    return _LinkBox(parent, hasProps, propObj, propVal)
 
 
 def makeWidget(parent, hasProps, propName):

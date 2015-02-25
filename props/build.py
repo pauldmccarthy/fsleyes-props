@@ -198,37 +198,15 @@ def _createLinkBox(parent, viewItem, hasProps, propGui):
     """Creates a checkbox which can be used to link/unlink a property
     from its parent property.
     """
-    propName = viewItem.propKey
-    value    = hasProps.isSyncedToParent(propName)
-    
-    linkBox = wx.ToggleButton(parent,
-                              label=u'\u21cb',
-                              style=wx.BU_EXACTFIT)
-    linkBox.SetValue(value)
 
-    if (not hasProps.canBeSyncedToParent(    propName)) or \
+    propName = viewItem.key
+    linkBox = widgets.makeSyncWidget(parent, hasProps, propName) 
+
+    if (hasProps.getParent() is None)                   or \
+       (not hasProps.canBeSyncedToParent(    propName)) or \
        (not hasProps.canBeUnsyncedFromParent(propName)):
-        linkBox.Enable(False)
         viewItem.enabledWhen = None
         
-    else:
-
-        # Update the binding state when the linkbox is modified
-        def onLinkBox(ev):
-            value = linkBox.GetValue()
-            if value: hasProps.syncToParent(    propName)
-            else:     hasProps.unsyncFromParent(propName)
-
-        # And update the linkbox when the binding state is modified
-        def onSyncProp(*a):
-            linkBox.SetValue(hasProps.isSyncedToParent(propName))
-        
-        hasProps.addSyncChangeListener(
-            propName,
-            'build_pyLinkBox_{}_{}'.format(propName, linkBox),
-            onSyncProp)
-        linkBox.Bind(wx.EVT_TOGGLEBUTTON, onLinkBox)
-
     return linkBox
 
 

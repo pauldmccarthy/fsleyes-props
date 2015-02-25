@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    props.bindable
+   props.syncable
    props.build
    props.build_parts
    props.cli

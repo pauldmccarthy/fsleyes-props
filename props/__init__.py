@@ -201,6 +201,7 @@ try:
  
     from widgets import (
         makeWidget,
+        makeSyncWidget, 
         bindWidget)
     
     from build import (
