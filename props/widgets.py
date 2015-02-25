@@ -2,18 +2,14 @@
 #
 # widgets.py - Generate wx GUI widgets for props.PropertyBase objects.
 #
-# The sole entry point for this module is the makeWidget function,
-# which is called via the build module when it automatically
-# builds a GUI for the properties of a props.HasProperties instance.
-#
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 """Generate wx GUI widgets for :class:`~props.properties.PropertyBase` objects.
 
-The sole entry point for this module is the :func:`makeWidget` function, which
-is called via functions in the :mod:`props.build` module when they
-automatically builds a GUI for the properties of a
-:class:`~props.properties.HasProperties` instance.
+The entry points for this module are the :func:`makeWidget` and
+:func:`bindWidget` functions. The ``makeWidget`` function is called by
+functions in the :mod:`props.build` module when they automatically build a
+GUI for the properties of a :class:`~props.properties.HasProperties` instance.
 """
 
 import logging
@@ -142,6 +138,13 @@ def _propBind(hasProps,
     propVal.addAttributeListener(listenerName, _attUpdate)
 
     def onDestroy(ev):
+        log.debug('Widget {} ({}) destroyed (removing '
+                  'listener {} from {}.{})'.format(
+                      guiObj.__class__.__name__,
+                      id(guiObj),
+                      listenerName,
+                      hasProps.__class__.__name__,
+                      propVal._name))
         propVal.removeListener(listenerName)
         ev.Skip()
 
@@ -574,3 +577,20 @@ def makeWidget(parent, hasProps, propName):
             'Unknown property type: {}'.format(propObj.__class__.__name__))
 
     return makeFunc(parent, hasProps, propObj, propVal)
+
+
+def bindWidget(widget,
+               hasProps,
+               propName,
+               evTypes,
+               widgetGet=None,
+               widgetSet=None):
+    """Binds the given widget to the specified property. See the :func:`_propBind`
+    method for details of the arguments.
+    """
+
+    propObj = hasProps.getProp(   propName)
+    propVal = hasProps.getPropVal(propName)
+
+    _propBind(
+        hasProps, propObj, propVal, widget, evTypes, widgetGet, widgetSet)

@@ -199,7 +199,9 @@ try:
     import widgets_list
     import build
  
-    from widgets import makeWidget
+    from widgets import (
+        makeWidget,
+        bindWidget)
     
     from build import (
         buildGUI,
