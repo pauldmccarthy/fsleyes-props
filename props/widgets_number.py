@@ -45,7 +45,8 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
     maxval = getMaxVal(maxval)
         
     if isinstance(propObj, props.Int):
-        SpinCtr = wx.SpinCtrl
+        SpinCtr   = wx.SpinCtrl
+        increment = 1
 
     elif isinstance(propObj, props.Real):
         
@@ -78,11 +79,23 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
     listenerName = 'widgets_number_py_updateRange_{}'.format(id(spin))
     propVal.addAttributeListener(listenerName, updateRange)
 
+
+    def onMouseWheel(ev):
+        wheelDir = ev.GetWheelRotation()
+
+        if   wheelDir < 0: offset = -increment
+        elif wheelDir > 0: offset =  increment
+        else:              return
+        
+        propVal.set(propVal.get() + offset)
+
+        
     def onDestroy(ev):
         propVal.removeAttributeListener(listenerName)
         ev.Skip()
     
     spin.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
+    spin.Bind(wx.EVT_MOUSEWHEEL,     onMouseWheel)
 
     return spin
 
@@ -101,12 +114,15 @@ def _makeSlider(parent, hasProps, propObj, propVal, showSpin, showLimits):
     elif isinstance(propObj, props.Real): real = True
 
     if not showSpin:
+        evt    = wx.EVT_SLIDER
         slider = floatslider.FloatSlider(
             parent,
             value=value,
             minValue=minval,
             maxValue=maxval)
+        
     else:
+        evt    = floatslider.EVT_SSP_VALUE 
         slider = floatslider.SliderSpinPanel(
             parent,
             real=real,
@@ -117,8 +133,7 @@ def _makeSlider(parent, hasProps, propObj, propVal, showSpin, showLimits):
             editLimits=editLimits)
 
     # bind the slider value to the property value
-    widgets._propBind(
-        hasProps, propObj, propVal, slider, floatslider.EVT_SSP_VALUE)
+    widgets._propBind(hasProps, propObj, propVal, slider, evt)
 
     # Update slider min/max bounds and labels
     # whenever the property constraints change.    
