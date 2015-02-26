@@ -87,7 +87,7 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
     return spin
 
 
-def _makeSlider(parent, hasProps, propObj, propVal):
+def _makeSlider(parent, hasProps, propObj, propVal, showSpin, showLimits):
     """Creates a :class:`~pwidgets.floatslider.SliderSpinPanel` bound to the
     given :class:`~props.properties_value.PropertyValue` object.
     """
@@ -100,14 +100,21 @@ def _makeSlider(parent, hasProps, propObj, propVal):
     if   isinstance(propObj, props.Int):  real = False
     elif isinstance(propObj, props.Real): real = True
 
-    slider = floatslider.SliderSpinPanel(
-        parent,
-        real=real,
-        value=value,
-        minValue=minval,
-        maxValue=maxval,
-        showLimits=True,
-        editLimits=editLimits)
+    if not showSpin:
+        slider = floatslider.FloatSlider(
+            parent,
+            value=value,
+            minValue=minval,
+            maxValue=maxval)
+    else:
+        slider = floatslider.SliderSpinPanel(
+            parent,
+            real=real,
+            value=value,
+            minValue=minval,
+            maxValue=maxval,
+            showLimits=showLimits,
+            editLimits=editLimits)
 
     # bind the slider value to the property value
     widgets._propBind(
@@ -146,7 +153,14 @@ def _makeSlider(parent, hasProps, propObj, propVal):
     return slider
 
 
-def _Number(parent, hasProps, propObj, propVal):
+def _Number(
+        parent,
+        hasProps,
+        propObj,
+        propVal,
+        slider=True,
+        spin=True,
+        showLimits=True):
     """Creates and returns a widget allowing the user to edit the given
     :class:`~props.properties_types.Number` property value.
 
@@ -154,11 +168,20 @@ def _Number(parent, hasProps, propObj, propVal):
     parameters.
     """
 
+    if not (slider or spin):
+        raise ValueError('One of slider or spin must be True')
+
     minval  = propObj.getConstraint(hasProps, 'minval')
     maxval  = propObj.getConstraint(hasProps, 'maxval')
     isRange = (minval is not None) and (maxval is not None)
 
-    if not isRange:
+    if (not isRange) or (not slider):
         return _makeSpinBox(parent, hasProps, propObj, propVal)
+    
     else:
-        return _makeSlider( parent, hasProps, propObj, propVal)
+        return _makeSlider(parent,
+                           hasProps,
+                           propObj,
+                           propVal,
+                           spin,
+                           showLimits)

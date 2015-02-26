@@ -234,7 +234,7 @@ property name) as the key.
 """
 
 
-def _FilePath(parent, hasProps, propObj, propVal):
+def _FilePath(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a panel containing a :class:`wx.TextCtrl` and a
     :class:`wx.Button`. The button, when clicked, opens a file dialog allowing
     the user to choose a file/directory to open, or a location to save (this
@@ -304,7 +304,7 @@ def _FilePath(parent, hasProps, propObj, propVal):
     return panel
     
 
-def _Choice(parent, hasProps, propObj, propVal):
+def _Choice(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a :class:`wx.Combobox` allowing the user to set the
     given ``propObj`` (props.Choice) object.
 
@@ -374,7 +374,7 @@ def _Choice(parent, hasProps, propObj, propVal):
     return widget
 
 
-def _String(parent, hasProps, propObj, propVal):
+def _String(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a :class:`wx.TextCtrl` object, allowing the user to
     edit the given ``propVal`` (managed by a
     :class:`~props.properties_types.String`) object.
@@ -391,6 +391,7 @@ def _String(parent, hasProps, propObj, propVal):
     :param propVal:  The :class:`~props.properties_value.PropertyValue`
                      instance.
 
+    :param kwargs:   Type-specific options.
     """
 
     widget = wx.TextCtrl(parent)
@@ -401,27 +402,27 @@ def _String(parent, hasProps, propObj, propVal):
     return widget
 
 
-def _Real(parent, hasProps, propObj, propVal):
+def _Real(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a widget allowing the user to edit the given
     :class:`~props.properties_types.Real` property value. See the
     :mod:`props.widgets_number` module.
 
     See the :func:`_String` documentation for details on the parameters.
     """
-    return _Number(parent, hasProps, propObj, propVal)
+    return _Number(parent, hasProps, propObj, propVal, **kwargs)
 
 
-def _Int(parent, hasProps, propObj, propVal):
+def _Int(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a widget allowing the user to edit the given
     :class:`~props.properties_types.Int` property value. See the
     :mod:`props.widgets_number` module.
 
     See the :func:`_String` documentation for details on the parameters.
     """ 
-    return _Number(parent, hasProps, propObj, propVal)
+    return _Number(parent, hasProps, propObj, propVal, **kwargs)
 
 
-def _Percentage(parent, hasProps, propObj, propVal):
+def _Percentage(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a widget allowing the user to edit the given
     :class:`~props.properties_types.Percentage` property value. See the
     :mod:`props.widgets_number` module.
@@ -429,10 +430,10 @@ def _Percentage(parent, hasProps, propObj, propVal):
     See the :func:`_String` documentation for details on the parameters.
     """ 
     # TODO Add '%' signs to Scale labels.
-    return _Number(parent, hasProps, propObj, propVal) 
+    return _Number(parent, hasProps, propObj, propVal, **kwargs) 
         
 
-def _Boolean(parent, hasProps, propObj, propVal):
+def _Boolean(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a :class:`wx.CheckBox`, allowing the user to set the
     given :class:`~props.properties_types.Boolean` property value.
 
@@ -444,7 +445,7 @@ def _Boolean(parent, hasProps, propObj, propVal):
     return checkBox
 
 
-def _Colour(parent, hasProps, propObj, propVal):
+def _Colour(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a :class:`wx.ColourPickerCtrl` widget, allowing
     the user to modify the given :class:`props.properties_types.Colour`
     value.
@@ -495,7 +496,7 @@ def _makeColourMapBitmap(cmap):
     return bitmap
 
 
-def _ColourMap(parent, hasProps, propObj, propVal):
+def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a combobox, allowing the user to change the value of
     the given :class:`~props.properties_types.ColourMap` property value.
 
@@ -562,7 +563,7 @@ def _ColourMap(parent, hasProps, propObj, propVal):
     return cbox
 
 
-def _LinkBox(parent, hasProps, propObj, propVal):
+def _LinkBox(parent, hasProps, propObj, propVal, **kwargs):
     """Creates a 'link' button which toggles synchronisation
     between the property on the given ``hasProps`` instance,
     and its parent.
@@ -604,7 +605,7 @@ def _LinkBox(parent, hasProps, propObj, propVal):
     return linkBox    
 
 
-def makeSyncWidget(parent, hasProps, propName):
+def makeSyncWidget(parent, hasProps, propName, **kwargs):
     """Creates a button which controls synchronisation of the specified
     property on the given ``hasProps`` instance, with the corresponding
     property on its parent.
@@ -615,10 +616,10 @@ def makeSyncWidget(parent, hasProps, propName):
     propObj = hasProps.getProp(propName)
     propVal = propObj.getPropVal(hasProps)
 
-    return _LinkBox(parent, hasProps, propObj, propVal)
+    return _LinkBox(parent, hasProps, propObj, propVal, **kwargs)
 
 
-def makeWidget(parent, hasProps, propName):
+def makeWidget(parent, hasProps, propName, **kwargs):
     """Given ``hasProps`` (a :class:`~props.properties.HasProperties` object),
     ``propName`` (the name of a property of ``hasProps``), and ``parent``, a
     GUI object, creates and returns a widget, or a panel containing widgets,
@@ -631,6 +632,8 @@ def makeWidget(parent, hasProps, propName):
     
     :param str propName: Name of the :class:`~props.properties.PropertyBase`
                          property to generate a widget for.
+
+    :param kwargs:       Type specific arguments.
     """
 
     propObj = hasProps.getProp(propName)
@@ -648,7 +651,30 @@ def makeWidget(parent, hasProps, propName):
         raise ValueError(
             'Unknown property type: {}'.format(propObj.__class__.__name__))
 
-    return makeFunc(parent, hasProps, propObj, propVal)
+    return makeFunc(parent, hasProps, propObj, propVal, **kwargs)
+
+
+def makeListWidgets(parent, hasProps, propName, **kwargs):
+    """Creates a widget for every value in the given list property.
+    """
+
+    propObj     = hasProps.getProp(propName)._listType
+    propValList = getattr(hasProps, propName).getPropertyValueList()
+
+    makeFunc = getattr(
+        sys.modules[__name__],
+        '_{}'.format(propObj.__class__.__name__), None)
+
+    if makeFunc is None:
+        raise ValueError(
+            'Unknown property type: {}'.format(propObj.__class__.__name__))
+
+    widgets = []
+
+    for propVal in propValList:
+        widgets.append(makeFunc(parent, hasProps, propObj, propVal, **kwargs))
+
+    return widgets
 
 
 def bindWidget(widget,
@@ -657,8 +683,8 @@ def bindWidget(widget,
                evTypes,
                widgetGet=None,
                widgetSet=None):
-    """Binds the given widget to the specified property. See the :func:`_propBind`
-    method for details of the arguments.
+    """Binds the given widget to the specified property. See the
+    :func:`_propBind` method for details of the arguments.
     """
 
     propObj = hasProps.getProp(   propName)
@@ -666,3 +692,31 @@ def bindWidget(widget,
 
     _propBind(
         hasProps, propObj, propVal, widget, evTypes, widgetGet, widgetSet)
+
+
+def bindListWidgets(widgets,
+                    hasProps,
+                    propName,
+                    evTypes,
+                    widgetSets=None,
+                    widgetGets=None):
+    """Binds the given sequence of widgets to each of the values in the
+    specified list property.
+    """
+    
+    if widgetSets is None: widgetSets = [None] * len(widgets)
+    if widgetGets is None: widgetGets = [None] * len(widgets)
+
+    propObj     = hasProps.getProp( propName)
+    propValList = getattr(hasProps, propName).getPropertyValueList()
+
+    for propVal, widget, wGet, wSet in zip(
+            propValList, widgets, widgetGets, widgetSets):
+        
+        _propBind(hasProps,
+                  propObj,
+                  propVal,
+                  widget,
+                  evTypes,
+                  wGet,
+                  wSet)

@@ -201,8 +201,10 @@ try:
  
     from widgets import (
         makeWidget,
-        makeSyncWidget, 
-        bindWidget)
+        makeListWidgets,
+        makeSyncWidget,
+        bindWidget,
+        bindListWidgets)
     
     from build import (
         buildGUI,
