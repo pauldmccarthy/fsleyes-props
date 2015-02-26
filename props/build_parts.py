@@ -64,7 +64,11 @@ class ViewItem(object):
         self.enabledWhen = enabledWhen
         self.setup       = setup
 
-    def __str__( self): return '{}()'.format(self.__class__.__name__)
+        
+    def __str__(self):
+        return '{}({})'.format(self.__class__.__name__, self.key)
+
+    
     def __repr__(self): return self.__str__()
 
 

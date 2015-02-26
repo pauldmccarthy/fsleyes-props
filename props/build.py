@@ -108,6 +108,7 @@ HasProperties object, with respective names ``_view``, ``_labels``, and
 
 """
 
+import logging
 import copy
 import sys
 import wx
@@ -117,6 +118,10 @@ import widgets
 import build_parts       as parts
 import                      syncable
 import pwidgets.notebook as nb
+
+
+log = logging.getLogger(__name__)
+
 
 class PropGUI(object):
     """An internal container class used for convenience. Stores references to
@@ -199,7 +204,7 @@ def _createLinkBox(parent, viewItem, hasProps, propGui):
     from its parent property.
     """
 
-    propName = viewItem.key
+    propName = viewItem.propKey
     linkBox = widgets.makeSyncWidget(parent, hasProps, propName) 
 
     if (hasProps.getParent() is None)                   or \
@@ -698,7 +703,12 @@ def buildGUI(parent,
     view = copy.deepcopy(view)
 
     propGui   = PropGUI()
-    view      = _prepareView(hasProps, view, labels, tooltips, showUnlink) 
+    view      = _prepareView(hasProps, view, labels, tooltips, showUnlink)
+
+
+    log.debug('Creating GUI for {} from view: \n{}'.format(
+        type(hasProps).__name__, view))
+    
     mainPanel = _create(parentObj, view, hasProps, propGui)
     
     propGui.topLevel = mainPanel
