@@ -81,6 +81,10 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
 
 
     def onMouseWheel(ev):
+
+        if not spin.IsEnabled():
+            return
+        
         wheelDir = ev.GetWheelRotation()
 
         if   wheelDir < 0: offset = -increment
