@@ -672,14 +672,12 @@ def _prepareEvents(hasProps, propGui):
     onChange()
 
     # add a callback listener to every property
-    lName = 'build_py_WhenEvent'
-    for propObj, propName in zip(propObjs, propNames):
-        propObj.addListener(hasProps, lName, onChange)
+    lName = 'build_py_WhenEvent_{}'.format(id(propGui.topLevel))
+    hasProps.addGlobalListener(lName, onChange)
 
     def removeListeners(ev):
-        for propObj, propName in zip(propObjs, propNames):
-            propObj.removeListener(hasProps, lName)
         ev.Skip()
+        hasProps.removeGlobalListener(lName)
 
     propGui.topLevel.Bind(wx.EVT_WINDOW_DESTROY, removeListeners)
  

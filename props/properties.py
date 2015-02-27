@@ -858,13 +858,14 @@ class HasProperties(object):
         self.getPropVal(propName).disableListener(name)
 
 
-    def addGlobalListener(self, listenerName, callback):
+    def addGlobalListener(self, listenerName, callback, overwrite=False):
         """Registers the given listener so that it will be notified of
         changes to any of the properties of this HasProperties instance.
         """
         propNames, props = self.getAllProperties()
         for propName in propNames:
-            self.getPropVal(propName).addListener(listenerName, callback)
+            self.getPropVal(propName).addListener(
+                listenerName, callback, overwrite)
     
     
     def removeGlobalListener(self, listenerName):
