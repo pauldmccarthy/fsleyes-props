@@ -93,7 +93,13 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis):
     sliderPanel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
 
 
-def _Bounds(parent, hasProps, propObj, propVal):
+def _Bounds(parent,
+            hasProps,
+            propObj,
+            propVal,
+            slider=True,
+            spin=True,
+            showLimits=True):
     """Creates and returns a panel containing sliders/spinboxes which
     allow the user to edit the low/high values along each dimension of the
     given :class:`~props.properties_types.Bounds` value.
@@ -120,17 +126,35 @@ def _Bounds(parent, hasProps, propObj, propVal):
         if minDistance is None: minDistance = 0
         if minval      is None: minval      = loval
         if maxval      is None: maxval      = hival
-        slider = rangeslider.RangeSliderSpinPanel(
-            panel,
-            minValue=minval,
-            maxValue=maxval,
-            lowValue=loval,
-            highValue=hival,
-            lowLabel=labels[i * 2],
-            highLabel=labels[i * 2 + 1],
-            minDistance=minDistance, 
-            showLimits=True,
-            editLimits=editLimits)
+
+        if slider and spin:
+        
+            slider = rangeslider.RangeSliderSpinPanel(
+                panel,
+                minValue=minval,
+                maxValue=maxval,
+                lowValue=loval,
+                highValue=hival,
+                lowLabel=labels[i * 2],
+                highLabel=labels[i * 2 + 1],
+                minDistance=minDistance, 
+                showLimits=showLimits,
+                editLimits=editLimits)
+        else:
+            if   slider: widgetType = 'slider'
+            elif spin:   widgetType = 'spin'
+            else: raise ValueError('One of slider or spin must be True')
+            
+            slider = rangeslider.RangePanel(
+                panel,
+                widgetType,
+                minValue=minval,
+                maxValue=maxval,
+                lowValue=loval,
+                highValue=hival,
+                lowLabel=labels[i * 2],
+                highLabel=labels[i * 2 + 1],
+                minDistance=minDistance) 
 
         sizer.Add(slider, flag=wx.EXPAND)
 
