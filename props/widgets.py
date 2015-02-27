@@ -51,7 +51,8 @@ def _propBind(hasProps,
               guiObj,
               evType,
               widgetGet=None,
-              widgetSet=None):
+              widgetSet=None,
+              widgetDestroy=None):
     """Binds a :class:`~props.properties_value.PropertyValue` to a widget.
     
     Sets up event callback functions such that, on a change to the given
@@ -60,25 +61,29 @@ def _propBind(hasProps,
     you may pass in a list of event types) occurs, the property value will be
     set to the value controlled by the GUI widget.
 
-    :param hasProps:  The owning :class:`~props.properties.HasProperties`
-                      instance.
+    :param hasProps:      The owning :class:`~props.properties.HasProperties`
+                          instance.
     
-    :param propObj:   The :class:`~props.properties.PropertyBase` property
-                      type.
+    :param propObj:       The :class:`~props.properties.PropertyBase` property
+                          type.
     
-    :param propVal:   The :class:`~props.properties_value.PropertyValue` to 
-                      be bound.
+    :param propVal:       The :class:`~props.properties_value.PropertyValue` to 
+                          be bound.
     
-    :param guiObj:    The :mod:`wx` GUI widget
+    :param guiObj:        The :mod:`wx` GUI widget
     
-    :param evType:    The event type (or list of event types) which should 
-                      be listened for on the ``guiObj``.
+    :param evType:        The event type (or list of event types) which should 
+                          be listened for on the ``guiObj``.
     
-    :param widgetGet: Function which returns the current widget value. If
-                      ``None``, the ``guiObj.GetValue`` method is used.
+    :param widgetGet:     Function which returns the current widget value. If
+                          ``None``, the ``guiObj.GetValue`` method is used.
  
-    :param widgetSet: Function which sets the current widget value. If
-                      ``None``, the ``guiObj.SetValue`` method is used. 
+    :param widgetSet:     Function which sets the current widget value. If
+                          ``None``, the ``guiObj.SetValue`` method is used.
+
+    :param widgetDestroy: Function which is called if/when the widget is
+                          destroyed. Must accept one argument - the
+                          :class:`wx.Event` object.
     """
 
     if not isinstance(evType, Iterable): evType = [evType]
@@ -147,6 +152,7 @@ def _propBind(hasProps,
     propVal.addAttributeListener(listenerName, _attUpdate)
 
     def onDestroy(ev):
+        ev.Skip()
         log.debug('Widget {} ({}) destroyed (removing '
                   'listener {} from {}.{})'.format(
                       guiObj.__class__.__name__,
@@ -155,7 +161,9 @@ def _propBind(hasProps,
                       hasProps.__class__.__name__,
                       propVal._name))
         propVal.removeListener(listenerName)
-        ev.Skip()
+
+        if widgetDestroy is not None:
+            widgetDestroy(ev)
 
     guiObj.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
 
@@ -363,13 +371,17 @@ def _Choice(parent, hasProps, propObj, propVal, **kwargs):
     listenerName = 'WidgetChoiceUpdate_{}'.format(id(widget))
     propVal.addAttributeListener(listenerName, choicesChanged)
 
+    def onDestroy(ev):
+        propVal.removeAttributeListener(listenerName)
+
     _propBind(hasProps,
               propObj,
               propVal,
               widget,
               wx.EVT_COMBOBOX,
               widgetGet,
-              widgetSet)
+              widgetSet,
+              widgetDestroy=onDestroy)
     
     return widget
 

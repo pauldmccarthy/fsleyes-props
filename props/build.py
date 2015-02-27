@@ -496,14 +496,41 @@ _createVGroup = _createGroup
 """Alias for the :func:`_createGroup` function."""
 
 
+def _getCreateFunction(viewItemClass):
+    """Searches within this module for a function which can parse
+    instances of the specified  :class:`~props.build_parts.ViewItem` class.
+
+    A match will be found if the given class is one of those defined
+    in the :mod:`~props.build_parts` module, or has one of those
+    classes in its base class hierarchy. In other words, application-defined
+    subclasses of any of the :mod:`~props.build_parts` classes will
+    still be built.
+    """
+
+    cls = viewItemClass
+
+    createFunc = getattr(
+        sys.modules[__name__], '_create{}'.format(cls.__name__), None)
+
+    if createFunc is not None:
+        return createFunc
+
+    bases = cls .__bases__
+
+    for baseCls in bases:
+        createFunc = _getCreateFunction(baseCls)
+        if createFunc is not None:
+            return createFunc
+
+    return None
+
+
 def _create(parent, viewItem, hasProps, propGui):
     """Creates a GUI object for the given :class:`ViewItem` object and, if it
     is a group, all of its children.
     """
 
-    cls = viewItem.__class__.__name__
-
-    createFunc = getattr(sys.modules[__name__], '_create{}'.format(cls), None)
+    createFunc = _getCreateFunction(viewItem.__class__)
 
     if createFunc is None:
         raise ValueError('Unrecognised ViewItem: {}'.format(
