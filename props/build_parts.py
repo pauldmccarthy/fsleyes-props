@@ -21,7 +21,7 @@ class ViewItem(object):
     """
 
     def __init__(self, key=None, label=None, tooltip=None,
-                 visibleWhen=None, enabledWhen=None, setup=None):
+                 visibleWhen=None, enabledWhen=None, setup=None, **kwargs):
         """Define a :class:`ViewItem`.
 
         :param str key:     An identifier for this item. If this item is a
@@ -55,6 +55,9 @@ class ViewItem(object):
                             the :mod:`wx` GUI parent object, and the
                             :mod:`wx` object.
 
+        :param kwargs:      Any type-specific options which are to be passed
+                            through to the creation function, defined in
+                            the :mod:`props.widgets` module.
         """
 
         self.key         = key
@@ -63,6 +66,7 @@ class ViewItem(object):
         self.visibleWhen = visibleWhen
         self.enabledWhen = enabledWhen
         self.setup       = setup
+        self.kwargs      = kwargs
 
         
     def __str__(self):

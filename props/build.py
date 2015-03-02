@@ -245,7 +245,8 @@ def _createWidget(parent, viewItem, hasProps, propGui):
     module for more details).
     """
 
-    widget = widgets.makeWidget(parent, hasProps, viewItem.key)
+    widget = widgets.makeWidget(
+        parent, hasProps, viewItem.key, **viewItem.kwargs)
     return widget
 
 
