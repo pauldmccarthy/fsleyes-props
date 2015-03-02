@@ -73,13 +73,13 @@ class CallQueue(object):
 
                 funcName, modName = _getCallbackDetails(func)
 
-                log.debug('Calling listener {} [{}.{}] '
+                log.debug('Calling function {} [{}.{}] '
                           '({} remaining in queue)'.format(
                               desc, modName, funcName, self._queue.qsize()))
 
                 try: func(*args)
                 except Exception as e:
-                    log.warn('Listener {} raised exception: {}'.format(
+                    log.warn('Function {} raised exception: {}'.format(
                         desc, e), exc_info=True)
                     traceback.print_stack()
                     
@@ -129,7 +129,7 @@ class CallQueue(object):
             # back to if things are breaking because of it.
             if func in self._queued:
 
-                log.debug('Skipping listener {} [{}.{}] '
+                log.debug('Skipping function {} [{}.{}] '
                           '({} in queue)'.format(
                               desc, modName, funcName, self._queue.qsize()))
                 
@@ -138,7 +138,7 @@ class CallQueue(object):
             else:
                 self._queued.add(func)
                
-        log.debug('Adding listener {} [{}.{}] '
+        log.debug('Queueing function {} [{}.{}] '
                   'to queue ({} in queue)'.format(
                       desc, modName, funcName, self._queue.qsize()))
 
