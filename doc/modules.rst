@@ -6,5 +6,3 @@
 
    props
    pwidgets
-   setup
-   test

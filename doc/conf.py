@@ -32,7 +32,23 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.pngmath',
+    'sphinxcontrib.restbuilder',
 ]
+
+# Configure restructured text output
+rst_file_suffix = '.rst'
+rst_link_suffix = ''
+rest_line_width = 78
+rst_indent      = 4
+def rst_file_transform(docname):
+    if docname == 'index':
+        docname = 'home'
+    return docname.title() + rst_file_suffix
+def rst_link_transform(docname):
+    if docname == 'index':
+        docname = 'home'
+    return 'wiki/' + docname.title()
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
