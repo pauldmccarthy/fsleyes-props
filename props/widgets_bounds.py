@@ -16,7 +16,7 @@ import wx
 
 import pwidgets.rangeslider as rangeslider
 
-def _boundBind(hasProps, propObj, sliderPanel, propVal, axis):
+def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     """Binds the given :class:`~pwidgets.rangeslider.RangeSliderSpinPanel` to
     one axis of the given :class:`~props.properties_types.BoundsValueList` so
     that changes in one are propagated to the other.
@@ -34,10 +34,12 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis):
     
     :param axis:        The 0-indexed axis of the
                         :class:`~props.properties_types.Bounds` value.
+
+    :param editLimits:  If ``True`` the ``sliderPanel`` has been configure to
+                        allow the user to edit the bound limits.
     """
 
     lName      = 'BoundBind_{}'.format(id(sliderPanel))
-    editLimits = propObj.getConstraint(hasProps, 'editLimits')    
     lowProp    = propVal.getPropertyValueList()[axis * 2]
     highProp   = propVal.getPropertyValueList()[axis * 2 + 1]
 
@@ -99,7 +101,8 @@ def _Bounds(parent,
             propVal,
             slider=True,
             spin=True,
-            showLimits=True):
+            showLimits=True,
+            editLimits=True):
     """Creates and returns a panel containing sliders/spinboxes which
     allow the user to edit the low/high values along each dimension of the
     given :class:`~props.properties_types.Bounds` value.
@@ -115,14 +118,12 @@ def _Bounds(parent,
     panel.SetSizer(sizer)
 
     for i in range(ndims):
-        editLimits  = propObj.getConstraint(hasProps, 'editLimits')
         minDistance = propObj.getConstraint(hasProps, 'minDistance')
         minval      = propVal.getMin(i)
         maxval      = propVal.getMax(i)
         loval       = propVal.getLo(i)
         hival       = propVal.getHi(i)
 
-        if editLimits  is None: editLimits  = False
         if minDistance is None: minDistance = 0
         if minval      is None: minval      = loval
         if maxval      is None: maxval      = hival
@@ -158,7 +159,7 @@ def _Bounds(parent,
 
         sizer.Add(slider, flag=wx.EXPAND)
 
-        _boundBind(hasProps, propObj, slider, propVal, i)
+        _boundBind(hasProps, propObj, slider, propVal, i, editLimits)
 
     panel.Layout()
     return panel

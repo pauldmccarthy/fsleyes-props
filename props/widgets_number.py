@@ -104,15 +104,15 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
     return spin
 
 
-def _makeSlider(parent, hasProps, propObj, propVal, showSpin, showLimits):
+def _makeSlider(
+        parent, hasProps, propObj, propVal, showSpin, showLimits, editLimits):
     """Creates a :class:`~pwidgets.floatslider.SliderSpinPanel` bound to the
     given :class:`~props.properties_value.PropertyValue` object.
     """
 
-    value      = propVal.get()
-    minval     = propObj.getConstraint(hasProps, 'minval')
-    maxval     = propObj.getConstraint(hasProps, 'maxval')
-    editLimits = propObj.getConstraint(hasProps, 'editLimits')
+    value  = propVal.get()
+    minval = propObj.getConstraint(hasProps, 'minval')
+    maxval = propObj.getConstraint(hasProps, 'maxval')
 
     if   isinstance(propObj, props.Int):  real = False
     elif isinstance(propObj, props.Real): real = True
@@ -179,7 +179,8 @@ def _Number(
         propVal,
         slider=True,
         spin=True,
-        showLimits=True):
+        showLimits=True,
+        editLimits=True):
     """Creates and returns a widget allowing the user to edit the given
     :class:`~props.properties_types.Number` property value.
 
@@ -203,4 +204,5 @@ def _Number(
                            propObj,
                            propVal,
                            spin,
-                           showLimits)
+                           showLimits,
+                           editLimits)

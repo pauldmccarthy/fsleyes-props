@@ -147,6 +147,15 @@ class PropertyValue(object):
         self._changeListenerStates['postnotify'] = True
 
 
+    def __del__(self):
+        """Prints out warnings if any listeners are still registered."""
+
+        for listener in self._changeListeners.keys():
+            log.warn('Listener still registered: {}'.format(listener))
+        for listener in self._attributeListeners.keys():
+            log.warn('Listener still registered: {}'.format(listener))
+
+
     def __repr__(self):
         """Returns a string representation of this PropertyValue object."""
         

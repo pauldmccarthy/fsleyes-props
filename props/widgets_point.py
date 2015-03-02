@@ -17,7 +17,7 @@ import pwidgets.floatslider as floatslider
 
 import widgets
 
-def _pointBind(hasProps, propObj, propVal, slider, dim):
+def _pointBind(hasProps, propObj, propVal, slider, dim, editLimits):
     """Binds the given :class:`~pwidgets.floatslider.SliderSpinPanel` to
     one dimension of the given :class:`~props.properties_types.PointValueList`
     so that changes in one are propagated to the other.
@@ -35,10 +35,12 @@ def _pointBind(hasProps, propObj, propVal, slider, dim):
     
     :param dim:         The 0-indexed dimension of the
                         :class:`~props.properties_types.Point` value.
+
+    :param editLimits:  If ``True`` the ``sliderPanel`` has been configure to
+                        allow the user to edit the point limits.    
     """
 
-    pvl        = propVal.getPropertyValueList()
-    editLimits = propObj.getConstraint(hasProps, 'editLimits') 
+    pvl = propVal.getPropertyValueList()
     
     widgets._propBind(hasProps,
                       propObj._listType,
@@ -73,7 +75,8 @@ def _pointBind(hasProps, propObj, propVal, slider, dim):
     slider.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
 
 
-def _Point(parent, hasProps, propObj, propVal):
+def _Point(
+        parent, hasProps, propObj, propVal, showLimits=True, editLimits=True):
     """Creates and returns a widget allowing the user to edit the values for
     each dimension of the given :class:`~props.properties_types.Point`
     property value.
@@ -88,8 +91,6 @@ def _Point(parent, hasProps, propObj, propVal):
 
     if labels is None: labels = [None] * ndims
 
-    editLimits = propObj.getConstraint(hasProps, 'editLimits')
-
     for dim in range(len(propVal)):
 
         slider = floatslider.SliderSpinPanel(
@@ -99,7 +100,7 @@ def _Point(parent, hasProps, propObj, propVal):
             minValue=propVal.getMin(dim),
             maxValue=propVal.getMax(dim),
             label=labels[dim],
-            showLimits=True,
+            showLimits=showLimits,
             editLimits=editLimits)
 
         sizer.Add(slider, flag=wx.EXPAND)

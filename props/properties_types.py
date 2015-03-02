@@ -73,7 +73,6 @@ class Number(props.PropertyBase):
                  minval=None,
                  maxval=None,
                  clamped=False,
-                 editLimits=False,
                  **kwargs):
         """Define a :class:`Number` property.
         
@@ -83,10 +82,6 @@ class Number(props.PropertyBase):
         
         :param bool clamped:    If ``True``, the value will be clamped to its
                                 min/max bounds.
-        
-        :param bool editLimits: If ``True``, widgets created to modify
-                                :class:`Number` properties will allow the user
-                                to change the min/max values.
         
         :param kwargs:          Passed through to the
                                 :class:`~props.properties.PropertyBase`
@@ -109,7 +104,6 @@ class Number(props.PropertyBase):
         kwargs['default']    = default
         kwargs['minval']     = minval
         kwargs['maxval']     = maxval
-        kwargs['editLimits'] = editLimits
         kwargs['clamped']    = clamped
         props.PropertyBase.__init__(self, **kwargs)
 
@@ -949,7 +943,6 @@ class Bounds(List):
                  ndims=1,
                  real=True, 
                  minDistance=None,
-                 editLimits=False,
                  labels=None,
                  **kwargs):
         """Define a :class:`Bounds` property.
@@ -964,10 +957,6 @@ class Bounds(List):
         
         :param float minDistance: Minimum distance to be maintained between the
                                   low/high values for each dimension.
-        
-        :param bool editLimits:   If ``True``, widgets created to edit this
-                                  :class:`Bounds` will allow the user to edit
-                                  the min/max limits.
         
         :param list labels:       List of labels of length ``2*ndims``, 
                                   containing (low, high) labels for each
@@ -994,14 +983,13 @@ class Bounds(List):
 
         kwargs['default']     = default
         kwargs['minDistance'] = minDistance
-        kwargs['editLimits']  = editLimits
 
         self._real   = real
         self._ndims  = ndims
         self._labels = labels
 
-        if real: listType = Real(clamped=True, editLimits=editLimits)
-        else:    listType = Int( clamped=True, editLimits=editLimits)
+        if real: listType = Real(clamped=True)
+        else:    listType = Int( clamped=True)
 
         List.__init__(self,
                       listType=listType,
@@ -1204,7 +1192,6 @@ class Point(List):
     def __init__(self,
                  ndims=2,
                  real=True, 
-                 editLimits=False,
                  labels=None,
                  **kwargs):
         """Define a :class:`Point` property.
@@ -1214,11 +1201,7 @@ class Point(List):
         :param bool real:       If ``True`` the point values are stored as
                                 :class:`Real` values, otherwise they are
                                 stored as :class:`Int` values.
-        
-        :param bool editLimits: If ``True``, widgets created to edit this
-                                :class:`Point` will allow the user to edit
-                                the min/max limits.
-        
+
         :param list labels:     List of labels, one for each dimension.
         """
 
@@ -1240,14 +1223,13 @@ class Point(List):
             raise ValueError('A label for each dimension is required')
 
         kwargs['default']    = default
-        kwargs['editLimits'] = editLimits
         
         self._ndims   = ndims
         self._real    = real
         self._labels  = labels
 
-        if real: listType = Real(clamped=True, editLimits=editLimits)
-        else:    listType = Int( clamped=True, editLimits=editLimits)
+        if real: listType = Real(clamped=True)
+        else:    listType = Int( clamped=True)
 
         List.__init__(self,
                       listType=listType,
