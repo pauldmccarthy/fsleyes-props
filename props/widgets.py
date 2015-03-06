@@ -407,7 +407,16 @@ def _String(parent, hasProps, propObj, propVal, **kwargs):
     """
 
     widget = wx.TextCtrl(parent)
+    
+    # Use a DC object to calculate a decent
+    # minimum size fort the widget
+    dc       = wx.ClientDC(widget)
+    textSize = dc.GetTextExtent('w' * 17)
+    widgSize = widget.GetBestSize().Get()
 
+    widget.SetMinSize((max(textSize[0], widgSize[0]),
+                       max(textSize[1], widgSize[1])))
+ 
     _propBind(hasProps, propObj, propVal, widget, wx.EVT_TEXT)
     _setupValidation(widget, hasProps, propObj, propVal)
     
@@ -546,6 +555,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
         # do it manually, dammit
         maxBmpWidth = 0
         maxLblWidth = 0
+        dc          = wx.ClientDC(cbox)
 
         # Make a little bitmap for every colour
         # map, and add it to the combobox
@@ -554,23 +564,22 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
             bitmap = _makeColourMapBitmap(cmap)
             cbox.Append(name, bitmap)
 
-            # creat a dummy textctrl just 
-            # to get an approximate size
-            dummyLbl = wx.TextCtrl(parent)
-            dummyLbl.SetValue(name)
-
-            lblWidth = dummyLbl.GetBestSize().GetWidth()
+            # use the DC to get the label size
+            lblWidth = dc.GetTextExtent(name)[0]
             bmpWidth = bitmap.GetWidth()
-            
-            dummyLbl.Destroy()
+
+            print '{} {}'.format(name, lblWidth)
 
             if bmpWidth > maxBmpWidth: maxBmpWidth = bmpWidth
             if lblWidth > maxLblWidth: maxLblWidth = lblWidth
 
-        # Explicitly set the minimum size
+        # Explicitly set the minimum size from
+        # the maximum bitmap/label sizes, with 
+        # some extra to account for the drop
+        # down button
         cbox.InvalidateBestSize()
         bestHeight = cbox.GetBestSize().GetHeight()
-        cbox.SetMinSize((maxBmpWidth + maxLblWidth + 10, bestHeight))
+        cbox.SetMinSize((maxBmpWidth + maxLblWidth + 40, bestHeight))
 
         cbox.SetSelection(selected)
         cbox.Refresh()
