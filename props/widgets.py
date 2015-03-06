@@ -568,8 +568,6 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
             lblWidth = dc.GetTextExtent(name)[0]
             bmpWidth = bitmap.GetWidth()
 
-            print '{} {}'.format(name, lblWidth)
-
             if bmpWidth > maxBmpWidth: maxBmpWidth = bmpWidth
             if lblWidth > maxLblWidth: maxLblWidth = lblWidth
 
