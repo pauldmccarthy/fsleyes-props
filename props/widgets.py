@@ -539,18 +539,45 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
 
         cbox.Clear()
 
+        # Store the width of the biggest bitmap, 
+        # and the width of the biggest label.
+        # the BitmapComboBox doesn't size itself
+        # properly on all platforms, so we'll
+        # do it manually, dammit
+        maxBmpWidth = 0
+        maxLblWidth = 0
+
         # Make a little bitmap for every colour
         # map, and add it to the combobox
         for name, cmap in zip(cmapNames, cmapObjs):
+            
             bitmap = _makeColourMapBitmap(cmap)
             cbox.Append(name, bitmap)
+
+            # creat a dummy textctrl just 
+            # to get an approximate size
+            dummyLbl = wx.TextCtrl(parent)
+            dummyLbl.SetValue(name)
+
+            lblWidth = dummyLbl.GetBestSize().GetWidth()
+            bmpWidth = bitmap.GetWidth()
+            
+            dummyLbl.Destroy()
+
+            if bmpWidth > maxBmpWidth: maxBmpWidth = bmpWidth
+            if lblWidth > maxLblWidth: maxLblWidth = lblWidth
+
+        # Explicitly set the minimum size
+        cbox.InvalidateBestSize()
+        bestHeight = cbox.GetBestSize().GetHeight()
+        cbox.SetMinSize((maxBmpWidth + maxLblWidth + 10, bestHeight))
 
         cbox.SetSelection(selected)
         cbox.Refresh()
 
     # Initialise the combobox options
     cmapsChanged()
-    
+
     # Bind the combobox to the property
     _propBind(hasProps,
               propObj,
