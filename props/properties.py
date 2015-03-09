@@ -941,6 +941,9 @@ class HasProperties(object):
 
         propNames, props = self.getAllProperties()
 
+        if len(propNames) == 0:
+            return clsname
+
         propVals = ['{}'.format(getattr(self, propName))
                     for propName in propNames]
 
