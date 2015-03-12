@@ -166,7 +166,8 @@ from build_parts import (
 
 from properties import (
     PropertyBase,
-    HasProperties)
+    HasProperties,
+    DisabledError)
 
 from syncable import (
     SyncableHasProperties)

@@ -27,6 +27,14 @@ class _InstanceData(object):
         self.instance = instance
         self.propVal  = propVal
 
+
+class DisabledError(Exception):
+    """A ``DisabledError`` is raised when an attempt ius made to assign
+    a value to a disabled property. See the :meth:`PropertyBase.enable`
+    and :meth:`PropertyBase.disable` methods.
+    """
+    pass
+
         
 class PropertyBase(object):
     """The base class for properties.
@@ -171,7 +179,7 @@ class PropertyBase(object):
         instance.
 
         An attempt to set the value of a disabled property will result
-        in a ``RuntimeError``. This behaviour can be circumvented by
+        in a :class:`DisabledError`. This behaviour can be circumvented by
         dealing directly with the underlying
         :class:`props.properties_value.PropertyValue` object.
 
@@ -415,7 +423,7 @@ class PropertyBase(object):
         propVal = self.getPropVal(instance)
 
         if not propVal.getAttribute('enabled'):
-            raise RuntimeError('Property {}.{} is disabled'.format(
+            raise DisabledError('Property {}.{} is disabled'.format(
                 instance.__class__.__name__,
                 self.getLabel(instance)))
         
