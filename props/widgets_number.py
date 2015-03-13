@@ -36,8 +36,8 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
         elif isinstance(propObj, props.Real): return sys.float_info.max 
 
     value   = propVal.get()
-    minval  = propObj.getConstraint(hasProps, 'minval')
-    maxval  = propObj.getConstraint(hasProps, 'maxval')
+    minval  = propVal.getAttribute('minval')
+    maxval  = propVal.getAttribute('maxval')
     isRange = (minval is not None) and (maxval is not None)
     params  = {}
 
@@ -72,8 +72,9 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
                       (wx.EVT_SPIN, wx.EVT_SPINCTRL, wx.EVT_SPINCTRLDOUBLE))
 
     def updateRange(*a):
-        minval = getMinVal(propObj.getConstraint(hasProps, 'minval'))
-        maxval = getMaxVal(propObj.getConstraint(hasProps, 'maxval'))
+        minval = getMinVal(propVal.getAttribute('minval'))
+        maxval = getMaxVal(propVal.getAttribute('maxval'))
+
         spin.SetRange(minval, maxval)
 
     listenerName = 'widgets_number_py_updateRange_{}'.format(id(spin))
@@ -111,8 +112,8 @@ def _makeSlider(
     """
 
     value  = propVal.get()
-    minval = propObj.getConstraint(hasProps, 'minval')
-    maxval = propObj.getConstraint(hasProps, 'maxval')
+    minval = propVal.getAttribute('minval')
+    maxval = propVal.getAttribute('maxval')
 
     if   isinstance(propObj, props.Int):  real = False
     elif isinstance(propObj, props.Real): real = True
@@ -142,19 +143,19 @@ def _makeSlider(
     # Update slider min/max bounds and labels
     # whenever the property constraints change.    
     def updateSliderRange(*a):
-        minval = propObj.getConstraint(hasProps, 'minval')
-        maxval = propObj.getConstraint(hasProps, 'maxval')
+        minval = propVal.getAttribute('minval')
+        maxval = propVal.getAttribute('maxval')
         
         slider.SetRange(minval, maxval)
         # TODO check that value has changed due to the range change?
 
 
     listenerName = 'widgets_number_py_updateRange_{}'.format(id(slider))
-    propObj.addConstraintListener(hasProps, listenerName, updateSliderRange)
+    propVal.addAttributeListener(listenerName, updateSliderRange)
 
     # remove the listener when the slider is destroyed
     def onDestroy(ev):
-        propObj.removeConstraintListener(hasProps, listenerName)
+        propVal.removeAttributeListener(listenerName)
         ev.Skip()
     
     slider.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
@@ -164,8 +165,8 @@ def _makeSlider(
         # When the user edits the slider bounds,
         # update the property constraints
         def updatePropRange(ev):
-            propObj.setConstraint(hasProps, 'minval', ev.min)
-            propObj.setConstraint(hasProps, 'maxval', ev.max)
+            propVal.setAttribute('minval', ev.min)
+            propVal.setAttribute('maxval', ev.max)
 
         slider.Bind(floatslider.EVT_SSP_LIMIT, updatePropRange)
 
@@ -191,8 +192,8 @@ def _Number(
     if not (slider or spin):
         raise ValueError('One of slider or spin must be True')
 
-    minval  = propObj.getConstraint(hasProps, 'minval')
-    maxval  = propObj.getConstraint(hasProps, 'maxval')
+    minval  = propVal.getAttribute('minval')
+    maxval  = propVal.getAttribute('maxval')
     isRange = (minval is not None) and (maxval is not None)
 
     if (not isRange) or (not slider):
