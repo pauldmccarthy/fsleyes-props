@@ -86,8 +86,7 @@ class CallQueue(object):
             except Queue.Empty:
                 break
             
-            finally:
-                self._calling = False
+        self._calling = False
 
 
     def _push(self, desc, func, args):
