@@ -130,12 +130,55 @@ named class attributes of your :class:`~props.properties.HasProperties` class::
       boolProp = True
        intProp = 23413
 
-Finally, the :func:`generateArguments` function, as the name suggests,
+The :func:`generateArguments` function, as the name suggests,
 generates command line arguments from a
 :class:`~props.properties.HasProperties` instance::
 
-    >>> props.cli.generateArguments(myobj)
+    >>> props.generateArguments(myobj)
     ['--someBool', '--TheInt', '23413']
+
+The :func:`generateArguments` and :func:`applyArguments` functions optionally
+accept a set of *transform* functions which, for ``generateArguments``, take
+the value of a property, and return some transformation of that property,
+suitable to be used as a command line arguments. The transform functions
+passed to the ``applyArguments`` function perform the reverse transformation.
+
+For example:
+
+    >>> class MyObject(props.HasProperties):
+            showBlah = props.Boolean(default=True)
+
+    >>> shortArgs = {'showBlah' : 'hb'}
+    >>> longArgs  = {'showBlah' : 'hideBlah'}
+    >>> xforms    = {'showBlah' : lambda b : not b }
+
+    >>> parser = argparse.ArgumentParser('MyObject')
+    >>> props.addParserArguments(MyObject,
+                                 parser,
+                                 shortArgs=shortArgs,
+                                 longArgs=longArgs)
+
+    >>> myobj = MyObject()
+    >>> myobj.showBlah = False
+
+    >>> props.generateArguments(myobj,
+                                shortArgs=shortArgs,
+                                longArgs=longArgs,
+                                xformFuncs=xforms)
+        ['--hideBlah']
+
+And for the reverse transformation:
+
+    >>> myobj2 = MyObject()
+    >>> args   = parser.parse_args(['--hideBlah'])
+    >>> props.applyArguments(myobj2,
+                             args,
+                             xformFuncs=xforms,
+                             longArgs=longArgs)
+    >>> print myobj2
+        MyObject
+            showBlah = False
+    
 
 Not all property types are supported at the moment. The ones which are
 supported:
@@ -147,6 +190,7 @@ supported:
   - :class:`~props.properties_types.Percentage`
   - :class:`~props.properties_types.Boolean`
   - :class:`~props.properties_types.ColourMap`
+  - :class:`~props.properties_types.Colour`
   - :class:`~props.properties_types.Bounds`
   - :class:`~props.properties_types.Point`
 """
@@ -281,7 +325,20 @@ def _Point(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
                         help=propHelp,
                         metavar='N',
                         type=pType,
-                        nargs=ndims) 
+                        nargs=ndims)
+
+
+def _Colour(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
+    """Adds an argument to the given parser for the given
+    :class:`~props.properties_types.Colour` property. See the
+    :func:`_String` documentation for details on the parameters.    
+    """
+    parser.add_argument(shortArg,
+                        longArg,
+                        help=propHelp,
+                        metavar='N',
+                        type=float,
+                        nargs=3) 
 
     
 def _ColourMap(
@@ -305,40 +362,6 @@ def _ColourMap(
                         type=parse,
                         metavar='CMAP',
                         action='store')
-
-
-def applyArguments(hasProps,
-                   arguments,
-                   longArgs=None):
-    """Apply arguments to a :class:`~props.properties.HasProperties` instance.
-
-    Given a :class:`~props.properties.HasProperties` instance and an
-    :class:`argparse.Namespace` instance, sets the property values of the
-    :class:`~props.properties.HasProperties` instance from the values
-    stored in the :class:`argparse.Namespace` object.
-
-    :param hasProps:  The :class:`~props.properties.HasProperties` instance.
-    
-    :param arguments: The :class:`argparse.Namespace` instance.
-
-    :param longArgs:  Dict containing {property name : longArg} mappings.
-    """
-
-    propNames, propObjs = hasProps.getAllProperties()
-
-    if longArgs is None:
-        if hasattr(hasProps, '_longArgs'): longArgs = hasProps._longArgs
-        else:                              longArgs = dict(zip(propNames,
-                                                               propNames))
-    
-    for propName, propObj in zip(propNames, propObjs):
-
-        argName = longArgs[propName]
-        argVal  = getattr(arguments, argName, None)
-
-        if argVal is None: continue
-            
-        setattr(hasProps, propName, argVal)
 
     
 def _getShortArgs(propCls, propNames, exclude=''):
@@ -396,6 +419,50 @@ def _getShortArgs(propCls, propNames, exclude=''):
                            'attribute'.format(propCls.__name__))
         
     return shortArgs
+
+
+def applyArguments(hasProps,
+                   arguments,
+                   xformFuncs=None,
+                   longArgs=None):
+    """Apply arguments to a :class:`~props.properties.HasProperties` instance.
+
+    Given a :class:`~props.properties.HasProperties` instance and an
+    :class:`argparse.Namespace` instance, sets the property values of the
+    :class:`~props.properties.HasProperties` instance from the values
+    stored in the :class:`argparse.Namespace` object.
+
+    :param hasProps:   The :class:`~props.properties.HasProperties` instance.
+    
+    :param arguments:  The :class:`argparse.Namespace` instance.
+    
+    :param xformFuncs: A dictionary of {property name -> function} mappings,
+                       which can be used to transform the value given
+                       on the command line before it is assigned to the 
+                       property.
+
+    :param longArgs:   Dict containing {property name : longArg} mappings.
+    """
+
+    propNames, propObjs = hasProps.getAllProperties()
+
+    if longArgs is None:
+        if hasattr(hasProps, '_longArgs'): longArgs = hasProps._longArgs
+        else:                              longArgs = dict(zip(propNames,
+                                                               propNames))
+
+    if xformFuncs is None:
+        xformFuncs = {}
+
+    for propName, propObj in zip(propNames, propObjs):
+
+        xform   = xformFuncs.get(propName, lambda v : v)
+        argName = longArgs.get(propName, propName)
+        argVal  = xform(getattr(arguments, argName, None))
+
+        if argVal is None: continue
+
+        setattr(hasProps, propName, argVal)
 
     
 def addParserArguments(
@@ -498,6 +565,7 @@ def addParserArguments(
         
 def generateArguments(hasProps,
                       useShortArgs=False,
+                      xformFuncs=None,
                       cliProps=None,
                       shortArgs=None,
                       longArgs=None,
@@ -511,6 +579,10 @@ def generateArguments(hasProps,
 
     :param useShortArgs: If `True` the short argument version is used instead
                          of the long argument version.
+
+    :param xformFuncs:   A dictionary of {property name -> function} mappings,
+                         which can be used to perform some arbitrary
+                         transformation of property values.
 
     See the :func:`addParserArguments` function for descriptions of the other
     parameters.
@@ -533,14 +605,21 @@ def generateArguments(hasProps,
             shortArgs = hasProps._shortArgs
         else:
             shortArgs = _getShortArgs(hasProps, cliProps, exclude)
+
+    if xformFuncs is None:
+        xformFuncs = {}
  
     for propName in cliProps:
         propObj = hasProps.getProp(propName)
-        propVal = getattr(hasProps, propName)
+        xform   = xformFuncs.get(propName, lambda v: v)
+        propVal = xform(getattr(hasProps, propName))
 
         if useShortArgs: argKey =  '-{}'.format(shortArgs[propName])
         else:            argKey = '--{}'.format(longArgs[ propName])
 
+        # TODO This logic should somehow be stored
+        #      as default transform functions for 
+        #      the respective types
         if isinstance(propObj, props.Bounds):
             value = ' '.join(['{}'.format(v) for v in propVal])
             
