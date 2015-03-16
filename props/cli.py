@@ -242,7 +242,6 @@ def _Choice(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
                         longArg,
                         type=type(default),
                         help=propHelp,
-                        default=default,
                         choices=propObj.getChoices())
     
     
@@ -251,10 +250,17 @@ def _Boolean(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     :class:`~props.properties_types.Boolean` property. See the
     :func:`_String` documentation for details on the parameters.
     """
+    # Using store_const instead of store_true,
+    # because if the user doesn't set this
+    # argument, we don't want to explicitly
+    # set the property value to False (if it
+    # has a default value of True, we don't
+    # want that default value overridden).
     parser.add_argument(shortArg,
                         longArg,
                         help=propHelp,
-                        action='store_true')
+                        action='store_const',
+                        const=True)
 
     
 def _Int(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
@@ -461,6 +467,11 @@ def applyArguments(hasProps,
         argVal  = xform(getattr(arguments, argName, None))
 
         if argVal is None: continue
+
+        log.debug('Setting {}.{} = {}'.format(
+            type(hasProps).__name__,
+            propName,
+            argVal))
 
         setattr(hasProps, propName, argVal)
 
