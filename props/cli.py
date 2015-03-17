@@ -342,9 +342,9 @@ def _Colour(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     parser.add_argument(shortArg,
                         longArg,
                         help=propHelp,
-                        metavar='N',
+                        metavar=('R', 'G', 'B', 'A'),
                         type=float,
-                        nargs=3) 
+                        nargs=4) 
 
     
 def _ColourMap(
