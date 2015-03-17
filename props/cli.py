@@ -464,9 +464,11 @@ def applyArguments(hasProps,
 
         xform   = xformFuncs.get(propName, lambda v : v)
         argName = longArgs.get(propName, propName)
-        argVal  = xform(getattr(arguments, argName, None))
+        argVal  = getattr(arguments, argName, None)
 
         if argVal is None: continue
+
+        argVal = xform(argVal)
 
         log.debug('Setting {}.{} = {}'.format(
             type(hasProps).__name__,
@@ -624,6 +626,9 @@ def generateArguments(hasProps,
         propObj = hasProps.getProp(propName)
         xform   = xformFuncs.get(propName, lambda v: v)
         propVal = xform(getattr(hasProps, propName))
+
+        # TODO Should I skip a property 
+        #      if its value is None?
 
         if useShortArgs: argKey =  '-{}'.format(shortArgs[propName])
         else:            argKey = '--{}'.format(longArgs[ propName])
