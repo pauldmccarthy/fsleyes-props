@@ -212,6 +212,10 @@ class SyncableHasProperties(props.HasProperties):
         """Returns the parent of this instance, or ``None`` if there is no
         parent.
         """
+        # This will raise an AttributeError if
+        # called before __init__ has been called.
+        # If this happens, it's the user code
+        # which is at fault.
         return self._parent
                 
     
