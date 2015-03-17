@@ -444,7 +444,9 @@ def applyArguments(hasProps,
     :param arguments:  The :class:`argparse.Namespace` instance.
 
     :param propNames:  List of property names to apply. If ``None``, an attempt
-                       is made to set all properties.
+                       is made to set all properties. If not ``None``, the
+                       property values are set in the order specified by this
+                       list.
     
     :param xformFuncs: A dictionary of {property name -> function} mappings,
                        which can be used to transform the value given
