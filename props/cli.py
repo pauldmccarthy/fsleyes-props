@@ -429,6 +429,7 @@ def _getShortArgs(propCls, propNames, exclude=''):
 
 def applyArguments(hasProps,
                    arguments,
+                   propNames=None,
                    xformFuncs=None,
                    longArgs=None):
     """Apply arguments to a :class:`~props.properties.HasProperties` instance.
@@ -441,6 +442,9 @@ def applyArguments(hasProps,
     :param hasProps:   The :class:`~props.properties.HasProperties` instance.
     
     :param arguments:  The :class:`argparse.Namespace` instance.
+
+    :param propNames:  List of property names to apply. If ``None``, an attempt
+                       is made to set all properties.
     
     :param xformFuncs: A dictionary of {property name -> function} mappings,
                        which can be used to transform the value given
@@ -450,7 +454,10 @@ def applyArguments(hasProps,
     :param longArgs:   Dict containing {property name : longArg} mappings.
     """
 
-    propNames, propObjs = hasProps.getAllProperties()
+    if propNames is None:
+        propNames, propObjs = hasProps.getAllProperties()
+    else:
+        propObjs = [hasProps.getProp(name) for name in propNames]
 
     if longArgs is None:
         if hasattr(hasProps, '_longArgs'): longArgs = hasProps._longArgs
