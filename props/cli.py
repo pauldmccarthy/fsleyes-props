@@ -628,25 +628,23 @@ def generateArguments(hasProps,
         if useShortArgs: argKey =  '-{}'.format(shortArgs[propName])
         else:            argKey = '--{}'.format(longArgs[ propName])
 
-        # TODO This logic should somehow be stored
+        # TODO This logic could somehow be stored
         #      as default transform functions for 
         #      the respective types
-        if isinstance(propObj, props.Bounds):
-            value = ' '.join(['{}'.format(v) for v in propVal])
+        if isinstance(propObj, (props.Bounds, props.Point, props.Colour)):
+            values = ['{}'.format(v) for v in propVal]
             
-        elif isinstance(propObj, props.Point):
-            value = ' '.join(['{}'.format(v) for v in propVal])
-
         elif isinstance(propObj, props.ColourMap):
-            value = propVal.name
+            values = [propVal.name]
             
         elif isinstance(propObj, props.Boolean):
-            value = None
+            values = None
             if not propVal: argKey = None
         else:
-            value = propVal
+            if propVal is None: values = None
+            else:               values = [propVal]
 
         if argKey is not None: args.append(argKey)
-        if value  is not None: args.append(value)
+        if values is not None: args.extend(values)
 
     return map(str, args)
