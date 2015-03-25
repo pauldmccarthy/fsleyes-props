@@ -438,6 +438,27 @@ class Choice(props.PropertyBase):
             self.setConstraint(instance, 'default', choices[0])
             self.__set__(instance, choices[0])
 
+            
+    def removeChoice(self, choice, instance=None):
+        """Removes the specified choice from the list of possible choices. """
+        
+        choices = list(self.getConstraint(instance, 'choices'))
+        labels  = list(self.getConstraint(instance, 'labels'))
+        default = list(self.getConstraint(instance, 'default'))
+        index   = choices.index(choice)
+
+        choices.pop(index)
+        labels .pop(index)
+
+        self._updateChoices(choices, labels, instance)
+
+        if len(choices) > 0:
+            if default == choice:
+                self.setConstraint(instance, 'default', choices[0])
+                self.__set__(instance, choices[0])
+        else:
+            self.setConstraint(instance, 'default', None)        
+
         
     def validate(self, instance, attributes, value):
         """Raises a :exc:`ValueError` if the given value is not one of the
