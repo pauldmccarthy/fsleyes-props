@@ -396,6 +396,7 @@ class PropertyValue(object):
     def enableListener(self, name):
         """(Re-)Enables the listener with the specified ``name``."""
         name = self._saltListenerName(name)
+        log.debug('Enabling listener on {}: {}'.format(self._name, name))
         self._changeListenerStates[name] = True
 
     
@@ -404,6 +405,7 @@ class PropertyValue(object):
         remove it from the list of listeners.
         """
         name = self._saltListenerName(name)
+        log.debug('Disabling listener on {}: {}'.format(self._name, name))
         self._changeListenerStates[name] = False
 
 

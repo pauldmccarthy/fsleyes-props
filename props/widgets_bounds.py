@@ -125,10 +125,11 @@ def _Bounds(parent,
         hival       = propVal.getHi(i)
 
         if minDistance is None: minDistance = 0
-        if minval      is None: minval      = loval
-        if maxval      is None: maxval      = hival
 
         if slider and spin:
+
+            if minval is None: minval = loval
+            if maxval is None: maxval = hival
         
             slider = rangeslider.RangeSliderSpinPanel(
                 panel,
@@ -142,8 +143,12 @@ def _Bounds(parent,
                 showLimits=showLimits,
                 editLimits=editLimits)
         else:
-            if   slider: widgetType = 'slider'
-            elif spin:   widgetType = 'spin'
+            if slider:
+                widgetType = 'slider'
+                if minval is None: minval = loval
+                if maxval is None: maxval = hival                
+            elif spin:
+                widgetType = 'spin'
             else: raise ValueError('One of slider or spin must be True')
             
             slider = rangeslider.RangePanel(
