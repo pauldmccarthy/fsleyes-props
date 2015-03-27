@@ -638,6 +638,8 @@ def generateArguments(hasProps,
 
         # TODO Should I skip a property 
         #      if its value is None?
+        if propVal is None:
+            continue
 
         if useShortArgs: argKey =  '-{}'.format(shortArgs[propName])
         else:            argKey = '--{}'.format(longArgs[ propName])
