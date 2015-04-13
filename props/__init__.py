@@ -4,7 +4,8 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""Python descriptor framework.
+"""``props is a framework for event-driven programming using python
+descriptors.
 
 Usage::
 

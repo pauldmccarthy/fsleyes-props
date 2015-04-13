@@ -33,5 +33,9 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Topic :: Software Development :: Libraries :: Python Modules'],
 
-    packages=find_packages(exclude=('doc'))
+    packages=find_packages(exclude=('doc')),
+
+    install_requires=[
+        'matplotlib>=1.3.1',
+        'numpy>=1.8.1']
 )

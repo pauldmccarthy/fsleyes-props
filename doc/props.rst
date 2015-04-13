@@ -1,6 +1,11 @@
 props package
 =============
 
+.. automodule:: props
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -19,11 +24,3 @@ Submodules
    props.widgets_list
    props.widgets_number
    props.widgets_point
-
-Module contents
----------------
-
-.. automodule:: props
-    :members:
-    :undoc-members:
-    :show-inheritance:
