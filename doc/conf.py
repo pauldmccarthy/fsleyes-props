@@ -32,7 +32,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.pngmath',
-    'sphinxcontrib.restbuilder',
+#     'sphinxcontrib.restbuilder',
 ]
 
 # Configure restructured text output
