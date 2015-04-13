@@ -188,6 +188,11 @@ class SyncableHasProperties(props.HasProperties):
                                   id(self)))
                     self.__dict__[propName] = None
 
+            # This array maintains a list of
+            # all the children synced to this
+            # parent
+            self._children = []
+
         # Otherwise, this instance is a 'child'
         # instance - set up a binding between
         # this instance and its parent for every
@@ -198,6 +203,8 @@ class SyncableHasProperties(props.HasProperties):
                 raise TypeError('parent is of a different type '
                                 '({} != {})'.format(parent.__class__,
                                                     self.__class__))
+
+            parent._children.append(self)
 
             propNames, _ = self.getAllProperties()
 
@@ -217,6 +224,16 @@ class SyncableHasProperties(props.HasProperties):
         # If this happens, it's the user code
         # which is at fault.
         return self._parent
+
+
+    def getChildren(self):
+        """Returns a list of any children that are synced to this parent
+        instance, or ``None`` if this instance is not a parent.
+        """
+        if self._parent is not None:
+            return None
+
+        return list(self._children)
                 
     
     def _saltSyncListenerName(self, propName):
