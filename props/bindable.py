@@ -299,8 +299,12 @@ def _bindPropVals(myPropVal,
     otherBoundPropVals    = other.__dict__.get('boundPropVals',    set())
     otherBoundAttPropVals = other.__dict__.get('boundAttPropVals', set())
 
-    log.debug('Binding property values '
+    if unbind: action = 'Unbinding'
+    else:      action = 'Binding'
+
+    log.debug('{} property values '
               '(val={}, att={}) {}.{} <-> {}.{}'.format(
+                  action,
                   val,
                   att,
                   myPropVal._context.__class__.__name__,
@@ -514,33 +518,33 @@ def notify(self):
 
             self._syncing.remove(bpv)
 
-        # Call the registered property listeners 
-        # of any slave PVs which changed value
-        for i, bpv in enumerate(boundPropVals):
+    # Call the registered property listeners 
+    # of any slave PVs which changed value
+    for i, bpv in enumerate(boundPropVals):
 
-            if changeState[i] is False: continue
+        if changeState[i] is False: continue
 
-            # Normal PropertyValue objects
-            if not isinstance(bpv, properties_value.PropertyValueList):
-                bpv.notify()
-                
-            # PropertyValueList objects
-            else:
-                bpvVals     = bpv.getPropertyValueList()
-                valsChanged = changeState[i]
+        # Normal PropertyValue objects
+        if not isinstance(bpv, properties_value.PropertyValueList):
+            bpv.notify()
 
-                listNotifState = bpv.getNotificationState()
-                bpv.disableNotification()
+        # PropertyValueList objects
+        else:
+            bpvVals     = bpv.getPropertyValueList()
+            valsChanged = changeState[i]
 
-                # Call the notify method on any individual
-                # list items which changed value
-                for i in valsChanged:
-                    bpvVals[i].notify()
+            listNotifState = bpv.getNotificationState()
+            bpv.disableNotification()
 
-                # Notify any list-level
-                # listeners on the slave list
-                bpv.setNotificationState(listNotifState)
-                bpv.notify()
+            # Call the notify method on any individual
+            # list items which changed value
+            for i in valsChanged:
+                bpvVals[i].notify()
+
+            # Notify any list-level
+            # listeners on the slave list
+            bpv.setNotificationState(listNotifState)
+            bpv.notify()
 
     # Now that the master-slave values are synced,
     # call the real PropertyValue.notify method

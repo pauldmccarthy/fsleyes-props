@@ -288,6 +288,10 @@ class SyncableHasProperties(props.HasProperties):
         if (not bindPropVal) and (propName in self._nounbind):
             raise RuntimeError('{} cannot be unbound from '
                                'parent'.format(propName))
+
+        log.debug('Sync property changed for {} - '
+                  'changing binding state'.format(propName))
+        
         self.bindProps(propName, self._parent, unbind=(not bindPropVal)) 
 
         
