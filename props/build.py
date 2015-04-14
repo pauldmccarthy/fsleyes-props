@@ -15,7 +15,7 @@ containing widgets which allow the user to change the property values
 :class:`~props.properties.HasProperties` object.
 
 
-The sole entry point for this module is the :func:`buildGUI` function, which
+The main entry point for this module is the :func:`buildGUI` function, which
 accepts as parameters a GUI object to be used as the parent (e.g. a
 :class:`wx.Panel` object), a :class:`~props.properties.HasProperties` object,
 an optional :class:`ViewItem` object, which specifies how the interface is to
