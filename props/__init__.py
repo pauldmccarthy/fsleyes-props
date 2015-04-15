@@ -4,10 +4,14 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""``props is a framework for event-driven programming using python
+"""``props`` is a framework for event-driven programming using python
 descriptors.
 
-Usage::
+-------------
+Example usage
+-------------
+
+::
 
     >>> import props
 
@@ -49,20 +53,48 @@ Usage::
     >>> myPropObj.removeListener('myListener')
 
 
+-----------------
+Package structure
+-----------------
+
+To use ``props``, your first step will be to define a subclass of
+:class:`.HasProperties`, which contains one or more :class:`.PropertyBase`
+class instances (see the :mod:`.properties_types` module for the available
+types).
+
+Once you have an instance of your ``HasProperties`` class, you can then create
+a GUI for it using the functions defined in the :mod:`.build` and
+:mod:`.widgets` modules, and the GUI specification building blocks defined in
+the :mod:`build_parts` module. You can also generate a command-line interface
+using the functions defined in the :mod:`.cli` module.
+
+All of the classes and functions referred to above are available in the
+``props`` namespace, so you simply need to ``import props`` to access them.
+
+
+---------------
+Boring overview
+---------------
+
+
 Lots of the code in this package is probably very confusing. First of all, you
 will need to understand python descriptors.  Descriptors are a way of adding
 properties to python objects, and allowing them to be accessed as if they were
 just simple attributes of the object, but controlling the way that the
 attributes are accessed and assigned.
 
+
 The following link provides a good overview, and contains the ideas
 which form the basis for the implementation in this module:
+
 
  -  http://nbviewer.ipython.org/urls/gist.github.com/\
 ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
 
+
 And if you've got 30 minutes, this video gives a very good
 introduction to descriptors:
+
 
  - http://pyvideo.org/video/1760/encapsulation-with-descriptors
 
@@ -139,6 +171,7 @@ through one of the above methods will be notified of changes to the entire
 list.  Alternately, a listener may be registered with individual items
 contained in the list (see
 :meth:`~props.properties_value.PropertyValueList.getPropertyValueList`).
+
 """
 
 import logging
@@ -154,24 +187,14 @@ import syncable
 import cli
 import build_parts
 
-# The 'public' props API starts here.
-from build_parts import (
-    ViewItem, 
-    Button,
-    Label,
-    Widget, 
-    Group, 
-    NotebookGroup,
-    HGroup, 
-    VGroup)
 
 from properties import (
     PropertyBase,
     HasProperties,
     DisabledError)
-
-from syncable import (
-    SyncableHasProperties)
+"""
+Will this string appear in sphinx documentation?
+"""
 
 from properties_types import (
     Object,
@@ -187,6 +210,22 @@ from properties_types import (
     ColourMap,
     Bounds,
     Point)
+
+
+
+# The 'public' props API starts here.
+from build_parts import (
+    ViewItem, 
+    Button,
+    Label,
+    Widget, 
+    Group, 
+    NotebookGroup,
+    HGroup, 
+    VGroup)
+
+from syncable import (
+    SyncableHasProperties)
 
 from cli import (
     applyArguments,
