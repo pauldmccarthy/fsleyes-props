@@ -181,7 +181,19 @@ class PropertyValue(object):
         this instance, ``False`` otherwise.
         """ 
         return not self.__eq__(other)
- 
+
+    
+    def allowInvalid(self, allow=None):
+        """Query/set the allow invalid state of this value.
+
+        If no arguments are passed, returns the current allow invalid state.
+        Otherwise, sets the current allow invalid state. to the given argument.
+        """
+        if allow is None:
+            return self._allowInvalid
+
+        self._allowInvalid = bool(allow)
+    
         
     def enableNotification(self):
         """Enables notification of property value and attribute listeners for
@@ -754,7 +766,7 @@ class PropertyValueList(PropertyValue):
         item.
         """
         return list(PropertyValue.get(self))
- 
+
         
     def get(self):
         """Overrides :meth:`PropertyValue.get`. Returns this
