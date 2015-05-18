@@ -236,7 +236,8 @@ def _Choice(parser,
             propHelp,
             shortArg,
             longArg,
-            choices=None):
+            choices=None,
+            default=None):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.Choice` property. See the
     :func:`_String` documentation for details on the parameters.
@@ -245,15 +246,18 @@ def _Choice(parser,
                   choices for the property. If ``None``, the possible
                   choices are taken from the :meth:`.Choice.getChoices`
                   method.
+
+    :arg default: If not ``None``, gives the default value. Otherwise,
+                  the ``default`` constraint of the :class:`.Choice`
+                  object is used.
     """
 
     if choices is None:
         choices = propObj.getChoices()
         
-    # I'm assuming here that all choices are of the
-    # same type, and that said type is a standard
-    # python builtin (e.g. str, int, float, etc)
-    default = propObj.getConstraint(None, 'default')
+    if default is None:
+        default = propObj.getConstraint(None, 'default')
+
     parser.add_argument(shortArg,
                         longArg,
                         type=type(default),
