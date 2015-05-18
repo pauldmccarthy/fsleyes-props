@@ -229,11 +229,27 @@ def _String(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     parser.add_argument(shortArg, longArg, help=propHelp) 
 
 
-def _Choice(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
+def _Choice(parser,
+            propObj,
+            propCls,
+            propName,
+            propHelp,
+            shortArg,
+            longArg,
+            choices=None):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.Choice` property. See the
     :func:`_String` documentation for details on the parameters.
+
+    :arg choices: If not ``None``, assumed to be list of possible
+                  choices for the property. If ``None``, the possible
+                  choices are taken from the :meth:`.Choice.getChoices`
+                  method.
     """
+
+    if choices is None:
+        choices = propObj.getChoices()
+        
     # I'm assuming here that all choices are of the
     # same type, and that said type is a standard
     # python builtin (e.g. str, int, float, etc)
@@ -242,7 +258,7 @@ def _Choice(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
                         longArg,
                         type=type(default),
                         help=propHelp,
-                        choices=propObj.getChoices())
+                        choices=choices)
     
     
 def _Boolean(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
@@ -494,6 +510,7 @@ def addParserArguments(
         shortArgs=None,
         longArgs=None,
         propHelp=None,
+        extra=None,
         exclude=''):
     """Adds arguments to the given :class:`argparse.ArgumentParser` for the
     properties of the given :class:`~props.properties.HasProperties` object.
@@ -531,6 +548,13 @@ def addParserArguments(
                            ``_propHelp`` is present on the ``propCls`` class,
                            the value of that attribute is used. Otherwise, no
                            help string is used.
+
+    :param dict extra:     Any property-specific settings to be passed through
+                           to the parser configuration function (see e.g. the
+                           :func:`_Choice` function). If ``None``, and an
+                           attribute called ``_propExtra`` is present on the
+                           ``propCls`` class, the value of that attribute is
+                           used instead. 
     
     :param str exclude:    String containing letters which should not be used
                            as short arguments.
@@ -560,6 +584,12 @@ def addParserArguments(
         else:
             shortArgs = _getShortArgs(propCls, cliProps, exclude)
 
+    if extra is None:
+        if hasattr(propCls, '_propExtra'):
+            extra = propCls._propExtra
+        else: 
+            extra = {prop : {} for prop in cliProps}
+
     for propName in cliProps:
 
         propObj    = propCls.getProp(propName)
@@ -573,8 +603,9 @@ def addParserArguments(
                      '(type {})'.format(propName, propType))
             continue
 
-        shortArg =  '-{}'.format(shortArgs[propName])
-        longArg  = '--{}'.format(longArgs[ propName])
+        shortArg  =  '-{}'.format(shortArgs[propName])
+        longArg   = '--{}'.format(longArgs[ propName])
+        propExtra = extra.get(propName, {})
 
         parserFunc(parser,
                    propObj,
@@ -582,7 +613,8 @@ def addParserArguments(
                    propName,
                    propHelp.get(propName, None),
                    shortArg,
-                   longArg)
+                   longArg,
+                   **propExtra)
 
         
 def generateArguments(hasProps,
