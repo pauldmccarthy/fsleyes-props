@@ -756,6 +756,9 @@ class PropertyValueList(PropertyValue):
         """Uses the item equality function to test whether two lists are
         equal. Returns ``True`` if they are, ``False`` if they're not.
         """
+        if a is None or b is None:
+            return False
+        
         if len(a) != len(b): return False
         return all([self._itemEqualityFunc(ai, bi) for ai, bi in zip(a, b)])
 
