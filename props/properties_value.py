@@ -143,6 +143,9 @@ class PropertyValue(object):
         self.__lastValid           = False
         self.__notification        = True
 
+        if not allowInvalid:
+            validateFunc(context, self._attributes, value)
+
         self._changeListenerStates['prenotify']  = True
         self._changeListenerStates['postnotify'] = True
 
