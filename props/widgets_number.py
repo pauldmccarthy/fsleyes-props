@@ -10,6 +10,7 @@ This module is not intended to be used directly - it is imported into the
 :mod:`props.widgets` namespace.
 """
 
+import logging
 import sys
 
 import wx
@@ -18,6 +19,9 @@ import properties as props
 import widgets
 
 import pwidgets.floatslider as floatslider
+
+
+log = logging.getLogger(__name__)
 
 
 def _makeSpinBox(parent, hasProps, propObj, propVal):
@@ -74,6 +78,13 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
     def updateRange(*a):
         minval = getMinVal(propVal.getAttribute('minval'))
         maxval = getMaxVal(propVal.getAttribute('maxval'))
+
+        log.debug('Updating {} range from {}.{}: {} - {}'.format(
+            type(spin).__name__,
+            type(hasProps).__name__,
+            propVal._name,
+            minval,
+            maxval))
 
         spin.SetRange(minval, maxval)
 

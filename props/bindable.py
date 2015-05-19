@@ -140,8 +140,8 @@ def _bindProps(self, myProp, other, otherProp, unbind=False):
     if not unbind:
         allow = myPropVal.allowInvalid()
         myPropVal.allowInvalid(True)
-        myPropVal.set(          otherPropVal.get())
         myPropVal.setAttributes(otherPropVal.getAttributes())
+        myPropVal.set(          otherPropVal.get())
         myPropVal.allowInvalid(allow)
         
     _bindPropVals(myPropVal, otherPropVal, unbind=unbind)

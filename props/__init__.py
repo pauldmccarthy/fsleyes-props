@@ -245,6 +245,7 @@ try:
         makeListWidgets,
         makeSyncWidget,
         bindWidget,
+        unbindWidget,
         bindListWidgets)
     
     from build import (

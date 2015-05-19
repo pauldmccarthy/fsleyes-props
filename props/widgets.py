@@ -4,22 +4,7 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""Generate wx GUI widgets for :class:`~props.properties.PropertyBase` objects.
-
-This module provides the following functions:
-
-  - :func:`makeWidget`: Creates a widget for a ``PropertyBase`` object. This
-    function is called by functions in the :mod:`props.build` module when
-    they automatically build a GUI for the properties of a
-    :class:`~props.properties.HasProperties` instance.
-
-  - :func:`makeSyncWidget`: Creates a widget to control synchronisation of a
-    ``PropertyBase`` object of a :class:`~props.syncable.SyncableHasProperties`
-    instance with its parent.
-
-  - :func:`bindWidget`: Binds an existing widget with a ``PropertyBase``
-    instance.
-"""
+"""Generate wx GUI widgets for :class:`.PropertyBase` objects. """
 
 import logging
 log = logging.getLogger(__name__)
@@ -99,11 +84,12 @@ def _propBind(hasProps,
         id(hasProps),
         guiObj.__class__.__name__, id(guiObj)))
 
-    def _guiUpdate(value, *a):
+    def _guiUpdate(*a):
         """
         Called whenever the property value is changed.
         Sets the GUI widget value to that of the property.
         """
+        value = propVal.get()
 
         if widgetGet() == value: return
 
@@ -140,7 +126,8 @@ def _propBind(hasProps,
 
         propVal.set(value)
 
-    def _attUpdate(ctx, att, val, name):
+    def _attUpdate(ctx, att, *a):
+        val = propVal.getAttribute(att)
         if att == 'enabled': 
             guiObj.Enable(val)
 
@@ -166,6 +153,21 @@ def _propBind(hasProps,
             widgetDestroy(ev)
 
     guiObj.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
+
+
+def _propUnbind(hasProps, propObj, propVal, guiObj, evType):
+    """Removes any event binding which has been previously configured via the
+    :func:`_propBind` function, between the given :class:`.PropertyValue`
+    instance, and the given :mod:`wx` widget.
+    """
+    if not isinstance(evType, Iterable): evType = [evType]
+
+    listenerName = 'WidgetBind_{}'.format(id(guiObj))
+
+    propVal.removeListener(         listenerName)
+    propVal.removeAttributeListener(listenerName)
+
+    for ev in evType: guiObj.Unbind(ev)
 
 
 def _setupValidation(widget, hasProps, propObj, propVal):
@@ -766,3 +768,14 @@ def bindListWidgets(widgets,
                   evTypes,
                   wGet,
                   wSet)
+
+
+def unbindWidget(widget, hasProps, propName, evTypes):
+    """Unbinds the given widget from the specified property, assumed to have
+    been previously bound via the :func:`bindWidget` function.
+    """
+
+    propObj = hasProps.getProp(   propName)
+    propVal = hasProps.getPropVal(propName) 
+
+    _propUnbind(hasProps, propObj, propVal, widget, evTypes)
