@@ -133,6 +133,11 @@ class PropertyBase(object):
         # that the class labels from this instance
         # are not copied across to the new instance
         newProp._label = {}
+
+        # Give the new object an independent
+        # defaultConstraint dictionary
+        newProp._defaultConstraints = dict(newProp._defaultConstraints)
+        
         return newProp
 
         
