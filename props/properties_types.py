@@ -390,6 +390,7 @@ class Choice(props.PropertyBase):
             if choice in oldEnabled: newEnabled[choice] = oldEnabled[choice]
             else:                    newEnabled[choice] = True
 
+        self.setConstraint(instance, 'choices',       choices)
         self.setConstraint(instance, 'labels',        labels)
         self.setConstraint(instance, 'choiceEnabled', newEnabled)
 
@@ -399,8 +400,6 @@ class Choice(props.PropertyBase):
             if oldChoice not in choices:
                 if default in choices: propVal.set(default)
                 else:                  propVal.set(choices[0])
-             
-        self.setConstraint(instance, 'choices', choices)
 
 
     def setChoices(self, choices, labels=None, instance=None):

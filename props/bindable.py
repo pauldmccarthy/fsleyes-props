@@ -449,11 +449,14 @@ def _syncPropValLists(masterList, slaveList):
                 if masterVal == slaveVal: continue
                 
                 notifState = slaveVal.getNotificationState()
+                validState = slaveVal.allowInvalid()
                 slaveVal.disableNotification()
+                slaveVal.allowInvalid(True)
  
                 slaveVal.set(masterVal.get())
                 propValsChanged.append(i)
-                    
+
+                slaveVal.allowInvalid(validState)
                 slaveVal.setNotificationState(notifState)
 
     return propValsChanged
@@ -488,9 +491,12 @@ def notify(self):
 
             # Sync the PV, but don't notify
             notifState = bpv.getNotificationState()
+            validState = bpv.allowInvalid()
             bpv.disableNotification()
+            bpv.allowInvalid(True)
             bpv.set(self.get())
             bpv.setNotificationState(notifState)
+            bpv.allowInvalid(validState)
 
         # PropertyValueList instances
         else:
@@ -575,10 +581,13 @@ def notifyAttributeListeners(self, name, value):
 
         changeState[i] = True
         notifState     = bpv.getNotificationState()
-        
+        validState     = bpv.allowInvalid()
+
+        bpv.allowInvalid(True)
         bpv.disableNotification()
         bpv.setAttribute(name, value)
         bpv.setNotificationState(notifState)
+        bpv.allowInvalid(validState)
 
     # Notify the attribute listeners of any slave
     # PVs for which the attribute changed value

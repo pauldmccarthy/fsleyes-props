@@ -781,6 +781,20 @@ class HasProperties(object):
         """Disables notification of listeners on the given property."""
         self.getPropVal(propName).disableNotification()
 
+        
+    def enableAllNotification(self):
+        """Enables notification of listeners on all properties."""
+        propNames, props = self.getAllProperties()
+        for propName in propNames:
+            self.enableNotification(propName) 
+
+    
+    def disableAllNotification(self):
+        """Disables notification of listeners on all properties."""
+        propNames, props = self.getAllProperties()
+        for propName in propNames:
+            self.disableNotification(propName) 
+
 
     def enableProperty(self, propName):
         """Enables the given property - see :meth:`PropertyBase.enable`."""
