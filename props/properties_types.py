@@ -390,9 +390,9 @@ class Choice(props.PropertyBase):
             if choice in oldEnabled: newEnabled[choice] = oldEnabled[choice]
             else:                    newEnabled[choice] = True
 
-        self.setConstraint(instance, 'choices',       choices)
-        self.setConstraint(instance, 'labels',        labels)
         self.setConstraint(instance, 'choiceEnabled', newEnabled)
+        self.setConstraint(instance, 'labels',        labels)
+        self.setConstraint(instance, 'choices',       choices)
 
         if propVal is not None:
             propVal.setNotificationState(notifState)
@@ -473,6 +473,8 @@ class Choice(props.PropertyBase):
 
         if value not in choices:
             raise ValueError('Invalid choice ({})'    .format(value))
+        if value not in enabled.keys():
+            raise ValueError('Invalid choice ({})'    .format(value)) 
         if not enabled[value]:
             raise ValueError('Choice is disabled ({})'.format(value))
                 
