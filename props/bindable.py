@@ -527,6 +527,10 @@ def notify(self):
 
             self._syncing.remove(bpv)
 
+    # Now that the master-slave values are synced,
+    # call the real PropertyValue.notify method
+    self._orig_notify()
+
     # Call the registered property listeners 
     # of any slave PVs which changed value
     for i, bpv in enumerate(boundPropVals):
@@ -554,10 +558,6 @@ def notify(self):
             # listeners on the slave list
             bpv.setNotificationState(listNotifState)
             bpv.notify()
-
-    # Now that the master-slave values are synced,
-    # call the real PropertyValue.notify method
-    self._orig_notify()
 
 
 def notifyAttributeListeners(self, name, value):
@@ -589,8 +589,11 @@ def notifyAttributeListeners(self, name, value):
         bpv.setNotificationState(notifState)
         bpv.allowInvalid(validState)
 
-    # Notify the attribute listeners of any slave
-    # PVs for which the attribute changed value
+    # Notify the attribute listeners of the master
+    # PV, and then of any slave PVs for which the
+    # attribute changed value
+    self._orig_notifyAttributeListeners(name, value)
+    
     #
     # TODO what if the attribute change caused
     # a change to the property value?
@@ -598,8 +601,6 @@ def notifyAttributeListeners(self, name, value):
     for bpv in boundPropVals:
         if changeState[i]:
             bpv.notifyAttributeListeners(name, value)
-
-    self._orig_notifyAttributeListeners(name, value)
 
                          
 # Patch the HasPropertyies and PropertyValue

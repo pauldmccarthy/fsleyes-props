@@ -772,6 +772,13 @@ class HasProperties(object):
         return self.getProp(propName).getPropVal(self)
 
 
+    def getLastValue(self, propName):
+        """Returns the most recent value of the specified property before its
+        current one.
+        """
+        return self.getPropVal(propName).getLast()
+
+
     def enableNotification(self, propName):
         """Enables notification of listeners on the given property."""
         self.getPropVal(propName).enableNotification()

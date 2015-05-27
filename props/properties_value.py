@@ -444,7 +444,12 @@ class PropertyValue(object):
         """Sets the function to be called on value changes, after any
         registered listeners.
         """
-        self._postNotifyFunc = postNotifyFunc 
+        self._postNotifyFunc = postNotifyFunc
+
+
+    def getLast(self):
+        """Returns the most recent property value before the current one."""
+        return self.__lastValue
 
         
     def get(self):
@@ -491,8 +496,10 @@ class PropertyValue(object):
                 traceback.print_stack()
                 raise e
 
-        self.__value = newValue
-        self.__valid = valid
+        self.__lastValue = self.__value
+        self.__lastValid = self.__valid
+        self.__value     = newValue
+        self.__valid     = valid
 
         # If the value or its validity has not
         # changed, listeners are not notified
@@ -505,12 +512,9 @@ class PropertyValue(object):
             self._context.__class__.__name__,
             self._name,
             self.__lastValue,
-            newValue,
+            self.__value,
             'valid' if valid else 'invalid - {}'.format(validStr)))
         
-        self.__lastValue = self.__value
-        self.__lastValid = self.__valid
-
         # Notify any registered listeners
         self.notify()
 
