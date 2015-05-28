@@ -863,6 +863,21 @@ class BoundsValueList(propvals.PropertyValueList):
         self.setMin(axis, minval)
         self.setMax(axis, maxval)
 
+
+    def inBounds(self, point):
+        """Returns ``True`` if the given point (a sequence of numbers) lies
+        within the bounds represented by this ``BoundsValueList``, ``False``
+        otherwise.
+        """
+        if 2 * len(point) != len(self):
+            raise ValueError('Invalid number of dimensions: {}'.format(point))
+
+        for ax, coord in enumerate(point):
+            if coord < self.getLo(ax) or coord > self.getHi(ax):
+                return False
+            
+        return True
+
         
     def __getattr__(self, name):
         """Return the specified value. Raises an :exc:`AttributeError` for
