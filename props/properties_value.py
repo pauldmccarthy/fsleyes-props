@@ -27,6 +27,7 @@ import callqueue
 
 log = logging.getLogger(__name__)
 
+
 class PropertyValue(object):
     """An object which encapsulates a value of some sort.
 
@@ -515,7 +516,13 @@ class PropertyValue(object):
             self.__value,
             'valid' if valid else 'invalid - {}'.format(validStr)))
         
-        # Notify any registered listeners
+        # Notify any registered listeners. It is
+        # critical that this is the last step in
+        # the set() method, due to the way that
+        # the bindable module monkey-patches it,
+        # adding in extra functionality, to
+        # synchronise bound PV objects before any
+        # notification occurs.
         self.notify()
 
         
