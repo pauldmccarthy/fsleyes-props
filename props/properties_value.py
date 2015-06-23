@@ -256,8 +256,8 @@ class PropertyValue(object):
         
         :param listener: The callback function.
         """
-        log.debug('Adding attribute listener on {}.{}: {}'.format(
-            self._context.__class__.__name__, self._name, name))
+        log.debug('Adding attribute listener on {}.{} ({}): {}'.format(
+            self._context.__class__.__name__, self._name, id(self), name))
         
         name = self._saltListenerName(name)
         self._attributeListeners[name] = listener
@@ -303,8 +303,12 @@ class PropertyValue(object):
 
         if oldVal == value: return
 
-        log.debug('Attribute on {} changed: {} = {}'.format(
-            self._name, name, value))
+        log.debug('Attribute on {}.{} ({}) changed: {} = {}'.format(
+            self._context.__class__.__name__,
+            self._name,
+            id(self),
+            name,
+            value))
 
         self.notifyAttributeListeners(name, value)
 

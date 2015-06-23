@@ -81,7 +81,7 @@ def _propBind(hasProps,
     log.debug('Binding PropertyValue ({}.{} [{}]) to widget {} ({})'.format(
         hasProps.__class__.__name__,
         propVal._name,
-        id(hasProps),
+        id(propVal),
         guiObj.__class__.__name__, id(guiObj)))
 
     def _guiUpdate(*a):

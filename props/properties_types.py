@@ -397,6 +397,9 @@ class Choice(props.PropertyBase):
         if propVal is not None:
             propVal.setNotificationState(notifState)
 
+            if notifState:
+                propVal.notifyAttributeListeners('choices', choices)
+
             if oldChoice not in choices:
                 if default in choices: propVal.set(default)
                 else:                  propVal.set(choices[0])
@@ -414,7 +417,10 @@ class Choice(props.PropertyBase):
 
         if len(choices) > 0:
             self.setConstraint(instance, 'default', choices[0])
-            self.__set__(instance, choices[0])
+
+            if instance is not None:
+                self.__set__(instance, choices[0])
+                
         else:
             self.setConstraint(instance, 'default', None)
 
@@ -435,7 +441,9 @@ class Choice(props.PropertyBase):
 
         if len(choices) == 1:
             self.setConstraint(instance, 'default', choices[0])
-            self.__set__(instance, choices[0])
+
+            if instance is not None:
+                self.__set__(instance, choices[0])
 
             
     def removeChoice(self, choice, instance=None):
@@ -453,8 +461,11 @@ class Choice(props.PropertyBase):
 
         if len(choices) > 0:
             if default == choice:
+                
                 self.setConstraint(instance, 'default', choices[0])
-                self.__set__(instance, choices[0])
+
+                if instance is not None:
+                    self.__set__(instance, choices[0])
         else:
             self.setConstraint(instance, 'default', None)        
 
