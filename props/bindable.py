@@ -168,6 +168,13 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
     # TODO You're almost certainly not handling
     # unbind=True properly in this code
 
+    # Inhibit list-level notification due to item
+    # changes during the initial sync - we'll
+    # manually do a list-level notification after
+    # all the list values have been synced
+    notifState = myPropVal.getNotificationState()
+    myPropVal.disableNotification()
+    
     # Force the two lists to have
     # the same number of elements
     if not unbind:
@@ -183,13 +190,6 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
     myPropValList    = myPropVal   .getPropertyValueList()
     otherPropValList = otherPropVal.getPropertyValueList()
     propValMap       = Bidict()
-
-    # Inhibit list-level notification due to item
-    # changes during the initial sync - we'll
-    # manually do a list-level notification after
-    # all the list values have been synced
-    notifState = myPropVal.getNotificationState()
-    myPropVal.disableNotification()
 
     # Copy item values from the master list
     # to the slave list, and save the mapping
@@ -232,12 +232,11 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
         # has changed.
         myItem.setNotificationState(itemNotifState)
         if itemNotifState:
-
             # notify attribute listeners first
             for name, val in atts.items():
-                myItem._orig_notifyAttributeListeners(name, val)            
+                _notifyAttributeListeners(myItem, name, val) 
             
-            myItem._orig_notify()
+            _notify(myItem)
 
     # This mapping is stored on the PVL objects,
     # and used by the _syncListPropVals function
@@ -264,12 +263,14 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
     # notification if the list has changed
     # value
     myPropVal.setNotificationState(notifState)
-    if notifState:
-        # Notify attribute listeners first
-        for name, val in atts.items():
-            myPropVal._orig_notifyAttributeListeners(name, val)
+
+    # Sync the PVS, ensure that the sync
+    # is propagated to other bound PVs,
+    # and notify all listeners.
+    for name, val in atts.items():
+        _notifyAttributeListeners(myPropVal, name, val)
         
-        myPropVal._orig_notify()
+    _notify(myPropVal)
 
 
 def _bindPropVals(myPropVal,
@@ -450,6 +451,16 @@ def _syncPropValLists(masterList, slaveList):
                 validState = slaveVal.allowInvalid()
                 slaveVal.disableNotification()
                 slaveVal.allowInvalid(True)
+
+                log.debug('Syncing bound PV list item '
+                          '[{}] {}.{}({}) -> {}.{}({})'.format(
+                              i,
+                              masterList._context.__class__.__name__,
+                              masterList._name,
+                              masterVal.get(),
+                              slaveList._context.__class__.__name__,
+                              slaveList._name,
+                              slaveList.get())) 
  
                 slaveVal.set(masterVal.get())
                 changed.append(slaveVal)
