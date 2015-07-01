@@ -53,6 +53,7 @@ class PropertyValue(object):
                  preNotifyFunc=None,
                  postNotifyFunc=None,
                  allowInvalid=True,
+                 parent=None,
                  **attributes):
         """Create a :class:`PropertyValue` object.
         
@@ -106,6 +107,13 @@ class PropertyValue(object):
                                ``validateFunc``).  Therefore, the validity of
                                a value may change, even if the value itself
                                has not changed.
+
+        :param parent:         If this PV instance is a memeber of a 
+                               :class:`PropertyValueList` instance, the latter
+                               sets itself as the parent of this PV. Whenever
+                               the value of this PV changes, the
+                               :meth:`PropertyValueList._listPVChanged` method
+                               is called.
         
         :param attributes:     Any key-value pairs which are to be associated 
                                with this :class:`PropertyValue` object, and 
@@ -133,6 +141,7 @@ class PropertyValue(object):
         self._preNotifyFunc        = preNotifyFunc
         self._postNotifyFunc       = postNotifyFunc
         self._allowInvalid         = allowInvalid
+        self._parent               = parent
         self._attributes           = attributes.copy()
         self._changeListeners      = OrderedDict()
         self._changeListenerStates = {}
@@ -540,7 +549,8 @@ class PropertyValue(object):
         does nothing.
         """
 
-        if not self.__notification: return
+        if not self.__notification:
+            return
         
         value        = self.get()
         valid        = self.__valid
@@ -571,8 +581,15 @@ class PropertyValue(object):
             listeners.append(('{} ({})'.format(name, desc),
                               listener,
                               args))
-
+        
         self.queue.callAll(listeners)
+
+        # If this PV is a member of a PV list, 
+        # tell the list that this PV has
+        # changed, so that it can notify its own
+        # list-level listeners of the change
+        if self._parent is not None:
+            self._parent._listPVChanged(self)
 
 
     def revalidate(self):
@@ -830,9 +847,9 @@ class PropertyValueList(PropertyValue):
             value=item,
             castFunc=self._itemCastFunc,
             allowInvalid=self._itemAllowInvalid,
-            postNotifyFunc=self._itemChanged,
             equalityFunc=self._itemEqualityFunc,
             validateFunc=self._itemValidateFunc,
+            parent=self,
             **itemAtts)
         
         return propVal
@@ -840,8 +857,6 @@ class PropertyValueList(PropertyValue):
 
     def enableNotification(self):
         """Enables notification of list-level listeners. """
-        for val in self.getPropertyValueList():
-            val.setPostNotifyFunction(self._itemChanged)
         PropertyValue.enableNotification(self)
 
         
@@ -850,13 +865,11 @@ class PropertyValueList(PropertyValue):
         individual :class:`PropertyValue` items will still be notified
         of item changes.
         """
-        for val in self.getPropertyValueList():
-            val.setPostNotifyFunction(None)
         PropertyValue.disableNotification(self)
 
     
-    def _itemChanged(self, *a):
-        """This function is called when any list item value changes. 
+    def _listPVChanged(self, pv):
+        """This function is called by list items when their value changes.
         List-level listeners are notified of the change.
         """
 
@@ -865,7 +878,7 @@ class PropertyValueList(PropertyValue):
                       'list-level listeners ({})'.format(
                           self._context.__class__.__name__,
                           self._name,
-                          a[0],
+                          pv,
                           self[:]))
             self.notify()
     
@@ -1024,15 +1037,7 @@ class PropertyValueList(PropertyValue):
         
             for idx in indices:
                 if changedVals[idx]:
-
-                    # Make sure that the self._itemChanged
-                    # method (which is set as the postNotify
-                    # function for all PV items) is not
-                    # called, otherwise there will be some
-                    # nasty recursiveness
-                    propVals[idx].setPostNotifyFunction(None)
                     propVals[idx].notify()
-                    propVals[idx].setPostNotifyFunction(self._itemChanged)
 
         
     def __delitem__(self, key):
