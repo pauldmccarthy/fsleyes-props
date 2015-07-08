@@ -592,6 +592,7 @@ class HasProperties(object):
     class.
     """
     __metaclass__ = PropertyOwner
+
     
     def __new__(cls, *args, **kwargs):
         """Here we create a new :class:`HasProperties` instance, and loop
@@ -662,6 +663,28 @@ class HasProperties(object):
             for prop, propName in zip(propNames, props):
                 propVal = prop.getPropVal(self)
                 propVal.setPreNotifyFunction(self.__valueChanged)
+
+
+    def __copy__(self):
+        """Default copy operator.
+
+        Creates a new instance of this type, and copies all property values
+        across.
+
+        If a no-arguments constructor is not available, an error will
+        be raised.
+
+        Subclasses which require arguments on initialisation, or which have
+        more complex copy semantics, will need to implement their own
+        ``__copy__`` operator if this one does not suffice.
+        """
+
+        copy = type(self)()
+
+        for propName in self.getAllProperties()[0]:
+            setattr(copy, propName, getattr(self, propName))
+            
+        return copy
 
                 
     def addProperty(self, propName, propObj):
