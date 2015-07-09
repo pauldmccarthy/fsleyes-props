@@ -681,6 +681,8 @@ class HasProperties(object):
 
         copy = type(self)()
 
+        # TODO Is this going to crash for List properties?
+        #      If it does, make it not crash.
         for propName in self.getAllProperties()[0]:
             setattr(copy, propName, getattr(self, propName))
             
