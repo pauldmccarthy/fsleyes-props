@@ -757,11 +757,16 @@ def buildDialog(parent,
                 view=None,
                 labels=None,
                 tooltips=None,
-                showUnlink=True):
+                showUnlink=True,
+                dlgButtons=True):
     """Convenience method which embeds the result of a call to
     :func:`buildGUI` in a :class:`wx.Dialog`.
 
     See the :func:`buildGUI` documentation for details on the paramters.
+
+
+    :arg dlgButtons: If ``True``, the dialog will have 'Ok' and 'Cancel'
+                     buttons.
     """
     
     dialog = wx.Dialog(parent, style=wx.DEFAULT_DIALOG_STYLE |
@@ -772,6 +777,16 @@ def buildDialog(parent,
     dialog.SetSizer(sizer)
 
     sizer.Add(panel, flag=wx.EXPAND, proportion=1)
+
+    if dlgButtons:
+        ok     = wx.Button(dialog, wx.ID_OK,     label='Ok')
+        cancel = wx.Button(dialog, wx.ID_CANCEL, label='Cancel')
+
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        btnSizer.Add(ok,     flag=wx.EXPAND, proportion=1)
+        btnSizer.Add(cancel, flag=wx.EXPAND, proportion=1)
+
+        sizer.Add(btnSizer, flag=wx.EXPAND)
 
     dialog.Layout()
     dialog.Fit()
