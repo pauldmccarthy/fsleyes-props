@@ -114,6 +114,14 @@ class SyncableHasProperties(props.HasProperties):
         name for the corresponding boolean sync property.
         """
         return '{}{}'.format(_SYNC_SALT_, propName)
+
+
+    @classmethod
+    def _unsaltSyncPropertyName(cls, propName):
+        """Removes a prefix from the given property name, which was
+        added by the :meth:`_saltSyncPropertyName` method.
+        """
+        return propName[len(_SYNC_SALT_):]
  
 
     @classmethod
@@ -271,22 +279,20 @@ class SyncableHasProperties(props.HasProperties):
 
         if self.canBeUnsyncedFromParent(propName):
             lName = self._saltSyncListenerName(propName)
-            bindPropVal.addListener(
-                lName,
-                lambda *a: self._syncPropChanged(propName, *a))
+            bindPropVal.addListener(lName, self._syncPropChanged)
 
         self.bindProps(propName, self._parent()) 
 
         
-    def _syncPropChanged(self, propName, *a):
+    def _syncPropChanged(self, value, valid, ctx, bindPropName):
         """Called when a hidden boolean property controlling the sync
         state of the specified real property changes.
 
         Changes the sync state of the property accordingly.
         """
 
-        bindPropName = self._saltSyncPropertyName(propName)
-        bindPropVal  = getattr(self, bindPropName)
+        propName    = self._unsaltSyncPropertyName(bindPropName)
+        bindPropVal = getattr(self, bindPropName)
 
         if bindPropVal and (propName in self._nobind):
             raise RuntimeError('{} cannot be bound to '

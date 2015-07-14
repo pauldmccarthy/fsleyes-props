@@ -53,11 +53,6 @@ class WeakFunctionRef(object):
             self.func     = weakref.ref(func)
             self.funcName = func.__name__
 
-        # Mangle private method
-        # names if necessary
-        if self.funcName.startswith('__') and self.objType is not None:
-            self.funcName = '_{}{}'.format(self.objType, self.funcName)
-
 
     def __str__(self):
 
@@ -93,7 +88,7 @@ class WeakFunctionRef(object):
 
             if isinstance(att, types.MethodType) and \
                att.im_func is func:
-                return func
+                return att
 
         return None
 

@@ -282,7 +282,9 @@ def _listEmbedWidget(parent, hasProps, propObj, propVal):
     widget.Bind(elistbox.EVT_ELB_MOVE_EVENT,   _listBoxMove)
     widget.Bind(elistbox.EVT_ELB_EDIT_EVENT,   _listBoxEdit)
     
-    propVal.addListener('widgets_list_py_{}'.format(id(widget)), _listChanged)
+    propVal.addListener('widgets_list_py_{}'.format(id(widget)),
+                        _listChanged,
+                        weak=False)
     
     return widget
 
