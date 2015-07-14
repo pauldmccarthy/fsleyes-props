@@ -12,7 +12,10 @@ properties. See also the :mod:`~props.properties_value` and
 :mod:`~props.properties_types` modules.
 """
 
+import weakref
 import logging
+
+
 log = logging.getLogger(__name__)
 
 
@@ -24,7 +27,7 @@ class _InstanceData(object):
     """
     
     def __init__(self, instance, propVal):
-        self.instance = instance
+        self.instance = weakref.ref(instance)
         self.propVal  = propVal
 
 

@@ -56,11 +56,14 @@ A one-to-many synchronisation relationship is possible between one parent, and
 many children.
 """
 
+import weakref
 import logging
-log = logging.getLogger(__name__)
 
 import properties       as props
 import properties_types as types
+
+
+log = logging.getLogger(__name__)
 
 
 _SYNC_SALT_ = '_sync_'
@@ -158,7 +161,6 @@ class SyncableHasProperties(props.HasProperties):
         if nobind   is None: nobind   = []
         if nounbind is None: nounbind = []
 
-        self._parent   = parent
         self._nobind   = nobind
         self._nounbind = nounbind
 
@@ -192,6 +194,8 @@ class SyncableHasProperties(props.HasProperties):
             # all the children synced to this
             # parent
             self._children = []
+            self._parent   = None
+
 
         # Otherwise, this instance is a 'child'
         # instance - set up a binding between
@@ -199,12 +203,14 @@ class SyncableHasProperties(props.HasProperties):
         # property - see _initBindProperty
         else:
 
+            self._parent = weakref.ref(parent)
+
             if not isinstance(parent, self.__class__):
                 raise TypeError('parent is of a different type '
                                 '({} != {})'.format(parent.__class__,
                                                     self.__class__))
 
-            parent._children.append(self)
+            parent._children.append(weakref.ref(self))
 
             propNames, _ = self.getAllProperties()
 
@@ -223,7 +229,8 @@ class SyncableHasProperties(props.HasProperties):
         # called before __init__ has been called.
         # If this happens, it's the user code
         # which is at fault.
-        return self._parent
+        if self._parent is None: return None
+        else:                    return self._parent()
 
 
     def getChildren(self):
@@ -233,7 +240,7 @@ class SyncableHasProperties(props.HasProperties):
         if self._parent is not None:
             return None
 
-        return list(self._children)
+        return list([c() for c  in self._children])
                 
     
     def _saltSyncListenerName(self, propName):
@@ -268,7 +275,7 @@ class SyncableHasProperties(props.HasProperties):
                 lName,
                 lambda *a: self._syncPropChanged(propName, *a))
 
-        self.bindProps(propName, self._parent)        
+        self.bindProps(propName, self._parent()) 
 
         
     def _syncPropChanged(self, propName, *a):
@@ -292,7 +299,7 @@ class SyncableHasProperties(props.HasProperties):
         log.debug('Sync property changed for {} - '
                   'changing binding state'.format(propName))
         
-        self.bindProps(propName, self._parent, unbind=(not bindPropVal)) 
+        self.bindProps(propName, self._parent(), unbind=(not bindPropVal)) 
 
         
     def syncToParent(self, propName):
@@ -313,6 +320,34 @@ class SyncableHasProperties(props.HasProperties):
         bindPropName = self._saltSyncPropertyName(propName)
         setattr(self, bindPropName, True)
 
+
+    def detachFromParent(self):
+        """If this is a child ``SyncableHasProperties`` instance, it
+        detaches itself from its parent. This is an irreversible operation.
+
+        TODO: Add the ability to dynamically set/clear the parent
+              SHP instance.
+        """
+
+        if self._parent is None or self._parent() is None:
+            self._parent = None
+            return
+
+        propNames = self.getAllProperties()[0]
+
+        for propName in propNames:
+            if propName not in self._nounbind:
+                syncPropName = self._saltSyncPropertyName(propName)
+                lName        = self._saltSyncListenerName(propName)
+                self.removeListener(syncPropName, lName)
+                self.unsyncFromParent(propName)
+
+        for c in list(self._parent()._children):
+            if c() is self:
+                self._parent()._children.remove(c)
+
+        self._parent = None
+ 
     
     def unsyncFromParent(self, propName):
         """Unsynchronise the given property from the parent instance.
