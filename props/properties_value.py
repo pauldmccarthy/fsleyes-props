@@ -84,7 +84,6 @@ class WeakFunctionRef(object):
         func     = self.func()
         methName = self.funcName
 
-
         attNames = dir(obj)
         attNames = filter(lambda n: n.endswith(methName), attNames)
 
@@ -336,7 +335,7 @@ class PropertyValue(object):
         return name[len(salt):]
  
         
-    def addAttributeListener(self, name, listener):
+    def addAttributeListener(self, name, listener, weak=True):
         """Adds an attribute listener for this :class:`PropertyValue`. The
         listener callback function must accept the following arguments:
         
@@ -354,12 +353,18 @@ class PropertyValue(object):
                          overwritten.
         
         :param listener: The callback function.
+
+        :param weak:     If ``True`` (the default), a weak reference to the
+                         callback function is used.
         """
         log.debug('Adding attribute listener on {}.{} ({}): {}'.format(
             self._context().__class__.__name__, self._name, id(self), name))
+
+        if weak:
+            listener = WeakFunctionRef(listener)
         
         name = self._saltListenerName(name)
-        self._attributeListeners[name] = WeakFunctionRef(listener)
+        self._attributeListeners[name] = listener
 
         
     def removeAttributeListener(self, name):
@@ -431,7 +436,8 @@ class PropertyValue(object):
         
         for cbName, cb in list(self._attributeListeners.items()):
 
-            func = cb.function()
+            if isinstance(cb, WeakFunctionRef): func = cb.function()
+            else:                               func = cb
 
             if func is None:
                 log.debug('Removing dead attribute listener {} ({})'.format(
@@ -446,7 +452,7 @@ class PropertyValue(object):
         self.queue.callAll(attListeners)
         
         
-    def addListener(self, name, callback, overwrite=False):
+    def addListener(self, name, callback, overwrite=False, weak=True):
         """Adds a listener for this value.
 
         When the value changes, the listener callback function is called. The
@@ -467,7 +473,11 @@ class PropertyValue(object):
                           the value of the ``overwrite`` argument.
         :param callback:  The callback function.
         :param overwrite: If ``True`` any previous listener with the same name
-                          will be overwritten. 
+                          will be overwritten.
+
+        :param weak:      If ``True`` (the default), a weak reference to the
+                          callback function is retained, meaning that it
+                          can be garbage-collected.
         """
 
         if name in ('prenotify', 'postnotify'):
@@ -483,7 +493,8 @@ class PropertyValue(object):
         fullName = self._saltListenerName(name)
         prior    = self._changeListeners.get(fullName, None)
 
-        callback = WeakFunctionRef(callback)
+        if weak:
+            callback = WeakFunctionRef(callback)
 
         if   prior is None: self._changeListeners[fullName] = callback
         elif overwrite:     self._changeListeners[fullName] = callback
@@ -676,18 +687,19 @@ class PropertyValue(object):
             allListeners['postnotify'] = self._postNotifyFunc
 
         # filter out listeners which have been disabled
-        for name, listener in list(allListeners.items()):
+        for name, lnr in list(allListeners.items()):
             
             if not self._changeListenerStates[name]:
                 continue
 
-            # Listener is a WeakFunctionRef instance,
-            # so we retrieve the actual function
-            func = listener.function()
+            # If the listener is a WeakFunctionRef
+            # instance, we retrieve the actual function
+            if isinstance(lnr, WeakFunctionRef): func = lnr.function()
+            else:                                func = lnr
 
             if func is None:
-                log.debug('Removing dead listener {} ({})'.format(
-                    name, str(listener)))
+                log.debug('Removing dead listener {} ({})'.format(name,
+                                                                  str(lnr)))
                 self.removeListener(self._unsaltListenerName(name))
                 continue
             

@@ -89,7 +89,7 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
         spin.SetRange(minval, maxval)
 
     listenerName = 'widgets_number_py_updateRange_{}'.format(id(spin))
-    propVal.addAttributeListener(listenerName, updateRange)
+    propVal.addAttributeListener(listenerName, updateRange, weak=False)
 
 
     def onMouseWheel(ev):
@@ -162,7 +162,7 @@ def _makeSlider(
 
 
     listenerName = 'widgets_number_py_updateRange_{}'.format(id(slider))
-    propVal.addAttributeListener(listenerName, updateSliderRange)
+    propVal.addAttributeListener(listenerName, updateSliderRange, weak=False)
 
     # remove the listener when the slider is destroyed
     def onDestroy(ev):

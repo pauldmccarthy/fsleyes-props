@@ -74,13 +74,13 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
 
     sliderPanel.Bind(rangeslider.EVT_RANGE, propUpdate)
 
-    lowProp .addListener(lName, lowGuiUpdate)
-    highProp.addListener(lName, highGuiUpdate)
+    lowProp .addListener(lName, lowGuiUpdate,  weak=False)
+    highProp.addListener(lName, highGuiUpdate, weak=False)
 
     propObj.addItemConstraintListener(
-        hasProps, axis * 2,     lName, updateSliderRange)
+        hasProps, axis * 2,     lName, updateSliderRange, weak=False)
     propObj.addItemConstraintListener(
-        hasProps, axis * 2 + 1, lName, updateSliderRange)
+        hasProps, axis * 2 + 1, lName, updateSliderRange, weak=False)
 
     if editLimits:
         sliderPanel.Bind(rangeslider.EVT_RANGE_LIMIT, updatePropRange)

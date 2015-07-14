@@ -66,7 +66,7 @@ def _pointBind(hasProps, propObj, propVal, slider, dim, editLimits):
     lName = 'PointLimits_{}_{}'.format(id(slider), dim)
 
     propObj.addItemConstraintListener(
-        hasProps, dim, lName, propLimitsChanged)
+        hasProps, dim, lName, propLimitsChanged, weak=False)
 
     def onDestroy(ev):
         propObj.removeItemConstraintListener(hasProps, dim, lName)

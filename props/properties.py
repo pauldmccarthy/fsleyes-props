@@ -209,7 +209,12 @@ class PropertyBase(object):
         return propVal.getAttribute('enabled')
 
     
-    def addListener(self, instance, name, callback, overwrite=False):
+    def addListener(self,
+                    instance,
+                    name,
+                    callback,
+                    overwrite=False,
+                    weak=True):
         """Register a listener with the
         :class:`~props.properties_value.PropertyValue` object managed by
         this property. See
@@ -217,13 +222,9 @@ class PropertyBase(object):
 
         :param instance:  The :class:`HasProperties` instance on which the
                           listener is to be registered.
-        :param str name:  A name for the listener.
-        :param callback:  The listener callback function
-        :param overwrite: Overwrite any existing listener with the same name
         """
-        self._getInstanceData(instance).propVal.addListener(name,
-                                                            callback,
-                                                            overwrite)
+        self._getInstanceData(instance).propVal.addListener(
+            name, callback, overwrite=overwrite, weak=weak)
         
         
     def removeListener(self, instance, name):
@@ -515,14 +516,19 @@ class ListPropertyBase(PropertyBase):
         if pvl is not None: pvl[index].removeListener(name)
 
 
-    def addItemConstraintListener(self, instance, index, name, listener):
+    def addItemConstraintListener(self,
+                                  instance,
+                                  index,
+                                  name,
+                                  listener,
+                                  weak=True):
         """Convenience method which adds a constraint listener (actually an
         attribute listener) to the
         :class:`~props.properties_value.PropertyValue` object at the given
         index.
         """
         self.getPropValList(instance)[index].addAttributeListener(
-            name, listener)
+            name, listener, weak)
 
         
     def removeItemConstraintListener(self, instance, index, name):
@@ -890,13 +896,20 @@ class HasProperties(object):
             self, index, constraint, value)
 
 
-    def addListener(self, propName, listenerName, callback, overwrite=False):
+    def addListener(self,
+                    propName,
+                    listenerName,
+                    callback,
+                    overwrite=False,
+                    weak=True):
         """Convenience method, adds the specified listener to the specified
         property. See :meth:`PropertyBase.addListener`.
         """
-        self.getPropVal(propName).addListener(listenerName,
-                                              callback,
-                                              overwrite)
+        self.getPropVal(propName).addListener(
+            listenerName,
+            callback,
+            overwrite=overwrite,
+            weak=weak)
 
         
     def removeListener(self, propName, listenerName):

@@ -135,8 +135,8 @@ def _propBind(hasProps,
 
     # set up the callback functions
     for ev in evType: guiObj.Bind(ev, _propUpdate)
-    propVal.addListener(         listenerName, _guiUpdate)
-    propVal.addAttributeListener(listenerName, _attUpdate)
+    propVal.addListener(         listenerName, _guiUpdate, weak=False)
+    propVal.addAttributeListener(listenerName, _attUpdate, weak=False)
 
     def onDestroy(ev):
         ev.Skip()
@@ -218,7 +218,7 @@ def _setupValidation(widget, hasProps, propObj, propVal):
     # the widgets associated with those other variables to
     # change background.
     lName = 'widgets_py_ChangeBG_{}'.format(id(widget))
-    propVal.addListener(lName, _changeBGOnValidate)
+    propVal.addListener(lName, _changeBGOnValidate, weak=False)
 
     # And ensure that the listener is
     # removed when the widget is destroyed

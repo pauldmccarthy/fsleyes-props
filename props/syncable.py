@@ -390,12 +390,21 @@ class SyncableHasProperties(props.HasProperties):
         return propName not in self._nounbind
 
 
-    def addSyncChangeListener(self, propName, listenerName, callback):
+    def addSyncChangeListener(self,
+                              propName,
+                              listenerName,
+                              callback,
+                              overwrite=False,
+                              weak=True):
         """Registers the given callback function to be called when
         the sync state of the specified property changes.
         """
         bindPropName = self._saltSyncPropertyName(propName)
-        self.addListener(bindPropName, listenerName, callback)
+        self.addListener(bindPropName,
+                         listenerName,
+                         callback,
+                         overwrite=overwrite,
+                         weak=weak)
 
         
     def removeSyncChangeListener(self, propName, listenerName):
