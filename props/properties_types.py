@@ -349,62 +349,34 @@ class Choice(props.PropertyBase):
         """
         return self.getConstraint(instance, 'choiceEnabled')[choice]
 
-
-    def getChoices(self, instance=None):
-        """Returns a list of the current choices. """
-        return list(self.getConstraint(instance, 'choices'))
-
     
     def getLabels(self, instance=None):
         """Returns a list of the current choice labels. """
         return list(self.getConstraint(instance, 'labels'))
 
     
-    def setLabel(self, choice, label, instance=None):
-        """Sets the label for the specified choice."""
+    def updateChoice(self,
+                     choice,
+                     newChoice=None,
+                     newLabel=None,
+                     instance=None):
+        """Updates the choice value and/or label for the specified choice. """
+
         choices = list(self.getConstraint(instance, 'choices'))
         labels  = list(self.getConstraint(instance, 'labels'))
+        idx     = choices.index(choice) 
 
-        labels[choices.index(choice)] = label
+        if newChoice is not None: choices[idx] = newChoice
+        if newLabel  is not None: labels[ idx] = newLabel
 
-        self.setConstraint(instance, 'labels',  labels)
+        self._updateChoices(choices, labels, instance)
 
 
-    def _updateChoices(self, choices, labels, instance=None):
+    def getChoices(self, instance=None):
+        """Returns a list of the current choices. """
+        return list(self.getConstraint(instance, 'choices'))
         
-        propVal    = self.getPropVal(instance)
-        default    = self.getConstraint(instance, 'default')
-        oldEnabled = self.getConstraint(instance, 'choiceEnabled')
-        newEnabled = {}
-
-        # Prevent notification during the period
-        # where the length of the labels list
-        # may not match the length of the choices
-        # list
-        if propVal is not None:
-            oldChoice  = propVal.get()
-            notifState = propVal.getNotificationState()
-            propVal.disableNotification()
-
-        for choice in choices:
-            if choice in oldEnabled: newEnabled[choice] = oldEnabled[choice]
-            else:                    newEnabled[choice] = True
-
-        self.setConstraint(instance, 'choiceEnabled', newEnabled)
-        self.setConstraint(instance, 'labels',        labels)
-        self.setConstraint(instance, 'choices',       choices)
-
-        if propVal is not None:
-            propVal.setNotificationState(notifState)
-
-            if notifState:
-                propVal.notifyAttributeListeners('choices', choices)
-
-            if oldChoice not in choices:
-                if default in choices: propVal.set(default)
-                else:                  propVal.set(choices[0])
-
-
+        
     def setChoices(self, choices, labels=None, instance=None):
         """Sets the list of possible choices (and their labels, if not None).
         """
@@ -414,15 +386,6 @@ class Choice(props.PropertyBase):
             raise ValueError('A label is required for every choice')
 
         self._updateChoices(choices, labels, instance)
-
-        if len(choices) > 0:
-            self.setConstraint(instance, 'default', choices[0])
-
-            if instance is not None:
-                self.__set__(instance, choices[0])
-                
-        else:
-            self.setConstraint(instance, 'default', None)
 
 
     def addChoice(self, choice, label=None, instance=None):
@@ -439,19 +402,12 @@ class Choice(props.PropertyBase):
 
         self._updateChoices(choices, labels, instance)
 
-        if len(choices) == 1:
-            self.setConstraint(instance, 'default', choices[0])
-
-            if instance is not None:
-                self.__set__(instance, choices[0])
-
             
     def removeChoice(self, choice, instance=None):
         """Removes the specified choice from the list of possible choices. """
         
         choices = list(self.getConstraint(instance, 'choices'))
         labels  = list(self.getConstraint(instance, 'labels'))
-        default = list(self.getConstraint(instance, 'default'))
         index   = choices.index(choice)
 
         choices.pop(index)
@@ -459,15 +415,52 @@ class Choice(props.PropertyBase):
 
         self._updateChoices(choices, labels, instance)
 
-        if len(choices) > 0:
-            if default == choice:
-                
-                self.setConstraint(instance, 'default', choices[0])
 
-                if instance is not None:
-                    self.__set__(instance, choices[0])
-        else:
-            self.setConstraint(instance, 'default', None)        
+    def _updateChoices(self, choices, labels, instance=None):
+        
+        propVal    = self.getPropVal(   instance)
+        default    = self.getConstraint(instance, 'default')
+        oldEnabled = self.getConstraint(instance, 'choiceEnabled')
+        newEnabled = {}
+
+        # Prevent notification during the period
+        # where the length of the labels list
+        # may not match the length of the choices
+        # list
+        if propVal is not None:
+            oldChoice  = propVal.get()
+            notifState = propVal.getNotificationState()
+            validState = propVal.allowInvalid()
+            propVal.disableNotification()
+            propVal.allowInvalid(True)
+
+        for choice in choices:
+            if choice in oldEnabled: newEnabled[choice] = oldEnabled[choice]
+            else:                    newEnabled[choice] = True
+
+        if default not in choices:
+            default = choices[0]
+
+        self.setConstraint(instance, 'choiceEnabled', newEnabled)
+        self.setConstraint(instance, 'labels',        labels)
+        self.setConstraint(instance, 'choices',       choices)
+        self.setConstraint(instance, 'default',       default)
+
+        if propVal is not None:
+
+            if oldChoice not in choices:
+                if   default in choices: propVal.set(default)
+                elif len(choices) > 0:   propVal.set(choices[0])
+                else:                    propVal.set(None)
+                
+            propVal.setNotificationState(notifState)
+            propVal.allowInvalid(        validState)
+
+            if notifState:
+                propVal.notifyAttributeListeners('choices', choices)
+
+            if propVal.get() != oldChoice:
+                propVal.notify()
 
         
     def validate(self, instance, attributes, value):

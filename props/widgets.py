@@ -326,7 +326,8 @@ def _Choice(parent, hasProps, propObj, propVal, **kwargs):
     cl      = filter(lambda (c, l): propObj.choiceEnabled(c, hasProps),
                      zip(choices, labels))
 
-    choices, labels = zip(*cl)
+    if len(cl) > 0: choices, labels = zip(*cl)
+    else:           choices, labels = [], []
 
     widget = wx.ComboBox(
         parent,
@@ -335,11 +336,15 @@ def _Choice(parent, hasProps, propObj, propVal, **kwargs):
 
     def widgetGet():
         choices = propObj.getChoices(hasProps)
-        return choices[widget.GetSelection()]
+        
+        if len(choices) > 0: return choices[widget.GetSelection()]
+        else:                return None
 
     def widgetSet(value):
         choices = propObj.getChoices(hasProps)
-        widget.SetSelection(choices.index(value))
+        
+        if len(choices) > 0: return widget.SetSelection(choices.index(value))
+        else:                return None
 
     # Update the combobox choices
     # when they change.
@@ -371,7 +376,7 @@ def _Choice(parent, hasProps, propObj, propVal, **kwargs):
         widgetSet(propVal.get())
 
     listenerName = 'WidgetChoiceUpdate_{}'.format(id(widget))
-    propVal.addAttributeListener(listenerName, choicesChanged)
+    propVal.addAttributeListener(listenerName, choicesChanged, weak=False)
 
     def onDestroy(ev):
         propVal.removeAttributeListener(listenerName)
