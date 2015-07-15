@@ -16,24 +16,23 @@ import Queue
 import inspect
 import traceback
 
-def _getCallbackDetails(cb):
-    """Returns the function name and module name of the given
-    function reference. Used purely for debug log statements.
+
+class Call(object):
+    """A little class which is used to represent function calls that are
+    on the queue.
     """
-    
-    members = inspect.getmembers(cb)
 
-    funcName  = ''
-    modName   = ''
+    def __init__(self, func, name, args):
+        self.func    = func
+        self.name    = name
+        self.args    = args
+        self.execute = True
 
-    for name, val in members:
-        if name == '__func__':
-            funcName  = val.__name__
-            modName   = val.__module__
-            break
-
-    return funcName, modName
-
+        # The CallQueue.dequeue method sets the
+        # above execute attribute to False for
+        # calls which are to be dequeued - this
+        # causees the CallQueue.__call method
+        # to skip over the call.
 
 
 class CallQueue(object):
@@ -49,125 +48,46 @@ class CallQueue(object):
         again.
         """
 
-        self._queue          = Queue.Queue()
-        self._skipDuplicates = skipDuplicates
-        self._queued         = set()
-        self._calling        = False
+        # The queue is a queue of Call instances
+        # 
+        # The queued dict contains mappings of
+        # {name : [List of Call instances]}
+        # 
+        self.__queue          = Queue.Queue()
+        self.__queued         = {}
+        self.__skipDuplicates = skipDuplicates
+        self.__calling        = False
 
-        
-    def _call(self):
-        """Call all of the functions which are currently enqueued.
 
-        This method is not re-entrant - if a call to one of the
-        functions in the queue triggers another call to this method,
-        this second call will return immediately without doing anything.
+    def dequeue(self, name):
+        """If the specified function is on the queue, it is (effectively)
+        dequeued, and not executed.
+
+        If ``skipDuplicates`` is ``False``, and more than one function of
+        the same name is enqueued, they are all dequeued.
         """
 
-        if self._calling: return
-        self._calling = True
+        # Get all calls with the specified name
+        calls = self.__queued.get(name, [])
 
-        while True:
+        # Set each of their execute flags to
+        # False - the __call method will skip
+        # over Call instances with execute=False
+        for call in calls:
 
-            try:
-                desc, func, args = self._pop()
-
-                funcName, modName = _getCallbackDetails(func)
-
-                log.debug('Calling function {} [{}.{}] '
-                          '({} remaining in queue)'.format(
-                              desc, modName, funcName, self._queue.qsize()))
-
-                try: func(*args)
-                except Exception as e:
-                    log.warn('Function {} raised exception: {}'.format(
-                        desc, e), exc_info=True)
-                    traceback.print_stack()
-                    
-            except Queue.Empty:
-                break
-            
-        self._calling = False
-
-
-    def _push(self, desc, func, args):
-        """Enqueues the given function, along with a description, and
-        the arguments to pass it.
-
-        If ``True`` was passed in for the ``skipDuplicates`` parameter
-        during initialisation, and the function is already enqueued,
-        it is not added to the queue, and this method returns ``False``.
-
-        Otherwise, this method returnes ``True``.
-        """
-        
-        funcName, modName = _getCallbackDetails(func)
-        
-        if self._skipDuplicates:
-
-            # I'm only taking into account the function
-            # reference when checking for duplicates,
-            # meaning that the callqueue does not support
-            # enqueueing the same function with different
-            # arguments.
-            #
-            # I can't take the hash of the arguments, as
-            # I can't assume that they are hashable (e.g.
-            # numpy arrays).
-            #
-            # I can't test for identity, as things which
-            # have the same value may not have the same
-            # id (e.g. strings).
-            #
-            # I can't test argument equality, because in
-            # some cases the argument may be a mutable
-            # type, and its value may have changed between
-            # the time the function was queued, and the
-            # time it is called.
-            # 
-            # So this is quite a pickle. Something to come
-            # back to if things are breaking because of it.
-            if func in self._queued:
-
-                log.debug('Skipping function {} [{}.{}] '
-                          '({} in queue)'.format(
-                              desc, modName, funcName, self._queue.qsize()))
-                
-                return False
-            
-            else:
-                self._queued.add(func)
-               
-        log.debug('Queueing function {} [{}.{}] '
-                  'to queue ({} in queue)'.format(
-                      desc, modName, funcName, self._queue.qsize()))
-
-        self._queue.put_nowait((desc, func, args))
-        return True
-
-    
-    def _pop(self):
-        """Pops the next function from the queue and returns a 3-tuple
-        containing the function description, the function, and the arguments
-        to be passed to it.
-        """
-
-        desc, func, args = self._queue.get_nowait()
-
-        if self._skipDuplicates:
-            self._queued.remove(func)
-            
-        return desc, func, args
+            self.__debug(call, 'Dequeueing function', 'from queue')
+            call.execute = False
         
 
-    def call(self, desc, func, args):
+    def call(self, func, name, args):
         """Enqueues the given function, and calls all functions in the queue
         
         (unless the call to this method was as a result another function
         being called from the queue).
         """
 
-        if self._push(desc, func, args):
-            self._call()
+        if self.__push(Call(func, name, args)):
+            self.__call()
 
 
     def callAll(self, funcs):
@@ -176,13 +96,163 @@ class CallQueue(object):
         
         (unless the call to this method was as a result another function
         being called from the queue).
+
+        Assumes that the given ``funcs`` parameter is a list of 
+        ``(function, name, arguments)`` tuples.
         """
         
         anyEnqueued = False
         
         for func in funcs:
-            if self._push(*func):
+            if self.__push(Call(*func)):
                 anyEnqueued = True
 
         if anyEnqueued:
-            self._call()
+            self.__call()
+
+        
+    def __call(self):
+        """Call all of the functions which are currently enqueued.
+
+        This method is not re-entrant - if a call to one of the
+        functions in the queue triggers another call to this method,
+        this second call will return immediately without doing anything.
+        """
+
+        if self.__calling: return
+        self.__calling = True
+
+        while True:
+
+            try:
+                call = self.__pop()
+
+                if not call.execute:
+                    self.__debug(call, 'Skipping dequeued function')
+                    continue
+
+                self.__debug(call, 'Calling function')
+
+                try:
+                    call.func(*call.args)
+                
+                except Exception as e:
+                    log.warn('Function {} raised exception: {}'.format(
+                        call.name, e), exc_info=True)
+                    traceback.print_stack()
+                    
+            except Queue.Empty:
+                break
+            
+        self.__calling = False
+
+
+    def __push(self, call):
+        """Enqueues the given ``Call`` instance.
+
+        If ``True`` was passed in for the ``skipDuplicates`` parameter
+        during initialisation, and the function is already enqueued,
+        it is not added to the queue, and this method returns ``False``.
+
+        Otherwise, this method returnes ``True``.
+        """
+
+        funcName, modName = self.__getCallbackDetails(call.func)
+        enqueued          = self.__queued.get(call.name, [])
+
+        # I'm only taking into account the call
+        # name when checking for duplicates, meaning
+        # that the callqueue does not support
+        # enqueueing the same function with different
+        # arguments.
+        #
+        # I can't take the hash of the arguments, as
+        # I can't assume that they are hashable (e.g.
+        # numpy arrays).
+        #
+        # I can't test for identity, as things which
+        # have the same value may not have the same
+        # id (e.g. strings).
+        #
+        # I can't test argument equality, because in
+        # some cases the argument may be a mutable
+        # type, and its value may have changed between
+        # the time the function was queued, and the
+        # time it is called.
+        # 
+        # So this is quite a pickle. Something to come
+        # back to if things are breaking because of it.
+        
+        if self.__skipDuplicates and (len(enqueued) > 0):
+            self.__debug(call, 'Skipping function')
+            return False
+
+        self.__debug(call, 'Queueing function', 'to queue')
+
+        self.__queue.put_nowait(call)
+        self.__queued[call.name] = enqueued + [call]
+        
+        return True
+
+    
+    def __pop(self):
+        """Pops the next function from the queue and returns a 3-tuple
+        containing the function description, the function, and the arguments
+        to be passed to it.
+        """
+
+        call     = self.__queue.get_nowait()
+        enqueued = self.__queued[call.name]
+
+        # TODO shouldn't the call always
+        # be at the end of the list?
+        # 
+        # This will be a little bit faster
+        # if you remove the call by index.
+        enqueued.remove(call)
+        
+        if len(enqueued) == 0:
+            self.__queued.pop(call.name)
+            
+        return call
+
+
+    def __debug(self, call, prefix, postfix=None):
+        
+        if log.getEffectiveLevel() != log.DEBUG:
+            return
+
+        funcName, modName = self.__getCallbackDetails(call.func)
+
+        if postfix is None: postfix = ' '
+        else:               postfix = ' {} '.format(postfix)
+            
+        log.debug('{} {} [{}.{}]{}({} in queue)'.format(
+            prefix,
+            call.name,
+            modName,
+            funcName,
+            postfix,
+            self.__queue.qsize()))
+
+
+    def __getCallbackDetails(self, cb):
+        """Returns the function name and module name of the given
+        function reference. Used purely for debug log statements.
+        """
+
+        if log.getEffectiveLevel() != logging.DEBUG:
+            return '', ''
+
+        members = inspect.getmembers(cb)
+
+        funcName  = ''
+        modName   = ''
+
+        for name, val in members:
+            if name == '__func__':
+                funcName  = val.__name__
+                modName   = val.__module__
+                break
+
+        return funcName, modName

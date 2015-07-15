@@ -268,6 +268,17 @@ class PropertyValue(object):
         """ 
         return not self.__eq__(other)
 
+
+    def __makeQueueCallName(self, cbName):
+        """Munges the given listener function name before it gets passed
+        to the :class:`CallQueue` for execution.
+        """
+        
+        return '{} ({}.{})'.format(
+            cbName,
+            self._context().__class__.__name__,
+            self._name) 
+
     
     def allowInvalid(self, allow=None):
         """Query/set the allow invalid state of this value.
@@ -426,23 +437,20 @@ class PropertyValue(object):
 
         attListeners = []
         args         = (self._context(), name, value, self._name)
-        desc         = '{}.{}'.format(self._context().__class__.__name__,
-                                      self._name) 
         
         for cbName, cb in list(self._attributeListeners.items()):
 
-            if isinstance(cb, WeakFunctionRef): func = cb.function()
-            else:                               func = cb
+            if isinstance(cb, WeakFunctionRef):
+                cb = cb.function()
 
-            if func is None:
-                log.debug('Removing dead attribute listener {} ({})'.format(
-                    cbName,
-                    str(cb)))
+            if cb is None:
+                log.warn('Removing dead attribute listener {} ({})'.format(
+                    cbName))
                 
                 self.removeAttributeListener(self._unsaltListenerName(cbName))
                 continue
                 
-            attListeners.append(('{} ({})'.format(cbName, desc), func, args))
+            attListeners.append((cb, self.__makeQueueCallName(cbName), args))
 
         self.queue.callAll(attListeners)
         
@@ -511,24 +519,31 @@ class PropertyValue(object):
         #          this method
         # So to be a bit more informative, we'll examine the stack
         # and extract the (assumed) location of the original call
-        stack = inspect.stack()
+        if log.getEffectiveLevel() == logging.DEBUG:
+            stack = inspect.stack()
 
-        if len(stack) >= 4: frame = stack[ 3]
-        else:               frame = stack[-1]
-        
-        srcMod  = '...{}'.format(frame[1][-20:])
-        srcLine = frame[2]
-        
-        log.debug('Removing listener on {}.{}: {} ({}:{})'.format(
-            self._context().__class__.__name__,
-            self._name,
-            name,
-            srcMod,
-            srcLine))
+            if len(stack) >= 4: frame = stack[ 3]
+            else:               frame = stack[-1]
+
+            srcMod  = '...{}'.format(frame[1][-20:])
+            srcLine = frame[2]
+
+            log.debug('Removing listener on {}.{}: {} ({}:{})'.format(
+                self._context().__class__.__name__,
+                self._name,
+                name,
+                srcMod,
+                srcLine))
 
         name = self._saltListenerName(name)
-        self._changeListeners     .pop(name, None)
-        self._changeListenerStates.pop(name, None)
+        cb   = self._changeListeners     .pop(name, None)
+        self       ._changeListenerStates.pop(name, None)
+
+        if isinstance(cb, WeakFunctionRef):
+            cb = cb.function()
+
+        if cb is not None:
+            PropertyValue.queue.dequeue(self.__makeQueueCallName(name))
 
 
     def enableListener(self, name):
@@ -665,10 +680,7 @@ class PropertyValue(object):
         valid        = self.__valid
         listeners    = []
         allListeners = OrderedDict()
-        
         args         = (value, valid, self._context(), self._name)
-        desc         = '{}.{}'.format(self._context().__class__.__name__,
-                                      self._name)
 
         # call prenotify listener first
         if self._preNotifyFunc is not None:
@@ -682,23 +694,23 @@ class PropertyValue(object):
             allListeners['postnotify'] = self._postNotifyFunc
 
         # filter out listeners which have been disabled
-        for name, lnr in list(allListeners.items()):
+        for cbName, cb in list(allListeners.items()):
             
-            if not self._changeListenerStates[name]:
+            if not self._changeListenerStates[cbName]:
                 continue
 
             # If the listener is a WeakFunctionRef
             # instance, we retrieve the actual function
-            if isinstance(lnr, WeakFunctionRef): func = lnr.function()
-            else:                                func = lnr
+            if isinstance(cb, WeakFunctionRef):
+                cb = cb.function()
 
-            if func is None:
-                log.debug('Removing dead listener {} ({})'.format(name,
-                                                                  str(lnr)))
-                self.removeListener(self._unsaltListenerName(name))
+            if cb is None:
+                log.warn('Removing dead listener {} ({})'.format(cbName))
+                
+                self.removeListener(self._unsaltListenerName(cbName))
                 continue
             
-            listeners.append(('{} ({})'.format(name, desc), func, args))
+            listeners.append((cb, self.__makeQueueCallName(cbName), args))
         
         self.queue.callAll(listeners)
 
