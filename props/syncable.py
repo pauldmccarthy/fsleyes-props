@@ -339,6 +339,7 @@ class SyncableHasProperties(props.HasProperties):
             self._parent = None
             return
 
+        parent    = self._parent()
         propNames = self.getAllProperties()[0]
 
         for propName in propNames:
@@ -348,9 +349,9 @@ class SyncableHasProperties(props.HasProperties):
                 self.removeListener(syncPropName, lName)
                 self.unsyncFromParent(propName)
 
-        for c in list(self._parent()._children):
+        for c in list(parent._children):
             if c() is self:
-                self._parent()._children.remove(c)
+                parent._children.remove(c)
 
         self._parent = None
  
