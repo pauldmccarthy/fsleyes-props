@@ -23,11 +23,13 @@ names.
 """
 
 import logging
-log = logging.getLogger(__name__)
-
+import weakref
 
 import properties
 import properties_value
+
+
+log = logging.getLogger(__name__)
 
 
 class Bidict(object):
@@ -109,8 +111,8 @@ def isBound(self, propName, other, otherPropName=None):
     myPropVal    = myProp   .getPropVal(self)
     otherPropVal = otherProp.getPropVal(other)
 
-    myBoundPropVals    = myPropVal   .__dict__.get('boundPropVals', set())
-    otherBoundPropVals = otherPropVal.__dict__.get('boundPropVals', set())
+    myBoundPropVals    = myPropVal   .__dict__.get('boundPropVals', {})
+    otherBoundPropVals = otherPropVal.__dict__.get('boundPropVals', {})
 
     return (otherPropVal in myBoundPropVals and
             myPropVal    in otherBoundPropVals)
@@ -240,12 +242,15 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
 
     # This mapping is stored on the PVL objects,
     # and used by the _syncListPropVals function
-    setattr(myPropVal,
-            '_{}_propValMap'.format(id(otherPropVal)),
-            propValMap)
-    setattr(otherPropVal,
-            '_{}_propValMap'.format(id(myPropVal)),
-            propValMap)
+    wkd = weakref.WeakKeyDictionary
+    myPropValMaps    = getattr(myPropVal,    '_listPropValMaps', wkd())
+    otherPropValMaps = getattr(otherPropVal, '_listPropValMaps', wkd())
+
+    myPropValMaps[   otherPropVal] = propValMap
+    otherPropValMaps[myPropVal]    = propValMap
+
+    myPropVal   ._listPropValMaps = myPropValMaps
+    otherPropVal._listPropValMaps = otherPropValMaps
 
     # Bind list-level value/attributes
     # between the PropertyValueList objects
@@ -287,10 +292,12 @@ def _bindPropVals(myPropVal,
     mine  = myPropVal
     other = otherPropVal
 
-    myBoundPropVals       = mine .__dict__.get('boundPropVals',    set())
-    myBoundAttPropVals    = mine .__dict__.get('boundAttPropVals', set())
-    otherBoundPropVals    = other.__dict__.get('boundPropVals',    set())
-    otherBoundAttPropVals = other.__dict__.get('boundAttPropVals', set())
+    wvd = weakref.WeakValueDictionary
+
+    myBoundPropVals       = mine .__dict__.get('boundPropVals',    wvd())
+    myBoundAttPropVals    = mine .__dict__.get('boundAttPropVals', wvd())
+    otherBoundPropVals    = other.__dict__.get('boundPropVals',    wvd())
+    otherBoundAttPropVals = other.__dict__.get('boundAttPropVals', wvd())
     
     if unbind: action = 'Unbinding'
     else:      action = 'Binding'
@@ -309,19 +316,19 @@ def _bindPropVals(myPropVal,
 
     if val:
         if unbind:
-            myBoundPropVals   .remove(other)
-            otherBoundPropVals.remove(mine)
+            myBoundPropVals   .pop(id(other))
+            otherBoundPropVals.pop(id(mine))
         else:
-            myBoundPropVals   .add(other)
-            otherBoundPropVals.add(mine) 
+            myBoundPropVals[   id(other)] = other
+            otherBoundPropVals[id(mine)]  = mine
         
     if att:
         if unbind:
-            myBoundAttPropVals   .remove(other)
-            otherBoundAttPropVals.remove(mine)
+            myBoundAttPropVals   .pop(id(other))
+            otherBoundAttPropVals.pop(id(mine))
         else:
-            myBoundAttPropVals   .add(other)
-            otherBoundAttPropVals.add(mine) 
+            myBoundAttPropVals[   id(other)] = other
+            otherBoundAttPropVals[id(mine)]  = mine
 
     mine .boundPropVals    = myBoundPropVals
     mine .boundAttPropVals = myBoundAttPropVals
@@ -344,7 +351,7 @@ def _syncPropValLists(masterList, slaveList):
     removal, or a re-ordering) to the ``slaveList``.
     """
 
-    propValMap = getattr(masterList, '_{}_propValMap'.format(id(slaveList)))
+    propValMap = masterList._listPropValMaps[slaveList]
 
     # If the change was due to the values of one or more PV
     # items changing (as opposed to a list modification -
@@ -471,6 +478,62 @@ def _syncPropValLists(masterList, slaveList):
     return changed
 
 
+def _buildBPVList(self, key, node=None, bpvSet=None):
+    """Used by the :func:`_sync` method.
+
+    Recursively builds a list of all PVs that are bound to this one, either
+    directly or indirectly.  For each PV, we also store a reference to the
+    'parent' PV, i.e. the PV to which it is directly bound, as the direct
+    bindings are needed to synchronise list PVs.
+
+    Returns two lists - the first containing bound PVs, and the second
+    containing the parent for each bound PV.
+    
+    :arg self:   The root PV
+
+    :arg key:    Either ``boundPropVals`` or ``boundAttPropVals``
+
+    :arg node:   The current PV to begfin this step of the recursive search
+                 from (do not pass in on the non-recursive call).
+
+    :arg bpvSet: A set used to prevent cycles in the depth-first search (do
+                 not pass in on the non-recursive call).
+    """
+
+    boundPropVals = []
+    bpvParents    = []
+
+    if node is None:
+        node = self
+
+    # A recursive depth-first search from this
+    # PV through the network of all directly
+    # or indirectly bound PVs.
+    # 
+    # We use a set of PV ids to make sure
+    # that we don't add duplicates to the
+    # list of PVs that need to be synced
+    if bpvSet is None:
+        bpvSet = set()
+    
+    bpvs = node.__dict__.get(key, {}).values()
+    bpvs = filter(lambda b: b is not self and id(b) not in bpvSet, bpvs)
+        
+    for b in bpvs:
+        bpvSet.add(id(b))
+            
+    boundPropVals.extend(bpvs)
+    bpvParents   .extend([node] * len(bpvs))
+
+    for bpv in bpvs:
+        childBpvs, childBpvps = _buildBPVList(self, key, bpv, bpvSet)
+
+        boundPropVals.extend(childBpvs)
+        bpvParents   .extend(childBpvps)
+
+    return boundPropVals, bpvParents
+    
+
 def _sync(self, atts=False, attName=None, attValue=None):
     """
     """
@@ -480,39 +543,11 @@ def _sync(self, atts=False, attName=None, attValue=None):
     if getattr(self, '_syncing', False):
         return []
 
-    # Build a list of all PVs that are bound
-    # to this one, either directly or indirectly.
-    # For each PV, we also store a reference
-    # to the 'parent' PV, i.e. the PV to which it
-    # is directly bound, as the direct bindings
-    # are needed to synchronise list PVs.
-    boundPropVals = []
-    bpvParents    = []
 
-    # A recursive depth-first search from this
-    # PV through the network of all directly
-    # or indirectly bound PVs.
-    # 
-    # We use a set of PV ids to make sure
-    # that we don't add duplicates to the
-    # list of PVs that need to be synced
-    bpvSet = set()
     if atts: key = 'boundAttPropVals'
     else:    key = 'boundPropVals'
-    def _buildBPVList(node):
-        
-        bpvs = node.__dict__.get(key, [])
-        bpvs = filter(lambda b: b is not self and id(b) not in bpvSet, bpvs)
-        
-        for b in bpvs:
-            bpvSet.add(id(b))
-            
-        boundPropVals.extend(bpvs)
-        bpvParents   .extend([node] * len(bpvs))
 
-        map(_buildBPVList, bpvs)
-        
-    _buildBPVList(self)
+    boundPropVals, bpvParents = _buildBPVList(self, key)
 
     # Sync all the values that need syncing. Store
     # a ref to each PV which was synced, but not

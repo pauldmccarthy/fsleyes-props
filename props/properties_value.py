@@ -210,10 +210,14 @@ class PropertyValue(object):
                                constraints. Listeners may register to be
                                notified when attribute values change.
         """
+
         
         if name     is     None: name  = 'PropertyValue_{}'.format(id(self))
         if castFunc is not None: value = castFunc(context, attributes, value)
         if equalityFunc is None: equalityFunc = lambda a, b: a == b
+
+        print 'New PV ({}, {}) with context {} ({})'.format(
+            id(self), name, type(context).__name__, id(context))
         
         self._context              = weakref.ref(context)
         self._validate             = validateFunc
@@ -223,7 +227,6 @@ class PropertyValue(object):
         self._preNotifyFunc        = preNotifyFunc
         self._postNotifyFunc       = postNotifyFunc
         self._allowInvalid         = allowInvalid
-        self._parent               = parent
         self._attributes           = attributes.copy()
         self._changeListeners      = OrderedDict()
         self._changeListenerStates = {}
@@ -234,6 +237,9 @@ class PropertyValue(object):
         self.__lastValue           = None
         self.__lastValid           = False
         self.__notification        = True
+
+        if parent is not None: self._parent = weakref.ref(parent)
+        else:                  self._parent = None
 
         if not allowInvalid and validateFunc is not None:
             validateFunc(context, self._attributes, value)
@@ -444,8 +450,7 @@ class PropertyValue(object):
                 cb = cb.function()
 
             if cb is None:
-                log.warn('Removing dead attribute listener {} ({})'.format(
-                    cbName))
+                log.warn('Removing dead attribute listener {}'.format(cbName))
                 
                 self.removeAttributeListener(self._unsaltListenerName(cbName))
                 continue
@@ -705,7 +710,7 @@ class PropertyValue(object):
                 cb = cb.function()
 
             if cb is None:
-                log.warn('Removing dead listener {} ({})'.format(cbName))
+                log.warn('Removing dead listener {}'.format(cbName))
                 
                 self.removeListener(self._unsaltListenerName(cbName))
                 continue
@@ -718,8 +723,8 @@ class PropertyValue(object):
         # tell the list that this PV has
         # changed, so that it can notify its own
         # list-level listeners of the change
-        if self._parent is not None:
-            self._parent._listPVChanged(self)
+        if self._parent is not None and self._parent() is not None:
+            self._parent()._listPVChanged(self)
 
 
     def revalidate(self):
@@ -888,7 +893,6 @@ class PropertyValueList(PropertyValue):
             context,
             name=name,
             allowInvalid=True,
-            equalityFunc=self._listEquality,
             validateFunc=listValid,
             preNotifyFunc=preNotifyFunc,
             postNotifyFunc=postNotifyFunc,
@@ -914,18 +918,13 @@ class PropertyValueList(PropertyValue):
         this instance, ``False`` otherwise.
         """
 
-        return self._listEquality(self[:], other[:])
-
-
-    def _listEquality(self, a, b):
-        """Uses the item equality function to test whether two lists are
-        equal. Returns ``True`` if they are, ``False`` if they're not.
-        """
-        if a is None or b is None:
+        if other is None:
             return False
         
-        if len(a) != len(b): return False
-        return all([self._itemEqualityFunc(ai, bi) for ai, bi in zip(a, b)])
+        if len(self) != len(other): return False
+        return all([self._itemEqualityFunc(ai, bi)
+                    for ai, bi
+                    in zip(self[:], other[:])])
 
         
     def getPropertyValueList(self):
@@ -970,6 +969,22 @@ class PropertyValueList(PropertyValue):
 
         if self._itemAttributes is None: itemAtts = {}
         else:                            itemAtts = self._itemAttributes
+
+        if self._context() is None:
+
+            if not hasattr(self, 'babcount'):
+                self.babcount = 0
+                
+            import objgraph
+            objgraph.show_backrefs(self, filename='{}_{}.png'.format(
+                id(self), self.babcount), too_many=50, max_depth=4)
+            self.babcount += 1
+            
+
+        print 'PVL {} with context {} ({}) creating list item'.format(
+            id(self),
+            type(self._context()).__name__,
+            id(self._context()))
 
         propVal = PropertyValue(
             self._context(),
