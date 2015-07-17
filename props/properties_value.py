@@ -215,9 +215,6 @@ class PropertyValue(object):
         if name     is     None: name  = 'PropertyValue_{}'.format(id(self))
         if castFunc is not None: value = castFunc(context, attributes, value)
         if equalityFunc is None: equalityFunc = lambda a, b: a == b
-
-        print 'New PV ({}, {}) with context {} ({})'.format(
-            id(self), name, type(context).__name__, id(context))
         
         self._context              = weakref.ref(context)
         self._validate             = validateFunc
@@ -450,7 +447,7 @@ class PropertyValue(object):
                 cb = cb.function()
 
             if cb is None:
-                log.warn('Removing dead attribute listener {}'.format(cbName))
+                log.debug('Removing dead attribute listener {}'.format(cbName))
                 
                 self.removeAttributeListener(self._unsaltListenerName(cbName))
                 continue
@@ -710,7 +707,7 @@ class PropertyValue(object):
                 cb = cb.function()
 
             if cb is None:
-                log.warn('Removing dead listener {}'.format(cbName))
+                log.debug('Removing dead listener {}'.format(cbName))
                 
                 self.removeListener(self._unsaltListenerName(cbName))
                 continue
@@ -979,12 +976,6 @@ class PropertyValueList(PropertyValue):
             objgraph.show_backrefs(self, filename='{}_{}.png'.format(
                 id(self), self.babcount), too_many=50, max_depth=4)
             self.babcount += 1
-            
-
-        print 'PVL {} with context {} ({}) creating list item'.format(
-            id(self),
-            type(self._context()).__name__,
-            id(self._context()))
 
         propVal = PropertyValue(
             self._context(),

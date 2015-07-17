@@ -242,6 +242,12 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
 
     # This mapping is stored on the PVL objects,
     # and used by the _syncListPropVals function
+    #
+    # We use a WeakKeyDictionary containing
+    # { PVL : propValMap } mappings, so that
+    # this reference does not stop bound PVLS
+    # from being GC'd when they are no longer
+    # in use.
     wkd = weakref.WeakKeyDictionary
     myPropValMaps    = getattr(myPropVal,    '_listPropValMaps', wkd())
     otherPropValMaps = getattr(otherPropVal, '_listPropValMaps', wkd())
@@ -292,6 +298,12 @@ def _bindPropVals(myPropVal,
     mine  = myPropVal
     other = otherPropVal
 
+
+    # A dict containing { id(PV) : PV } mappings is stored
+    # on each PV, and used to maintain references to bound
+    # PVs. We use a WeakValueDictionary (instead of just a
+    # set) so that these references do not prevent PVs
+    # which are no longer in use from being GC'd.
     wvd = weakref.WeakValueDictionary
 
     myBoundPropVals       = mine .__dict__.get('boundPropVals',    wvd())
@@ -493,7 +505,7 @@ def _buildBPVList(self, key, node=None, bpvSet=None):
 
     :arg key:    Either ``boundPropVals`` or ``boundAttPropVals``
 
-    :arg node:   The current PV to begfin this step of the recursive search
+    :arg node:   The current PV to begin this step of the recursive search
                  from (do not pass in on the non-recursive call).
 
     :arg bpvSet: A set used to prevent cycles in the depth-first search (do
