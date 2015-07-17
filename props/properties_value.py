@@ -32,13 +32,27 @@ log = logging.getLogger(__name__)
 
 
 class WeakFunctionRef(object):
+    """Class which encapsulates a :mod:`weakref` to a function or method.
+
+    This class is used by :class:`PropertyValue` instances to reference
+    listeners which have been registered to be notified of property value
+    or attribute changes.
+    """
 
     
     def __init__(self, func):
+        """Create a new ``WeakFunctionRef`` to encapsulate the given
+        function or bound/unbound method.
+        """
 
         # Bound method
         if isinstance(func, types.MethodType) and func.im_self is not None:
 
+            # We can't take a weakref of the method
+            # object, so we have to weakref the object
+            # and the unbound class function. The
+            # function method will search for and
+            # return the bound method, though.
             self.obj  = weakref.ref(func.im_self)
             self.func = weakref.ref(func.im_func)
 
@@ -55,7 +69,7 @@ class WeakFunctionRef(object):
 
 
     def __str__(self):
-
+        """Return a string representation of the function."""
 
         selftype = type(self).__name__
         func     = self.function()
@@ -69,19 +83,29 @@ class WeakFunctionRef(object):
         else:            return s
 
         
-    def __repr__(self): 
+    def __repr__(self):
+        """Return a string representation of the function."""
         return self.__str__()
 
 
     def __findPrivateMethod(self):
+        """Finds and returns the bound method associated with the encapsulated
+        function.
+        """
 
         obj      = self.obj()
         func     = self.func()
         methName = self.funcName
 
+        # Find all attributes on the object which end with
+        # the method name - there will be more than one of
+        # these if the object has base classes which have
+        # private methods of the same name.
         attNames = dir(obj)
         attNames = filter(lambda n: n.endswith(methName), attNames)
 
+        # Find the attribute with the correct name, which
+        # is a method, and has the correct function.
         for name in attNames:
 
             att = getattr(obj, name)
@@ -94,6 +118,9 @@ class WeakFunctionRef(object):
 
     
     def function(self):
+        """Return a reference to the encapsulated function or method,
+        or ``None`` if the function has been garbage collected.
+        """
 
         # Unbound/class method or function
         if self.obj is None:
@@ -107,6 +134,10 @@ class WeakFunctionRef(object):
 
         # Return the bound method object
         try:    return getattr(obj, self.funcName)
+
+        # If the function is a bound private method,
+        # its name on the instance will have been
+        # mangled, so we need to search for it 
         except: return self.__findPrivateMethod()
 
 
