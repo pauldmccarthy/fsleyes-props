@@ -653,7 +653,7 @@ def _LinkBox(parent, hasProps, propObj, propVal, **kwargs):
         
         linkBox.Bind(wx.EVT_TOGGLEBUTTON,   onLinkBox)
         linkBox.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
-        hasProps.addSyncChangeListener(propName, lName, onSyncProp)
+        hasProps.addSyncChangeListener(propName, lName, onSyncProp, weak=False)
 
     return linkBox    
 

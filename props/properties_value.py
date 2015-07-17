@@ -513,7 +513,10 @@ class PropertyValue(object):
 
         :param weak:      If ``True`` (the default), a weak reference to the
                           callback function is retained, meaning that it
-                          can be garbage-collected.
+                          can be garbage-collected. If passing in a lambda or
+                          inner function, you will probably want to set
+                          ``weak`` to ``False``, in which case a strong
+                          reference will be used.
         """
 
         if name in ('prenotify', 'postnotify'):
