@@ -219,7 +219,7 @@ class CallQueue(object):
 
     def __debug(self, call, prefix, postfix=None):
         
-        if log.getEffectiveLevel() != log.DEBUG:
+        if log.getEffectiveLevel() != logging.DEBUG:
             return
 
         funcName, modName = self.__getCallbackDetails(call.func)
