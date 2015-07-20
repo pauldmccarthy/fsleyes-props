@@ -792,36 +792,41 @@ class PropertyValueList(PropertyValue):
 
     Because the values contained in this list are :class:`PropertyValue`
     instances themselves, some limitations are present on list modifying
-    operations. First of all, it is not possible to simply assign an arbitrary
-    sequence of values to a :class:`~props.properties.ListPropertyBase`
-    instance::
+    operations::
 
       class MyObj(props.HasProperties):
         mylist = props.List(default[1, 2, 3])
 
       myobj = MyObj()
 
-      # This will result in a ValueError
-      myobj.mylist = [1,2,3,4,5]
+    Simple list-slicing modifications work as expected::
 
-    It *is* possible to perform assignment in this manner if the list lengths
-    match. In this case, each of the individual :class:`PropertyValue`
-    instances contained in the list will be assigned to each of the values in
-    the input sequence::
-
-      # This will work as expected
-      myobj.mylist = [4, 5, 6]
-
+      # the value after this will be [5, 2, 3]
+      myobj.mylist[0]  = 5
     
-    In a similar vein, value assigments via indexing must not change the length
-    of the list. For example, this is a valid assignment::
+      # the value after this will be [5, 6, 7]
+      myobj.mylist[1:] = [6, 7]
 
-      mylist[2:7] = [3,4,5,6,7]
+    However, modifications which would change the length of the list are not
+    supported::
 
-    Whereas this would result in an :exc:`IndexError`::
+      # This will result in an IndexError
+      myobj.mylist[0:2] = [6, 7, 8]
 
-      mylist[2:7] = [3,4,5,6]
-    
+    The exception to this rule concerns modifications which would replace 
+    every value in the list::
+
+      # These assignments are equivalent
+      myobj.mylist[:] = [1, 2, 3, 4, 5]
+      myobj.mylist    = [1, 2, 3, 4, 5]
+
+    Where the simple list modifications described above will change the
+    value(s) of the existing ``PropertyValue`` instances in the list,
+    modifications which replace the entire list contents will result in
+    existing ``PropertyValue`` instances being destroyed, and new ones
+    being created. This is a very important point to remember if you have
+    registered listeners on individual ``PropertyValue`` items.
+
     A listener registered on a :class:`PropertyValueList` will be notified
     whenever the list is modified (e.g. additions, removals, reorderings), and
     whenever any individual value in the list changes. Alternately, listeners
@@ -981,9 +986,6 @@ class PropertyValueList(PropertyValue):
         length,  a ``ValueError`` is raised.
         """
 
-        if len(newValues) != len(self):
-            raise ValueError('Lengths don\'t match')
-
         if self._itemCastFunc is not None:
             newValues = map(lambda v: self._itemCastFunc(
                 self._context(),
@@ -1036,6 +1038,13 @@ class PropertyValueList(PropertyValue):
         of item changes.
         """
         PropertyValue.disableNotification(self)
+
+
+    def getLast(self):
+        """Overrides :meth:`PropertyValue.getLast`. Returns the most
+        recent list value.
+        """
+        return [pv.get() for pv in PropertyValue.getLast(self)]
 
     
     def _listPVChanged(self, pv):
@@ -1160,7 +1169,8 @@ class PropertyValueList(PropertyValue):
 
         if isinstance(key, slice):
             indices = range(*key.indices(len(self)))
-            if len(indices) != len(values):
+            if len(indices) != len(self) and \
+               len(indices) != len(values):
                 raise IndexError(
                     'PropertyValueList does not support complex slices')
 
@@ -1169,6 +1179,17 @@ class PropertyValueList(PropertyValue):
             values  = [values]
         else:
             raise IndexError('Invalid key type')
+
+        # Replacement of all items in list
+        if len(indices) == len(self) and \
+           len(indices) != len(values):
+            
+            notifState = self.getNotificationState()
+            self.disableNotification()
+            del self[:]
+            self.setNotificationState(notifState)
+            self.extend(values)
+            return
 
         # prepare the new values
         propVals    = self.getPropertyValueList()
