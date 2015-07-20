@@ -58,7 +58,13 @@ class Bidict(object):
     def __str__(    self):      return self._thedict.__str__() 
 
     
-def bindProps(self, propName, other, otherPropName=None, unbind=False):
+def bindProps(self,
+              propName,
+              other,
+              otherPropName=None,
+              bindval=True,
+              bindatt=True,
+              unbind=False):
     """Binds the properties specified by ``propName``  and
     ``otherPropName`` such that changes to one are applied
     to the other.
@@ -72,6 +78,15 @@ def bindProps(self, propName, other, otherPropName=None, unbind=False):
                               bind to. If ``None`` it is assumed that
                               there is a property on ``other`` called
                               ``propName``.
+
+    :arg bindval:             If ``True`` (the default), property values
+                              are bound. This parameter is ignored for
+                              list properties.
+
+    :arg bindatt:             If ``True`` (the default), property attributes
+                              are bound.  For list properties, this parameter
+                              applies to the list values, not to the list
+                              itself.
 
     :arg unbind:              If ``True``, the properties are unbound.
                               See the :meth:`unbindProps` method.
@@ -87,16 +102,37 @@ def bindProps(self, propName, other, otherPropName=None, unbind=False):
                          'same type to be bound')
 
     if isinstance(myProp, properties.ListPropertyBase):
-        _bindListProps(self, myProp, other, otherProp, unbind)
+        _bindListProps(self,
+                       myProp,
+                       other,
+                       otherProp,
+                       bindatt=bindatt,
+                       unbind=unbind)
     else:
-        _bindProps(self, myProp, other, otherProp, unbind)
+        _bindProps(self,
+                   myProp,
+                   other,
+                   otherProp,
+                   bindval=bindval,
+                   bindatt=bindatt,
+                   unbind=unbind)
 
 
-def unbindProps(self, propName, other, otherPropName=None):
+def unbindProps(self,
+                propName,
+                other,
+                otherPropName=None,
+                bindval=True,
+                bindatt=True):
     """Unbinds two properties previously bound via a call to
     :meth:`bindProps`. 
     """
-    self.bindProps(propName, other, otherPropName, unbind=True)
+    self.bindProps(propName,
+                   other,
+                   otherPropName,
+                   bindval=bindval,
+                   bindatt=bindatt,
+                   unbind=True)
 
 
 def isBound(self, propName, other, otherPropName=None):
@@ -118,22 +154,19 @@ def isBound(self, propName, other, otherPropName=None):
             myPropVal    in otherBoundPropVals)
     
 
-def _bindProps(self, myProp, other, otherProp, unbind=False):
+def _bindProps(self,
+               myProp,
+               other,
+               otherProp,
+               bindval=True,
+               bindatt=True,
+               unbind=False):
     """Binds two :class:`~props.properties_value.PropertyValue` instances
-    together.
+    together. See the :func:`bindProps` function for
+    details on the parametes.
 
     The :meth:`_bindListProps` method is used to bind two
     :class:`~props.properties_value.PropertyValueList` instances.
-
-    :arg myProp:    The :class:`PropertyBase` instance of this
-                    :class:`HasProperties` instance.
-    
-    :arg other:     The other :class:`HasProperties` instance.
-    
-    :arg otherProp: The :class:`PropertyBase` instance of the ``other``
-                    :class:`HasProperties` instance.
-
-    :arg unbind:    If ``True``, the properties are unbound.
     """
 
     myPropVal    = myProp   .getPropVal(self)
@@ -142,26 +175,28 @@ def _bindProps(self, myProp, other, otherProp, unbind=False):
     if not unbind:
         allow = myPropVal.allowInvalid()
         myPropVal.allowInvalid(True)
-        myPropVal.setAttributes(otherPropVal.getAttributes())
-        myPropVal.set(          otherPropVal.get())
+
+        if bindatt: myPropVal.setAttributes(otherPropVal.getAttributes())
+        if bindval: myPropVal.set(          otherPropVal.get())
+        
         myPropVal.allowInvalid(allow)
         
-    _bindPropVals(myPropVal, otherPropVal, unbind=unbind)
+    _bindPropVals(myPropVal,
+                  otherPropVal,
+                  val=bindval,
+                  att=bindatt,
+                  unbind=unbind)
 
 
-def _bindListProps(self, myProp, other, otherProp, unbind=False):
+def _bindListProps(self,
+                   myProp,
+                   other,
+                   otherProp,
+                   bindatt=True,
+                   unbind=False):
     """Binds two :class:`~props.properties_value.PropertyValueList`
-    instances together. 
-
-    :arg myProp:    The :class:`ListPropertyBase` instance of this
-                    :class:`HasProperties` instance.
-    
-    :arg other:     The other :class:`HasProperties` instance.
-    
-    :arg otherProp: The :class:`ListPropertyBase` instance of the
-                    ``other`` :class:`HasProperties` instance.
-
-    :arg unbind:    If ``True``, the properties are unbound.
+    instances together. See the :func:`bindProps` function for
+    details on the parametes.
     """
 
     myPropVal    = myProp   .getPropVal(self)
@@ -214,14 +249,18 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
         # Bind attributes between PV item pairs,
         # but not value - value change of items
         # in a list is handled at the list level
-        _bindPropVals(myItem, otherItem, val=False, unbind=unbind)
+        _bindPropVals(myItem,
+                      otherItem,
+                      val=False,
+                      att=bindatt,
+                      unbind=unbind)
         propValMap[myItem] = otherItem
         
         atts = otherItem.getAttributes()
 
         # Set attributes first, because the attribute
         # values may influence/modify the property value
-        myItem.setAttributes(atts)
+        if bindatt: myItem.setAttributes(atts)
         myItem.set(otherItem.get())
 
         # Notify item level listeners of the value
@@ -235,8 +274,9 @@ def _bindListProps(self, myProp, other, otherProp, unbind=False):
         myItem.setNotificationState(itemNotifState)
         if itemNotifState:
             # notify attribute listeners first
-            for name, val in atts.items():
-                _notifyAttributeListeners(myItem, name, val) 
+            if bindatt:
+                for name, val in atts.items():
+                    _notifyAttributeListeners(myItem, name, val) 
             
             _notify(myItem)
 
@@ -297,7 +337,6 @@ def _bindPropVals(myPropVal,
 
     mine  = myPropVal
     other = otherPropVal
-
 
     # A dict containing { id(PV) : PV } mappings is stored
     # on each PV, and used to maintain references to bound
