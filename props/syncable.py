@@ -326,6 +326,48 @@ class SyncableHasProperties(props.HasProperties):
         bindPropName = self._saltSyncPropertyName(propName)
         setattr(self, bindPropName, True)
 
+    
+    def unsyncFromParent(self, propName):
+        """Unsynchronise the given property from the parent instance.
+
+        If this :class:`SyncableHasProperties` instance has no parent, a
+        `RuntimeError` is raised. If the specified property is in the
+        `nounbind` list (see :meth:`__init__`), a `RuntimeError` is raised.
+
+        ..note:: The ``nounbind`` check can be avoided by calling
+        :meth:`bindProps` directly. But don't do that. 
+        """
+        if propName in self._nounbind:
+            raise RuntimeError('{} cannot be unbound from '
+                               'parent'.format(propName))        
+        
+        bindPropName = self._saltSyncPropertyName(propName)
+        setattr(self, bindPropName, False)
+
+
+    def syncAllToParent(self):
+        """Synchronises all properties to the parent instance."""
+        propNames = self.getAllProperties()[0]
+
+        for propName in propNames:
+            if propName in self._nounbind or \
+               propName in self._nobind:
+                continue
+
+            self.syncToParent(propName)
+
+
+    def unsyncAllFromParent(self):
+        """Unynchronises all properties from the parent instance."""
+        propNames = self.getAllProperties()[0]
+
+        for propName in propNames:
+            if propName in self._nounbind or \
+               propName in self._nobind:
+                continue
+
+            self.unsyncFromParent(propName)         
+
 
     def detachFromParent(self):
         """If this is a child ``SyncableHasProperties`` instance, it
@@ -355,24 +397,6 @@ class SyncableHasProperties(props.HasProperties):
 
         self._parent = None
  
-    
-    def unsyncFromParent(self, propName):
-        """Unsynchronise the given property from the parent instance.
-
-        If this :class:`SyncableHasProperties` instance has no parent, a
-        `RuntimeError` is raised. If the specified property is in the
-        `nounbind` list (see :meth:`__init__`), a `RuntimeError` is raised.
-
-        ..note:: The ``nounbind`` check can be avoided by calling
-        :meth:`bindProps` directly. But don't do that. 
-        """
-        if propName in self._nounbind:
-            raise RuntimeError('{} cannot be unbound from '
-                               'parent'.format(propName))        
-        
-        bindPropName = self._saltSyncPropertyName(propName)
-        setattr(self, bindPropName, False) 
-
         
     def isSyncedToParent(self, propName):
         """Returns true if the specified property is synced to the parent of
