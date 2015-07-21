@@ -674,7 +674,7 @@ def _prepareEvents(hasProps, propGui):
 
     # add a callback listener to every property
     lName = 'build_py_WhenEvent_{}'.format(id(propGui.topLevel))
-    hasProps.addGlobalListener(lName, onChange)
+    hasProps.addGlobalListener(lName, onChange, weak=False)
 
     def removeListeners(ev):
         ev.Skip()
