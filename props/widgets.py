@@ -531,27 +531,32 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
     See also the :func:`_makeColourMapComboBox` function.
     """
 
-    cmapNames = propVal.getAttribute('cmapNames')
-    cmapObjs  = map(mplcm.get_cmap, cmapNames)
+    # These are used by the inner-functions defined
+    # below, and are dynamically updated when the
+    # list of available colour maps change. I'm 
+    # storing each of them in a list, so the inner
+    # functions will have access to updated versions.
+    cmapNames = [propVal.getAttribute('cmapNames')]
+    cmapObjs  = [map(mplcm.get_cmap, cmapNames[0])]
 
     # create the combobox
     cbox = wx.combo.BitmapComboBox(
         parent, style=wx.CB_READONLY | wx.CB_DROPDOWN)
 
     def widgetGet():
-        return cmapObjs[cbox.GetSelection()]
+        return cmapObjs[0][cbox.GetSelection()]
 
     def widgetSet(value):
-        cbox.SetSelection(cmapObjs.index(value))
+        cbox.SetSelection(cmapObjs[0].index(value))
 
     # Called when the list of available 
     # colour maps changes - updates the 
     # options displayed in the combobox 
     def cmapsChanged(*a):
 
-        selected  = cbox.GetSelection()
-        cmapNames = propVal.getAttribute('cmapNames')
-        cmapObjs  = map(mplcm.get_cmap, cmapNames)
+        selected     = cbox.GetSelection()
+        cmapNames[0] = propVal.getAttribute('cmapNames')
+        cmapObjs[ 0] = map(mplcm.get_cmap, cmapNames[0])
 
         cbox.Clear()
 
@@ -566,7 +571,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
 
         # Make a little bitmap for every colour
         # map, and add it to the combobox
-        for name, cmap in zip(cmapNames, cmapObjs):
+        for name, cmap in zip(cmapNames[0], cmapObjs[0]):
             
             bitmap = _makeColourMapBitmap(cmap)
             cbox.Append(name, bitmap)
@@ -604,12 +609,12 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
     # Make sure the combobox options are updated
     # when the property options change
     propVal.addAttributeListener(
-        'ColourMap_ComboBox_{}'.format(id(cbox)), cmapsChanged)
+        'ColourMap_ComboBox_{}'.format(id(cbox)), cmapsChanged, weak=False)
 
     # Set the initial combobox selection
     currentVal = propVal.get().name
     if currentVal is None: currentVal = 0
-    else:                  currentVal = cmapNames.index(currentVal)
+    else:                  currentVal = cmapNames[0].index(currentVal)
 
     cbox.SetSelection(currentVal)
  
