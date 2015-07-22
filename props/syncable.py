@@ -248,7 +248,10 @@ class SyncableHasProperties(props.HasProperties):
         if self._parent is not None:
             return None
 
-        return list([c() for c  in self._children])
+        children = [c() for c in self._children]
+        children = filter(lambda c: c is not None, children)
+
+        return children
                 
     
     def _saltSyncListenerName(self, propName):
