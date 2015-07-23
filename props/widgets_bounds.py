@@ -39,9 +39,12 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
                         allow the user to edit the bound limits.
     """
 
-    lName      = 'BoundBind_{}'.format(id(sliderPanel))
+    
     lowProp    = propVal.getPropertyValueList()[axis * 2]
     highProp   = propVal.getPropertyValueList()[axis * 2 + 1]
+
+    lowName    = 'BoundBind_{}_{}'.format(id(sliderPanel), id(lowProp))
+    highName   = 'BoundBind_{}_{}'.format(id(sliderPanel), id(highProp))
 
     def lowGuiUpdate(value, *a):
         if sliderPanel.GetLow() == value: return
@@ -74,22 +77,22 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
 
     sliderPanel.Bind(rangeslider.EVT_RANGE, propUpdate)
 
-    lowProp .addListener(lName, lowGuiUpdate,  weak=False)
-    highProp.addListener(lName, highGuiUpdate, weak=False)
+    lowProp .addListener(lowName,  lowGuiUpdate,  weak=False)
+    highProp.addListener(highName, highGuiUpdate, weak=False)
 
     propObj.addItemConstraintListener(
-        hasProps, axis * 2,     lName, updateSliderRange, weak=False)
+        hasProps, axis * 2,     lowName,  updateSliderRange, weak=False)
     propObj.addItemConstraintListener(
-        hasProps, axis * 2 + 1, lName, updateSliderRange, weak=False)
+        hasProps, axis * 2 + 1, highName, updateSliderRange, weak=False)
 
     if editLimits:
         sliderPanel.Bind(rangeslider.EVT_RANGE_LIMIT, updatePropRange)
 
     def onDestroy(ev):
-        lowProp .removeListener(lName)
-        highProp.removeListener(lName)
-        propObj.removeItemConstraintListener(hasProps, axis * 2,     lName)
-        propObj.removeItemConstraintListener(hasProps, axis * 2 + 1, lName)
+        lowProp .removeListener(lowName)
+        highProp.removeListener(highName)
+        propObj.removeItemConstraintListener(hasProps, axis * 2,     lowName)
+        propObj.removeItemConstraintListener(hasProps, axis * 2 + 1, highName)
         ev.Skip()
         
     sliderPanel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
