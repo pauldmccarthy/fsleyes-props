@@ -798,14 +798,20 @@ class BoundsValueList(propvals.PropertyValueList):
         propvals.PropertyValueList.__init__(self, *args, **kwargs)
 
         
-    def getLo(self, axis):
-        """Return the low value for the given (0-indexed) axis."""
-        return self[axis * 2]
+    def getLo(self, axis=None):
+        """Return the low value for the given (0-indexed) axis. If ``axis`` is
+        not specified, the low bounds for all axes are returned.
+        """
+        if axis is not None: return self[axis * 2]
+        else:                return self[::2]
 
         
-    def getHi(self, axis):
-        """Return the high value for the given (0-indexed) axis."""
-        return self[axis * 2 + 1]
+    def getHi(self, axis=None):
+        """Return the high value for the given (0-indexed) axis. If ``axis``
+        is not specified, the high bounds for all axes are returned.
+        """
+        if axis is not None: return self[axis * 2 + 1]
+        else:                return self[1::2]
 
         
     def getRange(self, axis):
@@ -901,6 +907,8 @@ class BoundsValueList(propvals.PropertyValueList):
         elif lname == 'y':    return self.getRange(1)
         elif lname == 'z':    return self.getRange(2)
         elif lname == 't':    return self.getRange(3)
+        elif lname == 'lo':   return self.getLo()
+        elif lname == 'hi':   return self.getHi()
         elif lname == 'xlo':  return self.getLo(   0)
         elif lname == 'xhi':  return self.getHi(   0)
         elif lname == 'ylo':  return self.getLo(   1)
