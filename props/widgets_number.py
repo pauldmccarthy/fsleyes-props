@@ -14,6 +14,7 @@ import logging
 import sys
 
 import wx
+import wx.lib.agw.floatspin as floatspin
 
 import properties as props
 import widgets
@@ -49,31 +50,39 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
     maxval = getMaxVal(maxval)
         
     if isinstance(propObj, props.Int):
-        SpinCtr   = wx.SpinCtrl
-        increment = 1
+        SpinCtr           = wx.SpinCtrl
+        params['min']     = minval
+        params['max']     = maxval
+        params['initial'] = value
+        params['value']   = '{}'.format(value)
+
+        events = [wx.EVT_SPINCTRL]
 
     elif isinstance(propObj, props.Real):
-        
-        SpinCtr = wx.SpinCtrlDouble
+
+        # Using wx.lib.agw.floatspin because,
+        # under GTK, the wx.SpinCtrlDouble does
+        # not allow users to enter a number
+        # which is not divisible by the increment
+        SpinCtr = floatspin.FloatSpin
 
         if isRange: increment = (maxval - minval) / 100.0
         else:       increment = 0.5
 
-        params['inc'] = increment
+        params['digits']    = 6
+        params['min_val']   = minval
+        params['max_val']   = maxval
+        params['increment'] = increment
+
+        events = [floatspin.EVT_FLOATSPIN]
                 
     else:
         raise TypeError('Unrecognised property type: {}'.format(
             propObj.__class__.__name__))
-        
-    params['min']     = minval
-    params['max']     = maxval
-    params['initial'] = value
-    params['value']   = '{}'.format(value)
 
     spin = SpinCtr(parent, **params)
     
-    widgets._propBind(hasProps, propObj, propVal, spin,
-                      (wx.EVT_SPIN, wx.EVT_SPINCTRL, wx.EVT_SPINCTRLDOUBLE))
+    widgets._propBind(hasProps, propObj, propVal, spin, events)
 
     def updateRange(*a):
         minval = getMinVal(propVal.getAttribute('minval'))
@@ -86,6 +95,8 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
             minval,
             maxval))
 
+        # both SpinCtrl and FloatSpin 
+        # implement a SetRange method
         spin.SetRange(minval, maxval)
 
     listenerName = 'widgets_number_py_updateRange_{}'.format(id(spin))
