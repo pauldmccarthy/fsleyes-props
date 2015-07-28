@@ -46,32 +46,33 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
     maxval  = propVal.getAttribute('maxval')
     isRange = (minval is not None) and (maxval is not None)
 
-    minval = getMinVal(minval)
-    maxval = getMaxVal(maxval)
-
-    params = {
-        'min'   : minval,
-        'max'   : maxval,
-        'value' : value,
-        'style' : floatspin.FSC_MOUSEWHEEL
-    }
+    minval    = getMinVal(minval)
+    maxval    = getMaxVal(maxval)
+    increment = 0
+    style     = floatspin.FSC_MOUSEWHEEL
 
     if   isinstance(propObj, props.Int):
-        params['inc']    = 1
-        params['style'] |= floatspin.FSC_INTEGER
+        increment  = 1
+        style     |= floatspin.FSC_INTEGER
 
     elif isinstance(propObj, props.Real):
 
         if isRange: increment = (maxval - minval) / 100.0
         else:       increment = 0.5
 
-        params['inc'] = increment
+        increment = increment
                 
     else:
         raise TypeError('Unrecognised property type: {}'.format(
             propObj.__class__.__name__))
 
-    spin = floatspin.FloatSpinCtrl(parent, **params)
+    spin = floatspin.FloatSpinCtrl(
+        parent,
+        value=value,
+        minValue=minval,
+        maxValue=maxval,
+        increment=increment,
+        style=style)
     
     widgets._propBind(
         hasProps, propObj, propVal, spin, floatspin.EVT_FLOATSPIN)
@@ -115,13 +116,16 @@ def _makeSlider(
     elif isinstance(propObj, props.Real): real = True
 
     if not showSpin:
+        style = floatslider.FS_MOUSEWHEEL
+        if real:
+            style |= floatslider.FS_INTEGER
         evt    = wx.EVT_SLIDER
         slider = floatslider.FloatSlider(
             parent,
             value=value,
             minValue=minval,
             maxValue=maxval,
-            mousewheel=True)
+            style=style)
         
     else:
         evt    = floatslider.EVT_SSP_VALUE 
