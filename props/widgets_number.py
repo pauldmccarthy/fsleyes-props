@@ -14,12 +14,13 @@ import logging
 import sys
 
 import wx
-import wx.lib.agw.floatspin as floatspin
+
 
 import properties as props
 import widgets
 
 import pwidgets.floatslider as floatslider
+import pwidgets.floatspin   as floatspin
 
 
 log = logging.getLogger(__name__)
@@ -44,45 +45,36 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
     minval  = propVal.getAttribute('minval')
     maxval  = propVal.getAttribute('maxval')
     isRange = (minval is not None) and (maxval is not None)
-    params  = {}
 
     minval = getMinVal(minval)
     maxval = getMaxVal(maxval)
-        
-    if isinstance(propObj, props.Int):
-        SpinCtr           = wx.SpinCtrl
-        params['min']     = minval
-        params['max']     = maxval
-        params['initial'] = value
-        params['value']   = '{}'.format(value)
 
-        events = [wx.EVT_SPINCTRL]
+    params = {
+        'min'   : minval,
+        'max'   : maxval,
+        'value' : value,
+        'style' : floatspin.FSC_MOUSEWHEEL
+    }
+
+    if   isinstance(propObj, props.Int):
+        params['inc']    = 1
+        params['style'] |= floatspin.FSC_INTEGER
 
     elif isinstance(propObj, props.Real):
-
-        # Using wx.lib.agw.floatspin because,
-        # under GTK, the wx.SpinCtrlDouble does
-        # not allow users to enter a number
-        # which is not divisible by the increment
-        SpinCtr = floatspin.FloatSpin
 
         if isRange: increment = (maxval - minval) / 100.0
         else:       increment = 0.5
 
-        params['digits']    = 6
-        params['min_val']   = minval
-        params['max_val']   = maxval
-        params['increment'] = increment
-
-        events = [floatspin.EVT_FLOATSPIN]
+        params['inc'] = increment
                 
     else:
         raise TypeError('Unrecognised property type: {}'.format(
             propObj.__class__.__name__))
 
-    spin = SpinCtr(parent, **params)
+    spin = floatspin.FloatSpinCtrl(parent, **params)
     
-    widgets._propBind(hasProps, propObj, propVal, spin, events)
+    widgets._propBind(
+        hasProps, propObj, propVal, spin, floatspin.EVT_FLOATSPIN)
 
     def updateRange(*a):
         minval = getMinVal(propVal.getAttribute('minval'))
@@ -95,34 +87,16 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
             minval,
             maxval))
 
-        # both SpinCtrl and FloatSpin 
-        # implement a SetRange method
         spin.SetRange(minval, maxval)
 
     listenerName = 'widgets_number_py_updateRange_{}'.format(id(spin))
     propVal.addAttributeListener(listenerName, updateRange, weak=False)
 
-
-    def onMouseWheel(ev):
-
-        if not spin.IsEnabled():
-            return
-        
-        wheelDir = ev.GetWheelRotation()
-
-        if   wheelDir < 0: offset = -increment
-        elif wheelDir > 0: offset =  increment
-        else:              return
-        
-        propVal.set(propVal.get() + offset)
-
-        
     def onDestroy(ev):
         propVal.removeAttributeListener(listenerName)
         ev.Skip()
     
     spin.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
-    spin.Bind(wx.EVT_MOUSEWHEEL,     onMouseWheel)
 
     return spin
 
@@ -146,7 +120,8 @@ def _makeSlider(
             parent,
             value=value,
             minValue=minval,
-            maxValue=maxval)
+            maxValue=maxval,
+            mousewheel=True)
         
     else:
         evt    = floatslider.EVT_SSP_VALUE 
@@ -157,7 +132,8 @@ def _makeSlider(
             minValue=minval,
             maxValue=maxval,
             showLimits=showLimits,
-            editLimits=editLimits)
+            editLimits=editLimits,
+            mousewheel=True)
 
     # bind the slider value to the property value
     widgets._propBind(hasProps, propObj, propVal, slider, evt)
@@ -170,7 +146,6 @@ def _makeSlider(
         
         slider.SetRange(minval, maxval)
         # TODO check that value has changed due to the range change?
-
 
     listenerName = 'widgets_number_py_updateRange_{}'.format(id(slider))
     propVal.addAttributeListener(listenerName, updateSliderRange, weak=False)
