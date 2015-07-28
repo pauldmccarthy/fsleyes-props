@@ -7,19 +7,19 @@
 #
 
 """Automatically build a :mod:`wx` GUI for a
-:class:`~props.properties.HasProperties` object.
+:class:`.HasProperties` object.
 
 This module provides functionality to automatically build a :mod:`wx` GUI
 containing widgets which allow the user to change the property values
-(:class:`~props.properties.PropertyBase` objects) of a specified
-:class:`~props.properties.HasProperties` object.
+(:class:`.PropertyBase` objects) of a specified :class:`.HasProperties`
+object.
 
 
 The main entry point for this module is the :func:`buildGUI` function, which
 accepts as parameters a GUI object to be used as the parent (e.g. a
-:class:`wx.Panel` object), a :class:`~props.properties.HasProperties` object,
-an optional :class:`ViewItem` object, which specifies how the interface is to
-be laid out, and two optional dictionaries for passing in labels and tooltips.
+:class:`wx.Panel` object), a :class:`.HasProperties` object, an optional
+:class:`.ViewItem` object, which specifies how the interface is to be laid out,
+and two optional dictionaries for passing in labels and tooltips.
 
 
 The :func:`buildDialog` function is also provided for convenience. It simply
@@ -27,16 +27,15 @@ embeds the result of a call to :func:`buildGUI` in a :class:`wx.Dialog`, and
 returns the dialog instance.
 
 
-A number of classes are defined in the separate :mod:`props.build_parts`
-module.  The :class:`~props.build_parts.ViewItem` class allows the layout of
-the generated interface to be customised.  Property widgets may be grouped
-together by embedding them within a :class:`~props.build_parts.HGroup` or
-:class:`~props.build_parts.VGroup` object; they will then respectively be laid
-out horizontally or verticaly.  Groups may be embedded within a
-:class:`~props.build_parts.NotebookGroup` object, which will result in an
-interface containing a tab for each child :class:`~props.build_parts.Group`.
-The label for, and behaviour of, the widget for an individual property may be
-customised with a :class:`~props.build_parts.Widget` object. As an example::
+A number of classes are defined in the separate :mod:`.build_parts` module.
+The :class:`.ViewItem` class allows the layout of the generated interface to
+be customised.  Property widgets may be grouped together by embedding them
+within a :class:`.HGroup` or :class:`.VGroup` object; they will then
+respectively be laid out horizontally or verticaly.  Groups may be embedded
+within a :class:`.NotebookGroup` object, which will result in an interface
+containing a tab for each child :class:`.Group`.  The label for, and behaviour
+of, the widget for an individual property may be customised with a
+:class:`.Widget` object. As an example::
 
     import wx
     import props
@@ -71,6 +70,9 @@ customised with a :class:`~props.build_parts.Widget` object. As an example::
 
     myObjPanel = props.buildGUI(frame, myobj, view)
 
+See the :mod:`.build_parts` module for details on the :class:`.Widget` (and
+other :class:`.ViewItem`) definitions .
+
 You may also pass in widget labels and tooltips to the :func:`buildGUI`
 function::
 
@@ -85,9 +87,10 @@ function::
 
     props.buildGUI(frame, myobj, view=view, labels=labels, tooltips=tooltips)
 
+
 As an alternative to passing in a view, labels, and tooltips to the
 :func:`buildGUI` function, they may be specified as class attributes of the
-HasProperties object, with respective names ``_view``, ``_labels``, and
+``HasProperties`` object, with respective names ``_view``, ``_labels``, and
 ``_tooltips``::
 
     class MyObj(props.HasProperties):
@@ -105,10 +108,10 @@ HasProperties object, with respective names ``_view``, ``_labels``, and
         }
 
     props.buildGUI(frame, myobj)
-
 """
 
 import logging
+import weakref
 import copy
 import sys
 import wx
@@ -130,30 +133,53 @@ class PropGUI(object):
     """
     
     def __init__(self):
+
+        # onChangeCallbacks is a list of
+        # tuples, each of which contains:
+        # 
+        # ([weakref(HasProperties instances)],
+        #  [propertyNames],
+        #  listenerName,
+        #  callback)
+        # 
+        # If a property name is None, that
+        # means that it is a global listener
+        # on the HasProps instance
         self.onChangeCallbacks = []
+
+        # A dictionary of {ViewItem.key : wx.Window} mappings
         self.guiObjects        = {}
+
+        # The top level GUI container (typically a wx.Panel)
         self.topLevel          = None
  
 
-def _configureEnabledWhen(viewItem, guiObj, hasProps):
-    """Returns a reference to a callback function for this view item,
-    if its ``enabledWhen`` attribute was set.
+def _configureEnabledWhen(viewItem, guiObj, hasProps, propGui):
+    """Configures a callback function for this view item, if its ``enabledWhen``
+    attribute was set.
 
-    :param viewItem: The :class:`ViewItem` object
-    :param guiObj:   The GUI object created from the :class:`ViewItem`
-    :param hasProps: The :class:`~props.properties.HasProperties` instance
+    :param viewItem: The :class:`.ViewItem` object
+    
+    :param guiObj:   The GUI object created from the :class:`.ViewItem`
+    
+    :param hasProps: The :class:`.HasProperties` instance
+    
+    :param propGui:  The :class:`PropGui` instance, in which references to
+                     all event callbacks are stored
     """
 
     if viewItem.enabledWhen is None: return None
 
+    # Recursively toggle the enabled/disabled state
+    # of the given object and all its children.
     def toggleAll(obj, state):
-
+        
         obj.Enable(state)
 
         for child in obj.GetChildren():
             toggleAll(child, state)
 
-    def _toggleEnabled():
+    def _toggleEnabled(*args):
         """Calls the viewItem.enabledWhen function and
         enables/disables the GUI object, depending
         upon the result.
@@ -161,9 +187,7 @@ def _configureEnabledWhen(viewItem, guiObj, hasProps):
 
         parent         = guiObj.GetParent()
         isNotebookPage = isinstance(parent, nb.Notebook)
-
-        if viewItem.enabledWhen(hasProps): state = True
-        else:                              state = False
+        state          = viewItem.enabledWhen(*args)
 
         if isNotebookPage:
             if state: parent.EnablePage( parent.FindPage(guiObj))
@@ -171,22 +195,39 @@ def _configureEnabledWhen(viewItem, guiObj, hasProps):
 
         elif guiObj.IsEnabled() != state:
             toggleAll(guiObj, state)
+            guiObj.Refresh()
+            guiObj.Update()
 
-    return _toggleEnabled
+    _configureEventCallback(
+        viewItem,
+        _toggleEnabled,
+        'enable',
+        hasProps,
+        guiObj,
+        propGui) 
 
 
-def _configureVisibleWhen(viewItem, guiObj, hasProps):
-    """Returns a reference to a callback function for this view item,
-    if its visibleWhen attribute was set. See :func:`_configureEnabledWhen`.
+def _configureVisibleWhen(viewItem, guiObj, hasProps, propGui):
+    """Configures a callback function for this view item, if its visibleWhen
+    attribute was set. See :func:`_configureEnabledWhen`.
+
+    :param viewItem: The :class:`.ViewItem` object
+    
+    :param guiObj:   The GUI object created from the :class:`.ViewItem`
+    
+    :param hasProps: The :class:`.HasProperties` instance
+    
+    :param propGui:  The :class:`PropGui` instance, in which references to
+                     all event callbacks are stored
     """ 
 
     if viewItem.visibleWhen is None: return None
 
-    def _toggleVis():
+    def _toggleVis(*args):
 
         parent         = guiObj.GetParent()
         isNotebookPage = isinstance(parent, nb.Notebook)
-        visible        = viewItem.visibleWhen(hasProps)
+        visible        = viewItem.visibleWhen(*args)
 
         if isNotebookPage:
             if visible: parent.ShowPage(parent.FindPage(guiObj))
@@ -195,8 +236,137 @@ def _configureVisibleWhen(viewItem, guiObj, hasProps):
         elif visible != guiObj.IsShown():
             parent.GetSizer().Show(guiObj, visible)
             parent.GetSizer().Layout()
-        
-    return _toggleVis
+
+    _configureEventCallback(
+        viewItem,
+        _toggleVis,
+        'visible',
+        hasProps,
+        guiObj,
+        propGui)
+
+
+def _configureEventCallback(
+        viewItem,
+        callback,
+        evType,
+        hasProps,
+        guiObj,
+        propGui):
+    """Called by both the :func:`_configureVisibleWhen` and
+    :func:`_configureEnabledWhen` functions.
+
+    Wraps the given ``callback`` function (which is essentially a
+    ``ViewItem.visibleWhen`` or ``ViewItem.enabledWhen`` function) inside
+    another function, which handles the marshalling of arguments to be passed
+    to the ``callback``.
+
+    The arguments that are passed to the function depend on the value of the
+    ``ViewItem.dependencies`` attribute - see the :mod:`build_parts` module
+    for an explanation.
+
+    The resulting callback function is added to the
+    ``PropGui.onChangeCallbacks`` list.
+
+    :arg viewItem: The :class:`.ViewItem` instance
+
+    :arg callback: The callback function to be encapsulated.
+
+    :arg evType:   Purely for logging. Either 'visible' or 'enable'.
+
+    :arg hasProps: The :class:`.HasProperties` instance.
+
+    :arg guiObj:   The :mod:`wx` GUI object which has been created from the
+                   ``viewItem`` specification.
+
+    :arg propGui:  The :class:`PropGui` instance which stores references to
+                   all event callbacks.
+    """
+
+    lName = 'build_py_{}_{}_{}_{}_{}'.format(
+        evType,
+        type(hasProps).__name__,
+        viewItem.key,
+        id(guiObj),
+        id(propGui.topLevel))
+
+    log.debug('Configuring event callback for '
+              '({}.{}) ({} dependencies)'.format(
+                  type(hasProps).__name__,
+                  viewItem.key,
+                  len(viewItem.dependencies) 
+                  if viewItem.dependencies is not None
+                  else '0'))
+ 
+    # If this viewitem has no dependencies,
+    # we just add a global listener to the
+    # hasProps instance, and call the callback
+    # whenever any properties change
+    if viewItem.dependencies is None:
+
+        def onEvent(*a):
+
+            callback(hasProps)
+            propGui.topLevel.Layout()
+            propGui.topLevel.Refresh()
+            propGui.topLevel.Update()
+
+        hasProps.addGlobalListener(lName, onEvent, weak=False)
+
+        propGui.onChangeCallbacks.append(
+            ([weakref.ref(hasProps)], [None], lName, onEvent))
+        return
+
+    # Otherwise, we have a list 
+    # of dependencies to process
+    targets   = []
+    propNames = []
+    
+    def onEvent(*a):
+
+        # targets are all weakrefs, hence the
+        # 't()' - should I check for None here?
+        args  = [hasProps] 
+        args += [getattr(t(), pn) for t, pn in zip(targets, propNames)]
+
+        callback(*args)
+        propGui.topLevel.Layout()
+        propGui.topLevel.Refresh()
+        propGui.topLevel.Update()
+
+    for dep in viewItem.dependencies:
+
+        target   = None
+        propName = None
+
+        # Each dependency is either the name of
+        # a property on the hasProps instance..
+        if isinstance(dep, basestring):
+            target   = hasProps
+            propName = dep
+
+        # Or a tuple which specifies a different
+        # instance, and the property name on that
+        # instance
+        else:
+            instance, propName = dep
+
+            # the first tuple element could
+            # be an instance, or a function 
+            # which returns an instance
+            if hasattr(instance, '__call__'):
+                instance = instance(hasProps)
+
+            target   = instance
+            propName = propName
+
+        targets  .append(weakref.ref(target))
+        propNames.append(propName)
+
+        target.addListener(propName, lName, onEvent, weak=False)
+
+    propGui.onChangeCallbacks.append(
+        (targets, propNames, lName, onEvent)) 
 
 
 def _createLinkBox(parent, viewItem, hasProps, propGui):
@@ -217,14 +387,14 @@ def _createLinkBox(parent, viewItem, hasProps, propGui):
 
 def _createLabel(parent, viewItem, hasProps, propGui):
     """Creates a :class:`wx.StaticText` object containing a label for the
-    given :class:`ViewItem`.
+    given :class:`.ViewItem`.
     """
     label = wx.StaticText(parent, label=viewItem.label)
     return label
 
 
 def _createButton(parent, viewItem, hasProps, propGui):
-    """Creates a :class:`wx.Button` object for the given :class:`Button`
+    """Creates a :class:`wx.Button` object for the given :class:`.Button`
     object.
     """
 
@@ -240,9 +410,9 @@ def _createButton(parent, viewItem, hasProps, propGui):
 
 
 def _createWidget(parent, viewItem, hasProps, propGui):
-    """Creates a widget for the given :class:`Widget` object, using the
-    :func:`~props.widgets.makeWidget` function (see the :mod:`props.widgets`
-    module for more details).
+    """Creates a widget for the given :class:`.Widget` object, using the
+    :func:`.makeWidget` function (see the :mod:`props.widgets` module for more
+    details).
     """
 
     widget = widgets.makeWidget(
@@ -251,18 +421,23 @@ def _createWidget(parent, viewItem, hasProps, propGui):
 
 
 def _makeGroupBorder(parent, group, ctr, *args, **kwargs):
-    """Makes a border for a :class:`Group`.
+    """Makes a border for a :class:`.Group`.
     
-    If a the ``border`` attribute of a :class:`Group` object has been set to
+    If a the ``border`` attribute of a :class:`.Group` object has been set to
     ``True``, this function is called. It creates a parent :class:`wx.Panel`
     with a border and title, then creates and embeds the GUI object
     representing the group (via the `ctr` argument). Returns the parent border
     panel, and the group GUI object. Parameters:
     
     :param parent:   Parent GUI object
-    :param group:    :class:`VGroup`, :class:`HGroup` or :class:`NotebookGroup`
+    
+    :param group:    :class:`.VGroup`, :class:`.HGroup` or
+                     :class:`.NotebookGroup`
+    
     :param ctr:      Constructor for a :class:`wx.Window` object.
+    
     :param args:     Passed to `ctr`. You don't need to pass in the parent.
+    
     :param kwargs:   Passed to `ctr`.
     """
     
@@ -293,7 +468,7 @@ def _makeGroupBorder(parent, group, ctr, *args, **kwargs):
 
 def _createNotebookGroup(parent, group, hasProps, propGui):
     """Creates a :class:`pwidgets.notebook.Notebook` object from the given
-    :class:`NotebookGroup` object.
+    :class:`.NotebookGroup` object.
 
     The children of the group object are also created via recursive calls to
     the :func:`_create` function.
@@ -327,9 +502,9 @@ def _createNotebookGroup(parent, group, hasProps, propGui):
 
 def _layoutHGroup(group, parent, children, labels):
     """Lays out the children (and labels, if not ``None``) of the given
-    :class:`HGroup` object. Parameters:
+    :class:`.HGroup` object. Parameters:
     
-    :param group:    :class:`HGroup` object
+    :param group:    :class:`.HGroup` object
     
     :param parent:   GUI object which represents the group
     
@@ -379,7 +554,8 @@ def _layoutHGroup(group, parent, children, labels):
     
 def _layoutVGroup(group, parent, children, labels):
     """Lays out the children (and labels, if not ``None``) of the
-    given :class:`VGroup` object. Parameters the same as :func:`_layoutHGroup`.
+    given :class:`.VGroup` object. Parameters the same as
+    :func:`_layoutHGroup`.
     """
 
     sizer = wx.GridBagSizer(1, 1)
@@ -439,8 +615,8 @@ def _layoutVGroup(group, parent, children, labels):
 
 
 def _createGroup(parent, group, hasProps, propGui):
-    """Creates a GUI panel object for the given :class:`HGroup` or
-    :class:`VGroup`.
+    """Creates a GUI panel object for the given :class:`.HGroup` or
+    :class:`.VGroup`.
 
     Children of the group are recursively created via calls to
     :func:`_create`, and laid out via the :class:`_layoutHGroup` or
@@ -498,14 +674,13 @@ _createVGroup = _createGroup
 
 
 def _getCreateFunction(viewItemClass):
-    """Searches within this module for a function which can parse
-    instances of the specified  :class:`~props.build_parts.ViewItem` class.
+    """Searches within this module for a function which can parse instances of the
+    specified :class:`.ViewItem` class.
 
-    A match will be found if the given class is one of those defined
-    in the :mod:`~props.build_parts` module, or has one of those
-    classes in its base class hierarchy. In other words, application-defined
-    subclasses of any of the :mod:`~props.build_parts` classes will
-    still be built.
+    A match will be found if the given class is one of those defined in the
+    :mod:`.build_parts` module, or has one of those classes in its base class
+    hierarchy. In other words, application-defined subclasses of any of the
+    :mod:`.build_parts` classes will still be built.
     """
 
     cls = viewItemClass
@@ -527,7 +702,7 @@ def _getCreateFunction(viewItemClass):
 
 
 def _create(parent, viewItem, hasProps, propGui):
-    """Creates a GUI object for the given :class:`ViewItem` object and, if it
+    """Creates a GUI object for the given :class:`.ViewItem` object and, if it
     is a group, all of its children.
     """
 
@@ -538,11 +713,9 @@ def _create(parent, viewItem, hasProps, propGui):
             viewItem.__class__.__name__))
 
     guiObject = createFunc(parent, viewItem, hasProps, propGui)
-    visibleCb = _configureVisibleWhen(viewItem, guiObject, hasProps)
-    enableCb  = _configureEnabledWhen(viewItem, guiObject, hasProps)
-
-    if visibleCb is not None: propGui.onChangeCallbacks.append(visibleCb)
-    if enableCb  is not None: propGui.onChangeCallbacks.append(enableCb)
+    
+    _configureVisibleWhen(viewItem, guiObject, hasProps, propGui)
+    _configureEnabledWhen(viewItem, guiObject, hasProps, propGui)
 
     if viewItem.tooltip is not None:
 
@@ -567,10 +740,10 @@ def _create(parent, viewItem, hasProps, propGui):
 
 
 def _defaultView(hasProps):
-    """Creates a default view specification for the given
-    :class:`~props.properties.HasProperties` object, with all properties
-    laid out vertically. This function is only called if a view specification
-    was not provided in the call to the :func:`buildGUI` function
+    """Creates a default view specification for the given :class:`.HasProperties`
+    object, with all properties laid out vertically. This function is only
+    called if a view specification was not provided in the call to the
+    :func:`buildGUI` function
     """
 
     propNames, propObjs = hasProps.getAllProperties()
@@ -585,7 +758,7 @@ def _prepareView(hasProps, viewItem, labels, tooltips, showUnlink):
     any).
 
     If the ``viewItem`` is a string, it is assumed to be a property name, and
-    it is turned into a :class:`Widget` object. If the ``viewItem`` does not
+    it is turned into a :class:`.Widget` object. If the ``viewItem`` does not
     have a label/tooltip, and there is a label/tooltip for it in the given
     labels/tooltips dict, then its label/tooltip is set.  Returns a reference
     to the updated/newly created :class:`ViewItem`.
@@ -648,40 +821,59 @@ def _prepareView(hasProps, viewItem, labels, tooltips, showUnlink):
 
     return viewItem
 
-    
-def _prepareEvents(hasProps, propGui):
-    """If the ``visibleWhen`` or ``enabledWhen`` conditional attributes were
-    set for any :class:`ViewItem` objects, a callback function is set on all
-    properties. When any property value changes, the
-    ``visibleWhen``/``enabledWhen`` callback functions are called.
+
+def _finaliseCallbacks(hasProps, propGui):
+    """Calls all defined :class:`.ViewItem` ``visibleWhen`` and ``enabledWhen``
+    callback functions, in order to set the initial GUI state.
+
+    Also registers a listener on the top level GUI panel to remove all property
+    listeners from the ``hasProps`` instance when the panel is destroyed.
     """
 
     if len(propGui.onChangeCallbacks) == 0:
         return
 
-    def onChange(*a):
-        for cb in propGui.onChangeCallbacks:
-            cb()
-        propGui.topLevel.Layout()
-        propGui.topLevel.Refresh()
-        propGui.topLevel.Update()
+    # A first call to all of the
+    # visibleWhen/enabledWhen
+    # functions, so the initial
+    # GUI state is valid
+    def onShow(ev):
 
-
-    propNames, propObjs = hasProps.getAllProperties()
-
-    # initialise widget states
-    onChange()
-
-    # add a callback listener to every property
-    lName = 'build_py_WhenEvent_{}'.format(id(propGui.topLevel))
-    hasProps.addGlobalListener(lName, onChange, weak=False)
-
-    def removeListeners(ev):
+        # We only want this function
+        # to be called once, so on the
+        # first call, deregister the
+        # wx event listener
         ev.Skip()
-        hasProps.removeGlobalListener(lName)
+        propGui.topLevel.Unbind(wx.EVT_PAINT)
+        
+        for _, _, _, callback in propGui.onChangeCallbacks:
+            callback()
 
-    propGui.topLevel.Bind(wx.EVT_WINDOW_DESTROY, removeListeners)
- 
+    # De-register all property
+    # listeners when the
+    # top level panel/frame
+    # is destroyed
+    def onDestroy(ev):
+
+        for targets, propNames, lName, callback in propGui.onChangeCallbacks:
+            for target, propName in zip(targets, propNames):
+
+                # target is a weakref - it may
+                # have been GC'd, in which case
+                # we don't need to remove property
+                # listeners from it
+                target = target()
+                if target is None:
+                    continue
+                
+                # If propName is none, it's a
+                # global property listener
+                if propName is None: target.removeGlobalListener(lName)
+                else:                target.removeListener(propName, lName)
+
+    propGui.topLevel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
+    propGui.topLevel.Bind(wx.EVT_PAINT,          onShow)
+
 
 def buildGUI(parent,
              hasProps,
@@ -698,19 +890,23 @@ def buildGUI(parent,
 
     Parameters:
     
-    :param parent:     parent GUI object. If ``None``, the interface is
-                       embedded within a :class:`wx.Frame`.
-    :param hasProps:   :class:`~props.properties.HasProperties` object
-    :param view:       :class:`ViewItem` object, specifying the interface
-                       layout
-    :param labels:     Dict specifying labels
-    :param tooltips:   Dict specifying tooltips
+    :param parent:       parent GUI object. If ``None``, the interface is
+                         embedded within a :class:`wx.Frame`.
+    
+    :param hasProps:     :class:`.HasProperties` object
+    
+    :param view:         :class:`.ViewItem` object, specifying the interface
+                         layout
+    
+    :param labels:       Dict specifying labels
+    
+    :param tooltips:     Dict specifying tooltips
     
     :param showUnlink: If the given ``hasProps`` object is a
-                       :class:`props.SyncableHasProperties` instance, and
-                       it has a parent, a 'link/unlink' checkbox will be
-                       shown next to any properties that can be bound/unbound
-                       from the parent object.
+                         :class:`.SyncableHasProperties` instance, and it has
+                         a parent, a 'link/unlink' checkbox will be shown next
+                         to any properties that can be bound/unbound from the
+                         parent object.
     """
 
     if view is None:
@@ -731,15 +927,14 @@ def buildGUI(parent,
     propGui   = PropGUI()
     view      = _prepareView(hasProps, view, labels, tooltips, showUnlink)
 
-
     log.debug('Creating GUI for {} from view: \n{}'.format(
         type(hasProps).__name__, view))
     
     mainPanel = _create(parentObj, view, hasProps, propGui)
     
     propGui.topLevel = mainPanel
-    _prepareEvents(hasProps, propGui)
-
+    _finaliseCallbacks(hasProps, propGui)
+    
     # TODO return the propGui object, so the caller
     # has access to all of the GUI objects that were
     # created, via the propGui.guiObjects dict. ??
