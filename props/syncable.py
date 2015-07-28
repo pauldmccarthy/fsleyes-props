@@ -16,7 +16,7 @@ class instead of the :class:`HasProperties` class::
     >>> class MyObj(props.SyncableHasProperties):
     >>>     myint = props.Int()
     >>>     def __init__(self, parent=None):
-    >>>         props.SyncableHasProperties.__init__(self, parent)
+    >>>         props.SyncableHasProperties.__init__(self, parent=parent)
     >>>
 
 Given a class definition such as the above, a parent-child relationship
@@ -142,12 +142,7 @@ class SyncableHasProperties(props.HasProperties):
         return cls.getProp(cls.getSyncPropertyName(propName))
 
     
-    def __init__(self,
-                 parent=None,
-                 nobind=None,
-                 nounbind=None,
-                 *args,
-                 **kwargs):
+    def __init__(self, **kwargs):
         """Create a :class:`SyncableHasProperties` object.
 
         If this :class:`SyncableHasProperties` object does not have a parent,
@@ -163,12 +158,17 @@ class SyncableHasProperties(props.HasProperties):
         
         :arg nounbind: A sequence of property names which cannot be unbound
                        from the parent.
-        """
-        props.HasProperties.__init__(self, *args, **kwargs)
-        
-        if nobind   is None: nobind   = []
-        if nounbind is None: nounbind = []
 
+        :arg kwargs:   Other arguments are passed to the
+                       :meth:`.HasProperties.__init__` method.
+        """
+
+        parent   = kwargs.pop('parent',   None)
+        nobind   = kwargs.pop('nobind',   [])
+        nounbind = kwargs.pop('nounbind', [])
+        
+        props.HasProperties.__init__(self, **kwargs)
+        
         self._nobind   = nobind
         self._nounbind = nounbind
 
