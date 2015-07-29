@@ -541,6 +541,14 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
     cbox = wx.combo.BitmapComboBox(
         parent, style=wx.CB_READONLY | wx.CB_DROPDOWN)
 
+    # OwnerDrawnComboBoxes seem to absorb mouse
+    # events and, under OSX/cocoa at least, this
+    # causes the currently selected item to
+    # change. I don't want this.
+    def wheel(ev):
+        parent.GetEventHandler().ProcessEvent(ev)
+    cbox.Bind(wx.EVT_MOUSEWHEEL, wheel)
+    
     def widgetGet():
         return cmapObjs[0][cbox.GetSelection()]
 
