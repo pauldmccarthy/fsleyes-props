@@ -854,6 +854,7 @@ def _finaliseCallbacks(hasProps, propGui):
     # top level panel/frame
     # is destroyed
     def onDestroy(ev):
+        ev.Skip()
 
         for targets, propNames, lName, callback in propGui.onChangeCallbacks:
             for target, propName in zip(targets, propNames):

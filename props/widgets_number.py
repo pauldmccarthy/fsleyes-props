@@ -117,7 +117,7 @@ def _makeSlider(
 
     if not showSpin:
         style = floatslider.FS_MOUSEWHEEL
-        if real:
+        if not real:
             style |= floatslider.FS_INTEGER
         evt    = wx.EVT_SLIDER
         slider = floatslider.FloatSlider(

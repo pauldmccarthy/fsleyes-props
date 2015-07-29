@@ -147,7 +147,8 @@ def _propBind(hasProps,
                       listenerName,
                       hasProps.__class__.__name__,
                       propVal._name))
-        propVal.removeListener(listenerName)
+        propVal.removeListener(         listenerName)
+        propVal.removeAttributeListener(listenerName)
 
         if widgetDestroy is not None:
             widgetDestroy(ev)
