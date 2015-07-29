@@ -26,7 +26,7 @@ import pwidgets.floatspin   as floatspin
 log = logging.getLogger(__name__)
 
 
-def _makeSpinBox(parent, hasProps, propObj, propVal):
+def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel):
     """Creates a :class:`wx.SpinCtrl` or :class:`wx.SpinCtrlDouble` bound to
     the given :class:`~props.properties_value.PropertyValue` object.
     """
@@ -49,7 +49,9 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
     minval    = getMinVal(minval)
     maxval    = getMaxVal(maxval)
     increment = 0
-    style     = floatspin.FSC_MOUSEWHEEL
+
+    if mousewheel: style = floatspin.FSC_MOUSEWHEEL
+    else:          style = 0
 
     if   isinstance(propObj, props.Int):
         increment  = 1
@@ -102,8 +104,14 @@ def _makeSpinBox(parent, hasProps, propObj, propVal):
     return spin
 
 
-def _makeSlider(
-        parent, hasProps, propObj, propVal, showSpin, showLimits, editLimits):
+def _makeSlider(parent,
+                hasProps,
+                propObj,
+                propVal,
+                showSpin,
+                showLimits,
+                editLimits,
+                mousewheel):
     """Creates a :class:`~pwidgets.floatslider.SliderSpinPanel` bound to the
     given :class:`~props.properties_value.PropertyValue` object.
     """
@@ -116,9 +124,13 @@ def _makeSlider(
     elif isinstance(propObj, props.Real): real = True
 
     if not showSpin:
-        style = floatslider.FS_MOUSEWHEEL
+
+        if mousewheel: style = floatslider.FS_MOUSEWHEEL
+        else:          style = 0
+        
         if not real:
             style |= floatslider.FS_INTEGER
+            
         evt    = wx.EVT_SLIDER
         slider = floatslider.FloatSlider(
             parent,
@@ -137,7 +149,7 @@ def _makeSlider(
             maxValue=maxval,
             showLimits=showLimits,
             editLimits=editLimits,
-            mousewheel=True)
+            mousewheel=mousewheel)
 
     # bind the slider value to the property value
     widgets._propBind(hasProps, propObj, propVal, slider, evt)
@@ -182,7 +194,8 @@ def _Number(
         slider=True,
         spin=True,
         showLimits=True,
-        editLimits=True):
+        editLimits=True,
+        mousewheel=False):
     """Creates and returns a widget allowing the user to edit the given
     :class:`~props.properties_types.Number` property value.
 
@@ -198,7 +211,7 @@ def _Number(
     isRange = (minval is not None) and (maxval is not None)
 
     if (not isRange) or (not slider):
-        return _makeSpinBox(parent, hasProps, propObj, propVal)
+        return _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel)
     
     else:
         return _makeSlider(parent,
@@ -207,4 +220,5 @@ def _Number(
                            propVal,
                            spin,
                            showLimits,
-                           editLimits)
+                           editLimits,
+                           mousewheel)

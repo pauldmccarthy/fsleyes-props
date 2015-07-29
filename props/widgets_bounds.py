@@ -105,7 +105,8 @@ def _Bounds(parent,
             slider=True,
             spin=True,
             showLimits=True,
-            editLimits=True):
+            editLimits=True,
+            mousewheel=False):
     """Creates and returns a panel containing sliders/spinboxes which
     allow the user to edit the low/high values along each dimension of the
     given :class:`~props.properties_types.Bounds` value.
@@ -144,7 +145,8 @@ def _Bounds(parent,
                 highLabel=labels[i * 2 + 1],
                 minDistance=minDistance, 
                 showLimits=showLimits,
-                editLimits=editLimits)
+                editLimits=editLimits,
+                mousewheel=mousewheel)
         else:
             if slider:
                 widgetType = 'slider'
@@ -163,7 +165,8 @@ def _Bounds(parent,
                 highValue=hival,
                 lowLabel=labels[i * 2],
                 highLabel=labels[i * 2 + 1],
-                minDistance=minDistance) 
+                minDistance=minDistance,
+                mousewheel=mousewheel) 
 
         sizer.Add(slider, flag=wx.EXPAND)
 
