@@ -329,10 +329,7 @@ def _Choice(parent, hasProps, propObj, propVal, **kwargs):
     if len(cl) > 0: choices, labels = zip(*cl)
     else:           choices, labels = [], []
 
-    widget = wx.ComboBox(
-        parent,
-        choices=labels,
-        style=wx.CB_READONLY | wx.CB_DROPDOWN)
+    widget = wx.Choice(parent, choices=labels)
 
     def widgetGet():
         choices = propObj.getChoices(hasProps)
@@ -385,7 +382,7 @@ def _Choice(parent, hasProps, propObj, propVal, **kwargs):
               propObj,
               propVal,
               widget,
-              wx.EVT_COMBOBOX,
+              wx.EVT_CHOICE,
               widgetGet,
               widgetSet,
               widgetDestroy=onDestroy)
