@@ -195,7 +195,8 @@ def _Number(
         spin=True,
         showLimits=True,
         editLimits=True,
-        mousewheel=False):
+        mousewheel=False,
+        **kwargs):
     """Creates and returns a widget allowing the user to edit the given
     :class:`~props.properties_types.Number` property value.
 

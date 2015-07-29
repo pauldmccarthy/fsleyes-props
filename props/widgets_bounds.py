@@ -106,7 +106,8 @@ def _Bounds(parent,
             spin=True,
             showLimits=True,
             editLimits=True,
-            mousewheel=False):
+            mousewheel=False,
+            **kwargs):
     """Creates and returns a panel containing sliders/spinboxes which
     allow the user to edit the low/high values along each dimension of the
     given :class:`~props.properties_types.Bounds` value.
