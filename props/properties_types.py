@@ -285,7 +285,7 @@ class Choice(props.PropertyBase):
     enabled/disabled state of each choice.
     """
 
-    def __init__(self, choices=None, labels=None, **kwargs):
+    def __init__(self, choices=None, labels=None, alternates=None, **kwargs):
         """Define a :class:`Choice` property.
 
         As an alternative to passing in separate ``choice`` and
@@ -294,41 +294,76 @@ class Choice(props.PropertyBase):
         labels. Make sure to use a :class:`collections.OrderedDict` if the
         display order is important.
         
-        :param list choices: List of values, the possible values that
-                             this property can take.
+        :arg choices:    List of values, the possible values that this property
+                         can take.
 
-        :param list labels:  List of string labels, one for each choice,
-                             to be used for display purposes.
+        :arg labels:     List of string labels, one for each choice, to be used
+                         for display purposes. 
+
+        :arg alternates: A list of lists, specificying alternate acceptable
+                         values for each choice. Can also be a dict of
+                         ``{choice : [alternates]}`` mappings. All alternate
+                         values must be unique - different choices cannot have
+                         equivalent alternate values.
         """
 
         if choices is None:
-            choices = []
-            labels  = []
+            choices    = []
+            labels     = {}
+            alternates = {}
 
         elif isinstance(choices, dict):
-            choices, labels = zip(*choices.items())
+            labels  = dict(choices)
+            choices = choices.keys()
 
         elif labels is None:
-            labels = map(str, choices)
+            labels = {c : c for c in choices}
+
+        # Labels are stored as a dict
+        # of { choice : label } mappings
+        if isinstance(labels, (list, tuple)):
+            labels = {c : l for (c, l) in zip(choices, labels)}
+
+        # Alternates are stored twice:
+        # 
+        #   - As a dict of { choice    : [alternate] } mappings
+        #   - As a dict of { alternate : choice      } mappings
+        if alternates is None:
+            alternates = {c : [] for c in choices}
+
+        elif isinstance(alternates, dict):
+            alternates = dict(alternates)
+
+        elif isinstance(alternates, (list, tuple)):
+            alternates = {c : list(a) for (c, a) in zip(choices, alternates)}
+
+        # Generate the second alternates dict
+        altLists   = alternates
+        alternates = self.__generateAlternatesDict(altLists)
+
+        # Enabled flags are stored as a dict
+        # of {choice : bool} mappings
+        enabled = {choice: True for choice in choices}
 
         if len(choices) > 0: default = choices[0]
         else:                default = None
 
-        if len(choices) != len(labels):
-            raise ValueError('A label is required for every choice')
+        if len(choices) != len(labels) or len(choices) != len(altLists):
+            raise ValueError('Labels/alternates are required for every choice')
 
         kwargs['choices']       = list(choices)
-        kwargs['labels']        = list(labels)
+        kwargs['labels']        = dict(labels)
+        kwargs['alternates']    = dict(alternates)
+        kwargs['altLists']      = dict(altLists)
+        kwargs['choiceEnabled'] = enabled
         kwargs['default']       = kwargs.get('default',      default)
         kwargs['allowInvalid']  = kwargs.get('allowInvalid', False)
-        kwargs['choiceEnabled'] = {choice: True for choice in choices}
 
         props.PropertyBase.__init__(self, **kwargs)
 
         
     def enableChoice(self, choice, instance=None):
-        """Enables the given choice.
-        """
+        """Enables the given choice. """
         choiceEnabled = dict(self.getConstraint(instance, 'choiceEnabled'))
         choiceEnabled[choice] = True
         self.setConstraint(instance, 'choiceEnabled', choiceEnabled)
@@ -350,73 +385,135 @@ class Choice(props.PropertyBase):
         return self.getConstraint(instance, 'choiceEnabled')[choice]
 
     
+    def getChoices(self, instance=None):
+        """Returns a list of the current choices. """
+        return list(self.getConstraint(instance, 'choices'))
+
+    
     def getLabels(self, instance=None):
         """Returns a list of the current choice labels. """
-        return list(self.getConstraint(instance, 'labels'))
+        choices = self.getConstraint(instance, 'choices')
+        labels  = self.getConstraint(instance, 'labels')
+        
+        return [labels[c] for c in choices]        
+
+    
+    def getAlternates(self, instance=None):
+        """Returns a list of the current acceptable alternate values for each
+        choice.
+        """
+        choices  = self.getConstraint(instance, 'choices')
+        altLists = self.getConstraint(instance, 'altLists')
+        
+        return [altLists[c] for c in choices]
 
     
     def updateChoice(self,
                      choice,
                      newChoice=None,
                      newLabel=None,
+                     newAlt=None,
                      instance=None):
         """Updates the choice value and/or label for the specified choice. """
 
-        choices = list(self.getConstraint(instance, 'choices'))
-        labels  = list(self.getConstraint(instance, 'labels'))
-        idx     = choices.index(choice) 
+        choices    = list(self.getConstraint(instance, 'choices'))
+        labels     = dict(self.getConstraint(instance, 'labels'))
+        altLists   = dict(self.getConstraint(instance, 'altLists'))
+        idx        = choices.index(choice) 
 
-        if newChoice is not None: choices[idx] = newChoice
-        if newLabel  is not None: labels[ idx] = newLabel
+        if newChoice is not None:
+            choices[ idx]       = newChoice
+            labels[  newChoice] = labels[  choice]
+            altLists[newChoice] = altLists[choice]
 
-        self._updateChoices(choices, labels, instance)
+            altLists.pop(choice)
+            labels  .pop(choice)
+        else:
+            newChoice = choice
+            
+        if newLabel  is not None: labels[  newChoice] = newLabel
+        if newAlt    is not None: altLists[newChoice] = list(newAlt)
+
+        self.__updateChoices(choices, labels, altLists, instance)
 
 
-    def getChoices(self, instance=None):
-        """Returns a list of the current choices. """
-        return list(self.getConstraint(instance, 'choices'))
-        
-        
-    def setChoices(self, choices, labels=None, instance=None):
-        """Sets the list of possible choices (and their labels, if not None).
+    def setChoices(self, choices, labels=None, alternates=None, instance=None):
+        """Sets the list of possible choices (and their labels/alternate
+        values, if not None).
         """
-        if labels is None: labels = map(str, choices)
+        if labels is None:
+            labels = {c : c  for c in choices}
+        elif isinstance(labels, (list, tuple)):
+            labels = {c : l for (c, l) in zip(choices, labels)}
+        elif isinstance(labels, dict):
+            labels = dict(labels)
 
-        if len(choices) != len(labels):
-            raise ValueError('A label is required for every choice')
+        if alternates is None:
+            alternates = {c : [] for c in choices}
+        elif isinstance(alternates, (list, tuple)):
+            alternates = {c : a for (c, a) in zip(choices, alternates)}
+        elif isinstance(alternates, dict):
+            alternates = dict(alternates) 
 
-        self._updateChoices(choices, labels, instance)
+        if len(choices) != len(labels) or len(choices) != len(alternates):
+            raise ValueError('Labels/alternates are '
+                             'required for every choice')
+
+        self.__updateChoices(choices, labels, alternates, instance)
 
 
-    def addChoice(self, choice, label=None, instance=None):
+    def addChoice(self, choice, label=None, alternate=None, instance=None):
         """Adds a new choice to the list of possible choices."""
 
-        if label is None:
-            label = choice
+        if label     is None: label     = choice
+        if alternate is None: alternate = []
 
-        choices = list(self.getConstraint(instance, 'choices'))
-        labels  = list(self.getConstraint(instance, 'labels'))
+        choices  = list(self.getConstraint(instance, 'choices'))
+        labels   = dict(self.getConstraint(instance, 'labels'))
+        altLists = dict(self.getConstraint(instance, 'altLists'))
 
         choices.append(choice)
-        labels .append(label)
+        labels[  choice] = label
+        altLists[choice] = list(alternate)
 
-        self._updateChoices(choices, labels, instance)
+        self.__updateChoices(choices, labels, altLists, instance)
 
             
     def removeChoice(self, choice, instance=None):
         """Removes the specified choice from the list of possible choices. """
         
-        choices = list(self.getConstraint(instance, 'choices'))
-        labels  = list(self.getConstraint(instance, 'labels'))
-        index   = choices.index(choice)
+        choices   = list(self.getConstraint(instance, 'choices'))
+        labels    = dict(self.getConstraint(instance, 'labels'))
+        altLists  = dict(self.getConstraint(instance, 'altLists'))
 
-        choices.pop(index)
-        labels .pop(index)
+        choices .remove(choice)
+        labels  .pop(   choice)
+        altLists.pop(   choice)
 
-        self._updateChoices(choices, labels, instance)
+        self.__updateChoices(choices, labels, altLists, instance)
 
 
-    def _updateChoices(self, choices, labels, instance=None):
+    def __generateAlternatesDict(self, altLists):
+        """Given a dictionary containing ``{choice : [alternates]}``
+        mappings, creates and returns a dictionary containing
+        ``{alternate : choice}`` mappings.
+
+        Raises a ``ValueError`` if there are any duplicate alternate values.
+        """
+
+        alternates = {}
+
+        for choice, altList in altLists.items():
+            for alt in altList:
+                if alt in alternates:
+                    raise ValueError('Duplicate alternate value '
+                                     '(choice: {}): {}'.format(choice, alt))
+                alternates[alt] = choice
+
+        return alternates
+
+
+    def __updateChoices(self, choices, labels, alternates, instance=None):
         
         propVal    = self.getPropVal(   instance)
         default    = self.getConstraint(instance, 'default')
@@ -441,8 +538,13 @@ class Choice(props.PropertyBase):
         if default not in choices:
             default = choices[0]
 
+        altLists   = alternates
+        alternates = self.__generateAlternatesDict(altLists)
+
         self.setConstraint(instance, 'choiceEnabled', newEnabled)
         self.setConstraint(instance, 'labels',        labels)
+        self.setConstraint(instance, 'altLists',      altLists)
+        self.setConstraint(instance, 'alternates',    alternates)
         self.setConstraint(instance, 'choices',       choices)
         self.setConstraint(instance, 'default',       default)
 
@@ -469,18 +571,29 @@ class Choice(props.PropertyBase):
         """
         props.PropertyBase.validate(self, instance, attributes, value)
 
-        enabled = self.getConstraint(instance, 'choiceEnabled')
-        choices = self.getChoices(instance)
-
+        choices    = self.getConstraint(instance, 'choices')
+        enabled    = self.getConstraint(instance, 'choiceEnabled')
+        alternates = self.getConstraint(instance, 'alternates')
+        
         if len(choices) == 0: return
         if value is None:     return
 
-        if value not in choices:
+        # Check to see if this is an 
+        # acceptable alternate value
+        altValue = alternates.get(value, None)
+
+        if value not in choices and altValue not in choices:
             raise ValueError('Invalid choice ({})'    .format(value))
-        if value not in enabled.keys():
-            raise ValueError('Invalid choice ({})'    .format(value)) 
-        if not enabled[value]:
+        
+        if not enabled.get(value, False):
             raise ValueError('Choice is disabled ({})'.format(value))
+
+
+    def cast(self, instance, attributes, value):
+        """
+        """
+        alternates = self.getConstraint(instance, 'alternates')
+        return alternates.get(value, value)
                 
 
 
