@@ -237,30 +237,46 @@ def _Choice(parser,
             shortArg,
             longArg,
             choices=None,
-            default=None):
+            default=None,
+            useAlts=True):
     """Adds an argument to the given parser for the given
     :class:`~props.properties_types.Choice` property. See the
     :func:`_String` documentation for details on the parameters.
 
-    :arg choices: If not ``None``, assumed to be list of possible
-                  choices for the property. If ``None``, the possible
-                  choices are taken from the :meth:`.Choice.getChoices`
-                  method.
+    Only works with ``Choice`` properties with string options (unless
+    the ``choices`` argument is provided).
 
-    :arg default: If not ``None``, gives the default value. Otherwise,
-                  the ``default`` constraint of the :class:`.Choice`
-                  object is used.
+    :arg choices:       If not ``None``, assumed to be list of possible
+                        choices for the property. If ``None``, the possible
+                        choices are taken from the :meth:`.Choice.getChoices`
+                        method.
+
+    :arg default:       If not ``None``, gives the default value. Otherwise,
+                        the ``default`` constraint of the :class:`.Choice`
+                        object is used.
+
+    :arg useAlts:       If ``True`` (the default), alternate values for the 
+                        choices are added as options (see the :class:`.Choice`
+                        class).
     """
 
     if choices is None:
         choices = propObj.getChoices()
+
+    if useAlts:
+        alternates = propObj.getAlternates()
+
+        for altList in alternates:
+            choices += [a for a in altList]
         
     if default is None:
         default = propObj.getConstraint(None, 'default')
 
+    choices = set(choices)
+
     parser.add_argument(shortArg,
                         longArg,
-                        type=type(default),
+                        type=str,
                         help=propHelp,
                         choices=choices)
     
@@ -395,7 +411,8 @@ def _ColourMap(
         except:
             raise argparse.ArgumentTypeError(
                 'Unknown colour map: {}'.format(cmapName))
-    
+
+    # TODO List all registered colour maps as choices.
     parser.add_argument(shortArg,
                         longArg,
                         help=propHelp,
