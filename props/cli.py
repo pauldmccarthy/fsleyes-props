@@ -377,7 +377,21 @@ def _ColourMap(
     # instance given its name
     def parse(cmapName):
         try:
+            cmapKeys   = mplcm.cmap_d.keys()
+            cmapNames  = [cm.name for cm in mplcm.cmap_d.values()]
+            
+            lCmapNames = map(lambda s: s.lower(), cmapNames)
+            lCmapKeys  = map(lambda s: s.lower(), cmapKeys)
+
+            cmapName = cmapName.lower()
+            
+            try:    idx = lCmapKeys .index(cmapName)
+            except: idx = lCmapNames.index(cmapName)
+
+            cmapName = cmapKeys[idx]
+            
             return mplcm.get_cmap(cmapName)
+        
         except:
             raise argparse.ArgumentTypeError(
                 'Unknown colour map: {}'.format(cmapName))
