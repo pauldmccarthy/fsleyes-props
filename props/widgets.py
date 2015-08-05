@@ -534,8 +534,8 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
     # list of available colour maps change. I'm 
     # storing each of them in a list, so the inner
     # functions will have access to updated versions.
-    cmapNames = [propVal.getAttribute('cmapNames')]
-    cmapObjs  = [map(mplcm.get_cmap, cmapNames[0])]
+    cmapKeys = [propObj.getColourMaps(hasProps)]
+    cmapObjs = [map(mplcm.get_cmap, cmapKeys[0])]
 
     # create the combobox
     cbox = wx.combo.BitmapComboBox(
@@ -560,9 +560,9 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
     # options displayed in the combobox 
     def cmapsChanged(*a):
 
-        selected     = cbox.GetSelection()
-        cmapNames[0] = propVal.getAttribute('cmapNames')
-        cmapObjs[ 0] = map(mplcm.get_cmap, cmapNames[0])
+        selected    = cbox.GetSelection()
+        cmapKeys[0] = propObj.getColourMaps(hasProps)
+        cmapObjs[0] = map(mplcm.get_cmap, cmapKeys[0])
 
         cbox.Clear()
 
@@ -577,7 +577,9 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
 
         # Make a little bitmap for every colour
         # map, and add it to the combobox
-        for name, cmap in zip(cmapNames[0], cmapObjs[0]):
+        for cmap in cmapObjs[0]:
+
+            name = cmap.name
             
             bitmap = _makeColourMapBitmap(cmap)
             cbox.Append(name, bitmap)
@@ -618,9 +620,9 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
         'ColourMap_ComboBox_{}'.format(id(cbox)), cmapsChanged, weak=False)
 
     # Set the initial combobox selection
-    currentVal = propVal.get().name
+    currentVal = propVal.get()
     if currentVal is None: currentVal = 0
-    else:                  currentVal = cmapNames[0].index(currentVal)
+    else:                  currentVal = cmapObjs[0].index(currentVal)
 
     cbox.SetSelection(currentVal)
  

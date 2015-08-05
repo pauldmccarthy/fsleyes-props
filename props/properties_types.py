@@ -14,11 +14,11 @@ import os.path as op
 
 import collections
 
-import matplotlib.colors as mplcolors
 import matplotlib.cm     as mplcm
+import matplotlib.colors as mplcolors
 
-import properties       as props
-import properties_value as propvals
+import properties        as props
+import properties_value  as propvals
 
 
 class Object(props.PropertyBase):
@@ -803,54 +803,107 @@ class Colour(props.PropertyBase):
 class ColourMap(props.PropertyBase):
     """A property which encapsulates a :class:`matplotlib.colors.Colormap`.
 
-    ColourMap values may be specified either as a
+    A ``ColourMap`` property can take any ``Colormap`` instance as its
+    value. ColourMap values may be specified either as a
     :class:`matplotlib.colors.Colormap` instance, or as a string containing
     the name of a registered colour map instance.
+
+    ``ColourMap`` properties also maintain an internal list of colour
+    map names; while these names do not restrict the value that a ``ColourMap``
+    property can take, they are used for display purposes - a widget which is
+    created for a ``ColourMap`` instance will only display the options returned
+    by the :meth:`getColourMaps` method..
     """
 
-    def __init__(self, cmapNames=None, **kwargs):
+    def __init__(self, cmaps=None, **kwargs):
         """Define a :class:`ColourMap` property.
-        
-        If a default value is not given, the :data:`matplotlib.cm.Greys_r`
-        colour map is used. Or, if ``cmapNames`` is not ``None``, the first
-        name is used.
-
-        :param cmapNames: List of strings, the names of possible colour maps
-                          (must be registered with the :mod:`matplotlib.cm`
-                          module). If ``None``, all registered colour maps
-                          are used.
         """
 
         default = kwargs.get('default', None)
 
-        if default is None:
-            if cmapNames is None: default = mplcm.Greys_r
-            else:                 default = mplcm.get_cmap(cmapNames[0])
-
-        elif isinstance(default, str):
-            default = mplcm.get_cmap(default)
+        if cmaps is None:
+            cmaps = []
             
-        elif not isinstance(default, mplcolors.Colormap):
-            raise ValueError(
-                'Invalid  ColourMap default: '.format(
-                    default.__class__.__name__))
- 
-        if cmapNames is None:
-            cmapNames = sorted(mplcm.cmap_d.keys())
+        if default is None and len(cmaps) > 0:
+            default = cmaps[0]
+
+        kwargs['default'] = default
+        kwargs['cmaps']   = list(cmaps)
         
-        kwargs['cmapNames'] = cmapNames
-        kwargs['default']   = default
         props.PropertyBase.__init__(self, **kwargs)
 
+        
+    def setColourMaps(self, cmaps, instance=None):
+        """Set the colour maps for this property.
+
+        :arg cmaps: a list of registered colour map names.
+        """
+
+        default = self.getConstraint(instance, 'default')
+
+        if default not in cmaps:
+            default = cmaps[0]
+
+        self.setConstraint(instance, 'cmaps'  , cmaps)
+        self.setConstraint(instance, 'default', default)
+
+
+    def addColourMap(self, cmap, instance=None):
+        """Add a colour map to the list.
+
+        :arg cmap: The name of a registered colour map.
+        """
+
+        cmaps = self.getColourMaps(instance)
+        
+        if cmap not in cmaps:
+            cmaps.append(cmap)
+            self.setColourMaps(cmaps, instance)
+
+    
+    def getColourMaps(self, instance=None):
+        """Returns a list containing the names of registered colour maps
+        available for this property.
+        """
+        return list(self.getConstraint(instance, 'cmaps'))
+
+
+    def validate(self, instance, attributes, value):
+        """Overrides :meth:`~props.properties.PropertyBase.validate`.
+
+        Raises a ``ValueError`` if the given ``value`` is not a
+        matplotlib :class:`.Colormap` instance.
+        """
+
+        if not isinstance(value, mplcolors.Colormap):
+            raise ValueError('Colour map value is not a '
+                             'matplotlib.colors.Colormap instance')
+        
 
     def cast(self, instance, attributes, value):
         """Overrides :meth:`~props.properties.PropertyBase.cast`.
         
         If the provided value is a string, an attempt is made to convert it to
-        a colour map, via the :func:`matplotlib.cm.get_cmap` function.
+        a colour map, via the :func:`matplotlib.cm.get_cmap` function. The
+        value may either be the registered colour map name, or its
+        ``Colormap.name`` attribute. The match is case-insensitive.
         """
 
         if isinstance(value, str):
+
+            # Case insensitive match
+            cmapKeys   = mplcm.cmap_d.keys()
+            cmapNames  = [cm.name for cm in mplcm.cmap_d.values()]
+            
+            lCmapNames = map(lambda s: s.lower(), cmapNames)
+            lCmapKeys  = map(lambda s: s.lower(), cmapKeys)
+
+            value = value.lower()
+            
+            try:    idx = lCmapKeys .index(value)
+            except: idx = lCmapNames.index(value)
+
+            value = cmapKeys[idx]
             value = mplcm.get_cmap(value)
             
         return value
