@@ -317,7 +317,7 @@ class Choice(props.PropertyBase):
             choices = choices.keys()
 
         elif labels is None:
-            labels = {c : c for c in choices}
+            labels = {c : str(c) for c in choices}
 
         # Labels are stored as a dict
         # of { choice : label } mappings
