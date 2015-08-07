@@ -18,7 +18,6 @@ from collections import Iterable
 
 import wx
 import wx.combo
-import wx.lib.buttons as wxbtns
 
 import numpy         as np
 import matplotlib.cm as mplcm
@@ -460,22 +459,14 @@ def _Percentage(parent, hasProps, propObj, propVal, **kwargs):
     return _Number(parent, hasProps, propObj, propVal, **kwargs) 
         
 
-def _Boolean(parent,
-             hasProps,
-             propObj,
-             propVal,
-             icon=None,
-             maxSize=None,
-             **kwargs):
+def _Boolean(parent, hasProps, propObj, propVal, icon=None, **kwargs):
     """Creates and returns a :class:`wx.CheckBox`, allowing the user to set the
     given :class:`~props.properties_types.Boolean` property value.
 
-    If the ``icon`` argument is provided, it should be the name of an icon
-    file. In this case, a :class:`wx.BitmapToggleButton` is used instead of a
-    ``CheckBox``.
-
-    If ``maxSize`` is provided, the icon size (width or height, whichever is
-    bigger) is limited to it.
+    If the ``icon`` argument is provided, it should be a string
+    containing the name of an image file. In this case, a
+    :class:`wx.ToggleButton` is used instead of
+    a ``CheckBox``.
 
     See the :func:`_String` documentation for details on the parameters.
     """
@@ -484,32 +475,22 @@ def _Boolean(parent,
         widget = wx.CheckBox(parent)
         event  = wx.EVT_CHECKBOX
     else:
+        bmp    = wx.BitmapFromImage(wx.Image(icon))
 
-        img = wx.Image(icon)
-
-        if maxSize is not None:
-            w, h = img.GetSize().Get()
-
-            if w >= h:
-                h = maxSize * h / float(w)
-                w = maxSize
-            else:
-                w = maxSize * (w / float(h)) 
-                h = maxSize
-
-            img.Rescale(w, h, wx.IMAGE_QUALITY_BICUBIC)
-
-        bmp    = wx.BitmapFromImage(img)
-        widget = wxbtns.GenBitmapToggleButton(parent,
-                                              bitmap=bmp,
-                                              style=wx.BU_EXACTFIT)
-
-        if maxSize is not None:
-            maxSize += 5
-            widget.SetMinSize((maxSize, maxSize))
-            widget.SetMaxSize((maxSize, maxSize))
-            
-        event  = wx.EVT_BUTTON
+        # Gaargh. Under OSX the BU_NOTEXT style
+        # causes a segmentation fault - wtf??
+        # I have to live with the button bitmap
+        # being slightly off centre (a gap is
+        # left to display the empty label)
+        if wx.Platform == '__WXMAC__':
+            widget = wx.ToggleButton(parent, style=wx.BU_EXACTFIT)
+        else:
+            widget = wx.ToggleButton(parent,
+                                     style=wx.BU_EXACTFIT | wx.BU_NOTEXT)
+        event  = wx.EVT_TOGGLEBUTTON
+        
+        widget.SetBitmap(bmp)
+        widget.SetBitmapMargins(0, 0)
 
     _propBind(hasProps, propObj, propVal, widget, event)
     return widget

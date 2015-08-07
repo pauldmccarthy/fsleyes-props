@@ -97,6 +97,8 @@ This all sounds a bit convoluted, but in practice is pretty simple.  Example::
 """
 
 import logging
+
+
 log = logging.getLogger(__name__)
 
 
@@ -186,15 +188,31 @@ class Button(ViewItem):
     :class:`wx.Button` instance.
     """
 
-    def __init__(self, key=None, text=None, callback=None, **kwargs):
+    def __init__(self,
+                 key=None,
+                 text=None,
+                 callback=None,
+                 icon=None,
+                 **kwargs):
+        """
+        If the ``icon`` argument is provided, it is used instead of any
+        specified ``text``. The ``icon`` should be a string containing the
+        name of the image file.
+
+        :arg key:
+        :arg text:
+        :arg callback:
+        :arg icon:
+        """
         self.callback = callback
+        self.icon     = icon
         self.text     = text
         ViewItem.__init__(self, key, **kwargs)
 
     def __str__( self): return '{}({})'.format(self.__class__.__name__,
                                                self.text)
-    def __repr__(self): return self.__str__() 
-
+    def __repr__(self): return self.__str__()
+    
 
 class Label(ViewItem):
     """Represents a static text label."""
