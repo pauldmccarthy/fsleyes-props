@@ -27,6 +27,7 @@ import matplotlib.cm as mplcm
 from widgets_list   import _List
 from widgets_bounds import _Bounds
 from widgets_point  import _Point
+from widgets_choice import _Choice
 from widgets_number import _Number
 
 
@@ -314,82 +315,6 @@ def _FilePath(parent, hasProps, propObj, propVal, **kwargs):
     
     return panel
     
-
-def _Choice(parent, hasProps, propObj, propVal, **kwargs):
-    """Creates and returns a :class:`wx.Combobox` allowing the user to set the
-    given ``propObj`` (props.Choice) object.
-
-    See the :func:`_String` documentation for details on the parameters.
-    """
-
-    choices = propObj.getChoices(hasProps)
-    labels  = propObj.getLabels( hasProps)
-    cl      = filter(lambda (c, l): propObj.choiceEnabled(c, hasProps),
-                     zip(choices, labels))
-
-    if len(cl) > 0: choices, labels = zip(*cl)
-    else:           choices, labels = [], []
-
-    widget = wx.Choice(parent, choices=labels)
-
-    def widgetGet():
-        choices = propObj.getChoices(hasProps)
-        
-        if len(choices) > 0: return choices[widget.GetSelection()]
-        else:                return None
-
-    def widgetSet(value):
-        choices = propObj.getChoices(hasProps)
-        
-        if len(choices) > 0: return widget.SetSelection(choices.index(value))
-        else:                return None
-
-    # Update the combobox choices
-    # when they change.
-    def choicesChanged(ctx, name, *a):
-
-        if name not in ('choices', 'labels', 'choiceEnabled'):
-            return
-
-        choices = propObj.getChoices(hasProps)
-        labels  = propObj.getLabels( hasProps)
-
-        # Remove any disabled choices from the list.
-        # It would be nice if wx.ComboBox allowed
-        # us to enable/disable individual items.
-        for i, choice in enumerate(choices):
-            if not propObj.choiceEnabled(choice, hasProps):
-                labels.pop(i)
-
-        log.debug('Updating options for Widget '
-                  '{} ({}) from {}.{} ({}): {}'.format(
-                      widget.__class__.__name__,
-                      id(widget),
-                      hasProps.__class__.__name__,
-                      propVal._name,
-                      id(hasProps),
-                      labels))
-
-        widget.Set(labels)
-        widgetSet(propVal.get())
-
-    listenerName = 'WidgetChoiceUpdate_{}'.format(id(widget))
-    propVal.addAttributeListener(listenerName, choicesChanged, weak=False)
-
-    def onDestroy(ev):
-        propVal.removeAttributeListener(listenerName)
-
-    _propBind(hasProps,
-              propObj,
-              propVal,
-              widget,
-              wx.EVT_CHOICE,
-              widgetGet,
-              widgetSet,
-              widgetDestroy=onDestroy)
-    
-    return widget
-
 
 def _String(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a :class:`wx.TextCtrl` object, allowing the user to
