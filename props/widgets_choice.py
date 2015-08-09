@@ -46,7 +46,12 @@ def _Choice(parent,
     if icons is not None:
         event  = bmpradio.EVT_BITMAP_RADIO_EVENT
         widget = bmpradio.BitmapRadioBox(parent, maxSize=maxSize, style=style)
-        widget.Set([icons[c] for c in choices])
+        icons  = [icons[c] for c in choices]
+        
+        for icon in icons:
+            bmp = wx.EmptyBitmap(1, 1)
+            bmp.LoadFile(icon, type=wx.BITMAP_TYPE_PNG)
+            widget.AddChoice(bmp)
         
     else:
         event  = wx.EVT_CHOICE

@@ -400,7 +400,13 @@ def _Boolean(parent, hasProps, propObj, propVal, icon=None, **kwargs):
         widget = wx.CheckBox(parent)
         event  = wx.EVT_CHECKBOX
     else:
-        bmp    = wx.BitmapFromImage(wx.Image(icon))
+
+        # Load the bitmap using this two-stage
+        # approach, because under OSX, any other
+        # way will not load the retina '@2x'
+        # icon version (if it is present).
+        bmp = wx.EmptyBitmap(1, 1)
+        bmp.LoadFile(icon, wx.BITMAP_TYPE_PNG)
 
         # Gaargh. Under OSX the BU_NOTEXT style
         # causes a segmentation fault - wtf??

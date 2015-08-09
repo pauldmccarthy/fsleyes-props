@@ -405,13 +405,15 @@ def _createButton(parent, viewItem, hasProps, propGui):
     elif viewItem.key   is not None: btnText = viewItem.key
 
     if viewItem.icon is not None:
-        bmp    = wx.BitmapFromImage(wx.Image(viewItem.icon))
+
+        bmp = wx.EmptyBitmap(1, 1)
+        bmp.LoadFile(viewItem.icon, wx.BITMAP_TYPE_PNG)
 
         # BU_NOTEXT causes segfault under OSX
-        if wx.Platform == '__WXMAC__':
-            button = wx.Button(parent, style=wx.BU_EXACTFIT)
-        else:
-            button = wx.Button(parent, style=wx.BU_EXACTFIT | wx.BU_NOTEXT) 
+        if wx.Platform == '__WXMAC__': style = wx.BU_EXACTFIT
+        else:                          style = wx.BU_EXACTFIT | wx.BU_NOTEXT
+
+        button = wx.Button(parent, style=style)
         button.SetBitmap(bitmap=bmp)
     else:
         button = wx.Button(parent, label=btnText)
