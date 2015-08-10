@@ -22,6 +22,8 @@ import wx.combo
 import numpy         as np
 import matplotlib.cm as mplcm
 
+import pwidgets.bitmapradio as bmpradio
+
 # These properties are complex
 # enough to get their own modules.
 from widgets_list   import _List
@@ -384,22 +386,33 @@ def _Percentage(parent, hasProps, propObj, propVal, **kwargs):
     return _Number(parent, hasProps, propObj, propVal, **kwargs) 
         
 
-def _Boolean(parent, hasProps, propObj, propVal, icon=None, **kwargs):
+def _Boolean(parent,
+             hasProps,
+             propObj,
+             propVal,
+             icon=None,
+             style=None,
+             **kwargs):
     """Creates and returns a :class:`wx.CheckBox`, allowing the user to set the
     given :class:`~props.properties_types.Boolean` property value.
 
     If the ``icon`` argument is provided, it should be a string
-    containing the name of an image file. In this case, a
-    :class:`wx.ToggleButton` is used instead of
-    a ``CheckBox``.
+    containing the name of an image file, or a list of two image file names.
+    In the former case, a :class:`wx.ToggleButton` is used instead of
+    a ``CheckBox``. In the latter case, a :class:`.BitmapRadioBox` is
+    used.
 
     See the :func:`_String` documentation for details on the parameters.
     """
 
+    widgetGet = None
+    widgetSet = None
+
     if icon is None:
         widget = wx.CheckBox(parent)
         event  = wx.EVT_CHECKBOX
-    else:
+        
+    elif isinstance(icon, basestring):
 
         # Load the bitmap using this two-stage
         # approach, because under OSX, any other
@@ -423,7 +436,36 @@ def _Boolean(parent, hasProps, propObj, propVal, icon=None, **kwargs):
         widget.SetBitmap(bmp)
         widget.SetBitmapMargins(0, 0)
 
-    _propBind(hasProps, propObj, propVal, widget, event)
+    else:
+        trueBmp  = wx.EmptyBitmap(1, 1)
+        falseBmp = wx.EmptyBitmap(1, 1)
+
+        trueBmp .LoadFile(icon[0], wx.BITMAP_TYPE_PNG)
+        falseBmp.LoadFile(icon[1], wx.BITMAP_TYPE_PNG)
+
+        widget = bmpradio.BitmapRadioBox(parent, style)
+        event  = bmpradio.EVT_BITMAP_RADIO_EVENT
+
+        widget.AddChoice(trueBmp)
+        widget.AddChoice(falseBmp)
+
+        def widgetGet():
+            return widget.GetSelection() == 0
+
+        def widgetSet(val):
+            if val: widget.SetSelection(0)
+            else:   widget.SetSelection(1)
+
+        widgetSet(propVal.get())
+
+            
+    _propBind(hasProps,
+              propObj,
+              propVal,
+              widget,
+              event,
+              widgetGet=widgetGet,
+              widgetSet=widgetSet)
     return widget
 
 

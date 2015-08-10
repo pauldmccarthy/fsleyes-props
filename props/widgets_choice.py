@@ -22,7 +22,6 @@ def _Choice(parent,
             propObj,
             propVal,
             icons=None,
-            maxSize=None,
             style=None,
             **kwargs):
     """Creates and returns a :class:`wx.Choice` allowing the user to set the
@@ -45,7 +44,7 @@ def _Choice(parent,
 
     if icons is not None:
         event  = bmpradio.EVT_BITMAP_RADIO_EVENT
-        widget = bmpradio.BitmapRadioBox(parent, maxSize=maxSize, style=style)
+        widget = bmpradio.BitmapRadioBox(parent, style=style)
         icons  = [icons[c] for c in choices]
         
         for icon in icons:
