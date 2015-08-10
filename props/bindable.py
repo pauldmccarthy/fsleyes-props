@@ -282,18 +282,13 @@ def _bindListProps(self,
 
     # This mapping is stored on the PVL objects,
     # and used by the _syncListPropVals function
-    #
-    # We use a WeakKeyDictionary containing
-    # { PVL : propValMap } mappings, so that
-    # this reference does not stop bound PVLS
-    # from being GC'd when they are no longer
-    # in use.
-    wkd = weakref.WeakKeyDictionary
-    myPropValMaps    = getattr(myPropVal,    '_listPropValMaps', wkd())
-    otherPropValMaps = getattr(otherPropVal, '_listPropValMaps', wkd())
+    myPropValMaps    = getattr(myPropVal,    '_listPropValMaps', {})
+    otherPropValMaps = getattr(otherPropVal, '_listPropValMaps', {})
 
-    myPropValMaps[   otherPropVal] = propValMap
-    otherPropValMaps[myPropVal]    = propValMap
+    # We can't use the PropValList objects as
+    # keys, because they are not hashable. 
+    myPropValMaps[   id(otherPropVal)] = propValMap
+    otherPropValMaps[id(myPropVal)]    = propValMap
 
     myPropVal   ._listPropValMaps = myPropValMaps
     otherPropVal._listPropValMaps = otherPropValMaps
@@ -402,7 +397,7 @@ def _syncPropValLists(masterList, slaveList):
     removal, or a re-ordering) to the ``slaveList``.
     """
 
-    propValMap = masterList._listPropValMaps[slaveList]
+    propValMap = masterList._listPropValMaps[id(slaveList)]
 
     # If the change was due to the values of one or more PV
     # items changing (as opposed to a list modification -

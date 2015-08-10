@@ -287,6 +287,10 @@ class PropertyValue(object):
         return self.__repr__()
 
 
+    def __hash__(self):
+        return id(self)
+
+
     def __eq__(self, other):
         """Returns ``True`` if the given object has the same value as this
         instance. Returns ``False`` otherwise.
