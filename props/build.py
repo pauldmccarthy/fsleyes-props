@@ -410,8 +410,10 @@ def _createButton(parent, viewItem, hasProps, propGui):
         bmp.LoadFile(viewItem.icon, wx.BITMAP_TYPE_PNG)
 
         # BU_NOTEXT causes segfault under OSX
-        if wx.Platform == '__WXMAC__': style = wx.BU_EXACTFIT
-        else:                          style = wx.BU_EXACTFIT | wx.BU_NOTEXT
+        if wx.Platform == '__WXMAC__':
+            style = wx.BU_EXACTFIT | wx.ALIGN_CENTRE
+        else:
+            style = wx.BU_EXACTFIT | wx.ALIGN_CENTRE | wx.BU_NOTEXT
 
         button = wx.Button(parent, style=style)
         button.SetBitmap(bitmap=bmp)
@@ -894,7 +896,7 @@ def buildGUI(parent,
              view=None,
              labels=None,
              tooltips=None,
-             showUnlink=True):
+             showUnlink=False):
     """Builds a GUI interface which allows the properties of the given
     :class:`~props.properties.HasProperties` object to be edited.
     
@@ -966,7 +968,7 @@ def buildDialog(parent,
                 view=None,
                 labels=None,
                 tooltips=None,
-                showUnlink=True,
+                showUnlink=False,
                 dlgButtons=True):
     """Convenience method which embeds the result of a call to
     :func:`buildGUI` in a :class:`wx.Dialog`.
