@@ -7,7 +7,6 @@
 """Generate wx GUI widgets for :class:`.PropertyBase` objects. """
 
 import logging
-log = logging.getLogger(__name__)
 
 import sys
 
@@ -22,15 +21,19 @@ import wx.combo
 import numpy         as np
 import matplotlib.cm as mplcm
 
-import pwidgets.bitmapradio as bmpradio
+import pwidgets.colourbutton as colourbtn
 
 # These properties are complex
 # enough to get their own modules.
-from widgets_list   import _List
-from widgets_bounds import _Bounds
-from widgets_point  import _Point
-from widgets_choice import _Choice
-from widgets_number import _Number
+from widgets_list    import _List
+from widgets_bounds  import _Bounds
+from widgets_point   import _Point
+from widgets_choice  import _Choice
+from widgets_boolean import _Boolean
+from widgets_number  import _Number
+
+
+log = logging.getLogger(__name__)
 
 
 def _propBind(hasProps,
@@ -386,112 +389,32 @@ def _Percentage(parent, hasProps, propObj, propVal, **kwargs):
     return _Number(parent, hasProps, propObj, propVal, **kwargs) 
         
 
-def _Boolean(parent,
-             hasProps,
-             propObj,
-             propVal,
-             icon=None,
-             style=None,
-             **kwargs):
-    """Creates and returns a :class:`wx.CheckBox`, allowing the user to set the
-    given :class:`~props.properties_types.Boolean` property value.
-
-    If the ``icon`` argument is provided, it should be a string
-    containing the name of an image file, or a list of two image file names.
-    In the former case, a :class:`wx.ToggleButton` is used instead of
-    a ``CheckBox``. In the latter case, a :class:`.BitmapRadioBox` is
-    used.
-
-    See the :func:`_String` documentation for details on the parameters.
-    """
-
-    widgetGet = None
-    widgetSet = None
-
-    if icon is None:
-        widget = wx.CheckBox(parent)
-        event  = wx.EVT_CHECKBOX
-        
-    elif isinstance(icon, basestring):
-
-        # Load the bitmap using this two-stage
-        # approach, because under OSX, any other
-        # way will not load the retina '@2x'
-        # icon version (if it is present).
-        bmp = wx.EmptyBitmap(1, 1)
-        bmp.LoadFile(icon, wx.BITMAP_TYPE_PNG)
-
-        # Gaargh. Under OSX the BU_NOTEXT style
-        # causes a segmentation fault - wtf??
-        # I have to live with the button bitmap
-        # being slightly off centre (a gap is
-        # left to display the empty label)
-        if wx.Platform == '__WXMAC__':
-            widget = wx.ToggleButton(parent, style=wx.BU_EXACTFIT)
-        else:
-            widget = wx.ToggleButton(parent,
-                                     style=wx.BU_EXACTFIT | wx.BU_NOTEXT)
-        event  = wx.EVT_TOGGLEBUTTON
-        
-        widget.SetBitmap(bmp)
-        widget.SetBitmapMargins(0, 0)
-
-    else:
-        trueBmp  = wx.EmptyBitmap(1, 1)
-        falseBmp = wx.EmptyBitmap(1, 1)
-
-        trueBmp .LoadFile(icon[0], wx.BITMAP_TYPE_PNG)
-        falseBmp.LoadFile(icon[1], wx.BITMAP_TYPE_PNG)
-
-        widget = bmpradio.BitmapRadioBox(parent, style)
-        event  = bmpradio.EVT_BITMAP_RADIO_EVENT
-
-        widget.AddChoice(trueBmp)
-        widget.AddChoice(falseBmp)
-
-        def widgetGet():
-            return widget.GetSelection() == 0
-
-        def widgetSet(val):
-            if val: widget.SetSelection(0)
-            else:   widget.SetSelection(1)
-
-        widgetSet(propVal.get())
-
-            
-    _propBind(hasProps,
-              propObj,
-              propVal,
-              widget,
-              event,
-              widgetGet=widgetGet,
-              widgetSet=widgetSet)
-    return widget
-
-
-def _Colour(parent, hasProps, propObj, propVal, **kwargs):
+def _Colour(parent, hasProps, propObj, propVal, size=(16, 16), **kwargs):
     """Creates and returns a :class:`wx.ColourPickerCtrl` widget, allowing
     the user to modify the given :class:`props.properties_types.Colour`
     value.
     """
-    colourPicker = wx.ColourPickerCtrl(parent)
+
+    colourButton = colourbtn.ColourButton(parent, size=size)
 
     def widgetGet():
-        vals = colourPicker.GetColour()
+
+        vals = colourButton.GetValue()
         return [v / 255.0 for v in vals]
     
     def widgetSet(vals):
-        colourPicker.SetColour([v * 255.0 for v in vals])
+        colour = map(int, [v * 255.0 for v in vals[:3]])
+        colourButton.SetValue(colour)
 
     _propBind(hasProps,
               propObj,
               propVal,
-              colourPicker,
-              wx.EVT_COLOURPICKER_CHANGED,
+              colourButton,
+              colourbtn.EVT_COLOUR_BUTTON_EVENT,
               widgetGet,
               widgetSet)
 
-    return colourPicker
+    return colourButton
 
 
 def _makeColourMapBitmap(cmap):

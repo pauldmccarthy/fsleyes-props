@@ -107,6 +107,7 @@ def _Bounds(parent,
             showLimits=True,
             editLimits=True,
             mousewheel=False,
+            labels=None,
             **kwargs):
     """Creates and returns a panel containing sliders/spinboxes which
     allow the user to edit the low/high values along each dimension of the
@@ -114,11 +115,13 @@ def _Bounds(parent,
     """
 
     ndims    = propObj._ndims
-    labels   = propObj._labels
     panel    = wx.Panel(parent)
     sizer    = wx.BoxSizer(wx.VERTICAL)
 
-    if labels is None: labels = [None] * 2 * ndims
+    if labels is None:
+        labels = propObj._labels
+        if labels is None:
+            labels = [None] * 2 * ndims
     
     panel.SetSizer(sizer)
 
