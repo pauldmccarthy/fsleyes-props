@@ -28,8 +28,9 @@ def _Choice(parent,
     given ``propObj`` (props.Choice) object.
 
     If the ``icons`` parameter is provided, a :class:`.BitmapRadioBox` is
-    used instead of a ``wx.Choice`` widget. The ``icons`` should be a list
-    of strings, specifying the names of image files to use as button icons.
+    used instead of a ``wx.Choice`` widget. The ``icons`` should be a
+    dictionary of ``{ choice : imageFile}`` mappings, containing an icon
+    files to be used for each choice.
 
     See the :func:`_String` documentation for details on the parameters.
     """
@@ -42,15 +43,24 @@ def _Choice(parent,
     if len(cl) > 0: choices, labels = zip(*cl)
     else:           choices, labels = [], []
 
+    # TODO This icon code will not work with
+    # choice properties that have options
+    # dynamically added/removed...
     if icons is not None:
         event  = bmpradio.EVT_BITMAP_RADIO_EVENT
         widget = bmpradio.BitmapRadioBox(parent, style=style)
-        icons  = [icons[c] for c in choices]
-        
-        for icon in icons:
+
+        # Create a bitmap for every choice icon
+        for i, choice in enumerate(choices):
+            
             bmp = wx.EmptyBitmap(1, 1)
-            bmp.LoadFile(icon, type=wx.BITMAP_TYPE_PNG)
+            bmp.LoadFile(icons[choice], type=wx.BITMAP_TYPE_PNG)
+
+            # Replace the icon file name with the bitmap
+            icons[choice] = bmp
             widget.AddChoice(bmp)
+            if not propObj.choiceEnabled(choice, hasProps):
+                widget.Disable(i)
         
     else:
         event  = wx.EVT_CHOICE
@@ -85,12 +95,14 @@ def _Choice(parent,
         choices = propObj.getChoices(hasProps)
         labels  = propObj.getLabels( hasProps)
 
-        # Remove any disabled choices from the list.
-        # It would be nice if wx.ComboBox allowed
+        # If we're using a wx.Choice widget, remove
+        # any disabled choices from the list.
+        # It would be nice if wx.Choice allowed
         # us to enable/disable individual items.
-        for i, choice in enumerate(choices):
-            if not propObj.choiceEnabled(choice, hasProps):
-                labels.pop(i)
+        if icons is None:
+            for i, choice in enumerate(choices):
+                if not propObj.choiceEnabled(choice, hasProps):
+                    labels.pop(i)
 
         log.debug('Updating options for Widget '
                   '{} ({}) from {}.{} ({}): {}'.format(
@@ -101,8 +113,18 @@ def _Choice(parent,
                       id(hasProps),
                       labels))
 
-        if icons is None: widget.Set(labels)
-        else:             widget.Set([icons[c] for c in choices])
+        if icons is None:
+            widget.Set(labels)
+        else:
+
+            # If using a BitmapRadio widget, we can
+            # show all choices, but disable  the
+            # buttons for disabled choices
+            widget.Set([icons[c] for c in choices])
+
+            for i, choice in enumerate(choices):
+                if not propObj.choiceEnabled(choice, hasProps):
+                    widget.Disable(i)
         
         widgetSet(propVal.get())
 

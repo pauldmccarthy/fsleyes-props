@@ -146,6 +146,10 @@ def _propBind(hasProps,
 
     def onDestroy(ev):
         ev.Skip()
+ 
+        if ev.GetEventObject() is not guiObj:
+            return
+        
         log.debug('Widget {} ({}) destroyed (removing '
                   'listener {} from {}.{})'.format(
                       guiObj.__class__.__name__,
