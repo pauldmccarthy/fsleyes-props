@@ -56,6 +56,13 @@ def _Choice(parent,
         event  = wx.EVT_CHOICE
         widget = wx.Choice(parent, choices=labels)
 
+        # Under linux/GTK, choice widgets absorb
+        # mousewheel events. I don't want this.
+        if wx.Platform == '__WXGTK__':
+            def wheel(ev):
+                widget.GetParent().GetEventHandler().ProcessEvent(ev)
+            widget.Bind(wx.EVT_MOUSEWHEEL, wheel)
+
     def widgetGet():
         choices = propObj.getChoices(hasProps)
 

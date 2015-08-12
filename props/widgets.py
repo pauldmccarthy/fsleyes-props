@@ -342,9 +342,17 @@ def _String(parent, hasProps, propObj, propVal, **kwargs):
     """
 
     widget = wx.TextCtrl(parent)
+
+    # Under linux/GTK, TextCtrl widgets
+    # absorb mouse wheel events,  so I'm
+    # adding a custom handler to prevent this.
+    if wx.Platform == '__WXGTK__':
+        def wheel(ev):
+            widget.GetParent().GetEventHandler().ProcessEvent(ev)
+        widget.Bind(wx.EVT_MOUSEWHEEL, wheel)
     
     # Use a DC object to calculate a decent
-    # minimum size fort the widget
+    # minimum size for the widget
     dc       = wx.ClientDC(widget)
     textSize = dc.GetTextExtent('w' * 17)
     widgSize = widget.GetBestSize().Get()
