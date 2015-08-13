@@ -35,36 +35,18 @@ def _Choice(parent,
     See the :func:`_String` documentation for details on the parameters.
     """
 
-    choices = propObj.getChoices(hasProps)
-    labels  = propObj.getLabels( hasProps)
-    cl      = filter(lambda (c, l): propObj.choiceEnabled(c, hasProps),
-                     zip(choices, labels))
-
-    if len(cl) > 0: choices, labels = zip(*cl)
-    else:           choices, labels = [], []
-
-    # TODO This icon code will not work with
-    # choice properties that have options
-    # dynamically added/removed...
+    # If we have been given some icons, we will use
+    # a BitmapRadioBox, which has a toggle button
+    # for each choice
     if icons is not None:
         event  = bmpradio.EVT_BITMAP_RADIO_EVENT
         widget = bmpradio.BitmapRadioBox(parent, style=style)
 
-        # Create a bitmap for every choice icon
-        for i, choice in enumerate(choices):
-            
-            bmp = wx.EmptyBitmap(1, 1)
-            bmp.LoadFile(icons[choice], type=wx.BITMAP_TYPE_PNG)
-
-            # Replace the icon file name with the bitmap
-            icons[choice] = bmp
-            widget.AddChoice(bmp)
-            if not propObj.choiceEnabled(choice, hasProps):
-                widget.Disable(i)
-        
+    # Otherwise we use a regular drop down 
+    # box, via the wx.Choice widget.
     else:
         event  = wx.EVT_CHOICE
-        widget = wx.Choice(parent, choices=labels)
+        widget = wx.Choice(parent)
 
         # Under linux/GTK, choice widgets absorb
         # mousewheel events. I don't want this.
@@ -73,12 +55,17 @@ def _Choice(parent,
                 widget.GetParent().GetEventHandler().ProcessEvent(ev)
             widget.Bind(wx.EVT_MOUSEWHEEL, wheel)
 
+    # When the widget value changes,
+    # return the corresponding choice
+    # value
     def widgetGet():
         choices = propObj.getChoices(hasProps)
 
         if len(choices) > 0: return choices[widget.GetSelection()]
         else:                return None
 
+    # When the property value changes,
+    # update the widget value
     def widgetSet(value):
         choices = propObj.getChoices(hasProps)
         
@@ -117,19 +104,33 @@ def _Choice(parent,
             widget.Set(labels)
         else:
 
+            widget.Clear()
+            
             # If using a BitmapRadio widget, we can
             # show all choices, but disable  the
             # buttons for disabled choices
-            widget.Set([icons[c] for c in choices])
-
             for i, choice in enumerate(choices):
+
+                # Load the image file for each choice
+                # if they have not already been loaded
+                if isinstance(icons[choice], basestring):
+                    bmp = wx.EmptyBitmap(1, 1)
+                    bmp.LoadFile(icons[choice], type=wx.BITMAP_TYPE_PNG)
+
+                    # Replace the icon file
+                    # name with the bitmap
+                    icons[choice] = bmp
+
+                widget.AddChoice(icons[choice])
                 if not propObj.choiceEnabled(choice, hasProps):
-                    widget.Disable(i)
-        
-        widgetSet(propVal.get())
+                    widget.Disable(i) 
 
     listenerName = 'WidgetChoiceUpdate_{}'.format(id(widget))
     propVal.addAttributeListener(listenerName, choicesChanged, weak=False)
+
+    # Initialise the widget
+    choicesChanged(None, 'choices')
+    widgetSet(propVal.get())
 
     def onDestroy(ev):
         propVal.removeAttributeListener(listenerName)

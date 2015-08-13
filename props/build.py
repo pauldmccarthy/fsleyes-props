@@ -881,11 +881,19 @@ def _finaliseCallbacks(hasProps, propGui):
                 target = target()
                 if target is None:
                     continue
+
+                log.debug('Removing listener from {}.{}'.format(
+                    type(target).__name__,
+                    propName))
                 
                 # If propName is none, it's a
                 # global property listener
                 if propName is None: target.removeGlobalListener(lName)
                 else:                target.removeListener(propName, lName)
+                
+        propGui.onChangeCallbacks = None
+        propGui.topLevel          = None
+        propGui.guiObjects        = None
 
     propGui.topLevel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
     propGui.topLevel.Bind(wx.EVT_PAINT,          onShow)
