@@ -22,6 +22,7 @@ import wx
 import numpy as np
 
 import props
+props.initGUI()
 import pwidgets.elistbox as elistbox
 
 class Bag(props.HasProperties):

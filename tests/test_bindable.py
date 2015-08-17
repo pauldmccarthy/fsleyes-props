@@ -8,6 +8,7 @@
 import wx
 
 import props
+props.initGUI()
 
 class Test(props.HasProperties):
 

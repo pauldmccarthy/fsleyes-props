@@ -7,6 +7,7 @@
 
 import wx
 import props
+props.initGUI()
 
 import pwidgets.widgetlist as wl
 
@@ -79,5 +80,6 @@ if __name__ == '__main__':
     frame.Layout()
     frame.Fit()
 
+    frame.SetSize((300, 300))
     frame.Show()
     app.MainLoop()

@@ -18,9 +18,6 @@ from collections import Iterable
 import wx
 import wx.combo
 
-import numpy         as np
-import matplotlib.cm as mplcm
-
 import pwidgets.colourbutton as colourbtn
 
 # These properties are complex
@@ -434,8 +431,10 @@ def _makeColourMapBitmap(cmap):
     instance.
     """
 
+    import numpy as np
+
     width, height = 75, 15
-    
+
     # create a single colour  for each horizontal pixel
     colours = cmap(np.linspace(0.0, 1.0, width))
 
@@ -461,6 +460,8 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
 
     See also the :func:`_makeColourMapComboBox` function.
     """
+
+    import matplotlib.cm as mplcm
 
     # These are used by the inner-functions defined
     # below, and are dynamically updated when the

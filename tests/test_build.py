@@ -12,6 +12,7 @@ logging.getLogger('props').setLevel(logging.DEBUG)
 
 import wx
 import props
+props.initGUI()
 
 
 class MyObj1(props.HasProperties):

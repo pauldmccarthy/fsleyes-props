@@ -57,6 +57,7 @@ Example usage
 Package structure
 -----------------
 
+
 To use ``props``, your first step will be to define a subclass of
 :class:`.HasProperties`, which contains one or more :class:`.PropertyBase`
 class instances (see the :mod:`.properties_types` module for the available
@@ -69,7 +70,9 @@ the :mod:`build_parts` module. You can also generate a command-line interface
 using the functions defined in the :mod:`.cli` module.
 
 All of the classes and functions referred to above are available in the
-``props`` namespace, so you simply need to ``import props`` to access them.
+``props`` namespace, so you only need to ``import props`` to access them, and
+call the :func:`initGUI` function if you want to use any of the GUI
+generation functionality.
 
 
 ---------------
@@ -99,102 +102,78 @@ introduction to descriptors:
  - http://pyvideo.org/video/1760/encapsulation-with-descriptors
 
 
-A :class:`~props.properties.HasProperties` subclass contains a collection of
-:class:`~props.properties.PropertyBase` instances as class attributes. When an
-instance of the :class:`~props.properties.HasProperties` class is created, a
-:class:`~props.properties_value.PropertyValue` object is created for each of
-the :class:`~props.properties.PropertyBase` instances (or a
-:class:`~props.properties_value.PropertyValueList` for
-:class:`~props.properties.ListPropertyBase` instances).
+A :class:`.HasProperties` subclass contains a collection of
+:class:`.PropertyBase` instances as class attributes. When an instance of the
+``HasProperties`` class is created, a :class:`.PropertyValue` object is
+created for each of the `PropertyBase`` instances (or a
+:class:`~.PropertyValueList` for :class:`.ListPropertyBase` instances).
 
 
-Each of these :class:`~props.properties_value.PropertyValue` instances
-encapsulates a single value, of any type (a
-:class:`~props.properties_value.PropertyValueList` instance encapsulates
-multiple :class:`~props.properties_value.PropertyValue` instances).  Whenever
-a variable value changes, the :class:`~props.properties_value.PropertyValue`
-instance passes the new value to the
-:meth:`~props.properties.PropertyBase.validate` method of its parent
-:class:`~props.properties.PropertyBase` instance to determine whether the new
-value is valid, and notifies any registered listeners of the change. The
-:class:`~props.properties_value.PropertyValue` object may allow its underlying
-value to be set to something invalid, but it will tell registered listeners
-whether the new value is valid or
-invalid. :class:`~props.properties_value.PropertyValue` objects can
-alternately be configured to raise a :exc:`ValueError` on an attempt to set
-them to an invalid value, but this has some caveats - see the
-:class:`~props.properties_value.PropertyValue` documentation. Finally, to make
-things more confusing, some :class:`~props.properties.PropertyBase` types will
-configure their :class:`~props.properties_value.PropertyValue` objects to
-perform implicit casts when the property value is set.
+Each of these ``PropertyValue`` instances encapsulates a single value, of any
+type (a ``PropertyValueList`` instance encapsulates multiple ``PropertyValue``
+instances).  Whenever a variable value changes, the ``PropertyValue`` instance
+passes the new value to the :meth:`.PropertyBase.validate` method of its
+parent `PropertyBase`` instance to determine whether the new value is valid,
+and notifies any registered listeners of the change. The `PropertyValue``
+object may allow its underlying value to be set to something invalid, but it
+will tell registered listeners whether the new value is valid or
+invalid. `PropertyValue`` objects can alternately be configured to raise a
+:exc:`ValueError` on an attempt to set them to an invalid value, but this has
+some caveats - see the `PropertyValue`` documentation. Finally, to make things
+more confusing, some `PropertyBase`` types will configure their
+`PropertyValue`` objects to perform implicit casts when the property value is
+set.
 
 
-The default validation logic of most :class:`~props.properties.PropertyBase`
-objects can be configured via 'constraints'. For example, the
-:class:`~props.properties_types.Number` property allows ``minval`` and
-``maxval`` constraints to be set.  These may be set via
-:class:`~props.properties.PropertyBase` constructors, (i.e. when it is defined
-as a class attribute of a :class:`~props.properties.HasProperties`
-definition), and may be queried and changed on individual
-:class:`~props.properties.HasProperties` instances via the
-:class:`~props.properties.HasProperties.getConstraint`/\
-:class:`~props.properties.HasProperties.setConstraint` methods, which are
-available on both :class:`~props.properties.PropertyBase` and
-:class:`~props.properties.HasProperties` objects.
+The default validation logic of most `PropertyBase`` objects can be configured
+via 'constraints'. For example, the :class:`.Number` property allows
+``minval`` and ``maxval`` constraints to be set.  These may be set via
+``PropertyBase`` constructors, (i.e. when it is defined as a class attribute
+of a `HasProperties`` definition), and may be queried and changed on
+individual `HasProperties`` instances via the
+:meth:`.HasProperties.getConstraint`/:meth:`.HasProperties.setConstraint`
+methods, which are available on both `PropertyBase`` and ``HasProperties``
+objects.
 
 
-Properties from different :class:`~props.properties.HasProperties` instances
-may be bound to each other, so that changes in one are propagated to the other
-- see the :mod:`~props.bindable` module.  Building on this is the
-:mod:`~props.syncable` module and its
-:class:`~props.syncable.SyncableHasProperties` class, which allows a
-one-to-many (one parent, multiple children) synchronisation hierarchy to be
-maintained, whereby all the properties of a child instance are by default
-synchronised to those of the parent, and this synchronisation can be
-independently enabled/disabled for each property.
+Properties from different `HasProperties`` instances may be bound to each
+other, so that changes in one are propagated to the other - see the
+:mod:`.bindable` module.  Building on this is the :mod:`.syncable` module and
+its :class:`.SyncableHasProperties` class, which allows a one-to-many (one
+parent, multiple children) synchronisation hierarchy to be maintained, whereby
+all the properties of a child instance are by default synchronised to those of
+the parent, and this synchronisation can be independently enabled/disabled for
+each property.
 
 
 Application code may be notified of property changes by registering a callback
-listener on a :class:`~props.properties_value.PropertyValue` object, via the
-equivalent methods:
+listener on a ``PropertyValue`` object, via the equivalent methods:
 
-  - :meth:`props.properties.HasProperties.addListener`
-  - :meth:`props.properties.PropertyBase.addListener`
-  - :meth:`props.properties_value.PropertyValue.addListener`
+  - :meth:`.HasProperties.addListener`
+  - :meth:`.PropertyBase.addListener`
+  - :meth:`.PropertyValue.addListener`
 
-Such a listener will be notified of changes to the
-:class:`~props.properties_value.PropertyValue` object managed by the
-:class:`~props.properties.PropertyBase` object, and associated with the
-:class:`~props.properties.HasProperties` instance. For
-:class:`~props.properties.ListPropertyBase` properties, a listener registered
-through one of the above methods will be notified of changes to the entire
-list.  Alternately, a listener may be registered with individual items
-contained in the list (see
-:meth:`~props.properties_value.PropertyValueList.getPropertyValueList`).
+Such a listener will be notified of changes to the ``PropertyValue`` object
+managed by the ``PropertyBase`` object, and associated with the
+``HasProperties`` instance. For ``ListPropertyBase`` properties, a listener
+registered through one of the above methods will be notified of changes to the
+entire list.  Alternately, a listener may be registered with individual items
+contained in the list (see :meth:`.PropertyValueList.getPropertyValueList`).
 
 """
 
+import sys
 import logging
+
+
 log = logging.getLogger(__name__)
 
-# Allow access to the individual properties
-# modules for internal/advanced/dangerous usage.
-import properties
-import properties_value
-import properties_types
-import bindable
-import syncable
-import cli
-import build_parts
-
-
 from properties import (
-    PropertyBase,
     HasProperties,
     DisabledError)
-"""
-Will this string appear in sphinx documentation?
-"""
+
+# bindable monkey-patches the HasProperties class
+import bindable
 
 from properties_types import (
     Object,
@@ -211,9 +190,14 @@ from properties_types import (
     Bounds,
     Point)
 
+from syncable import (
+    SyncableHasProperties)
 
+from cli import (
+    applyArguments,
+    addParserArguments,
+    generateArguments)
 
-# The 'public' props API starts here.
 from build_parts import (
     ViewItem, 
     Button,
@@ -224,34 +208,38 @@ from build_parts import (
     HGroup, 
     VGroup)
 
-from syncable import (
-    SyncableHasProperties)
 
-from cli import (
-    applyArguments,
-    addParserArguments,
-    generateArguments)
+def initGUI():
+    """If you wish to use GUI generation functionality, calling this function
+    will add the relevant functions to the ``props`` package namespace.
+    """
 
-try:
-    import widgets
-    import widgets_number
-    import widgets_bounds
-    import widgets_point
-    import widgets_list
-    import build
- 
-    from widgets import (
-        makeWidget,
-        makeListWidgets,
-        makeSyncWidget,
-        bindWidget,
-        unbindWidget,
-        bindListWidgets)
-    
-    from build import (
-        buildGUI,
-        buildDialog)
-    
-except Exception as e:
-    log.warn('GUI property module import failed '
-             '- GUI functionality is disabled')
+    mod = sys.modules[__name__]
+
+    try:
+
+        from widgets import (
+            makeWidget,
+            makeListWidgets,
+            makeSyncWidget,
+            bindWidget,
+            unbindWidget,
+            bindListWidgets)
+
+        from build import (
+            buildGUI,
+            buildDialog)
+
+        mod.makeWidget      = makeWidget     
+        mod.makeListWidgets = makeListWidgets
+        mod.makeSyncWidget  = makeSyncWidget 
+        mod.bindWidget      = bindWidget     
+        mod.unbindWidget    = unbindWidget   
+        mod.bindListWidgets = bindListWidgets
+        mod.buildGUI        = buildGUI       
+        mod.buildDialog     = buildDialog    
+
+    except Exception:
+        log.warn('GUI property module import failed '
+                 '- GUI functionality is disabled')
+        return

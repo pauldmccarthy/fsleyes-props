@@ -20,8 +20,6 @@ said for the other way around though.
 import logging
 import types
 import weakref
-import inspect
-import traceback
 
 from collections import OrderedDict
 
@@ -560,6 +558,7 @@ class PropertyValue(object):
         # So to be a bit more informative, we'll examine the stack
         # and extract the (assumed) location of the original call
         if log.getEffectiveLevel() == logging.DEBUG:
+            import inspect
             stack = inspect.stack()
 
             if len(stack) >= 4: frame = stack[ 3]
@@ -665,6 +664,7 @@ class PropertyValue(object):
             # Oops, we don't allow invalid values.
             validStr = str(e)
             if not self._allowInvalid:
+                import traceback
                 log.debug('Attempt to set {}.{} to an invalid value ({}), '
                           'but allowInvalid is False ({})'.format(
                               self._context().__class__.__name__,

@@ -14,9 +14,6 @@ import os.path as op
 
 import collections
 
-import matplotlib.cm     as mplcm
-import matplotlib.colors as mplcolors
-
 import properties        as props
 import properties_value  as propvals
 
@@ -875,6 +872,7 @@ class ColourMap(props.PropertyBase):
         matplotlib :class:`.Colormap` instance.
         """
 
+        import matplotlib.colors as mplcolors
         if not isinstance(value, mplcolors.Colormap):
             raise ValueError('Colour map value is not a '
                              'matplotlib.colors.Colormap instance')
@@ -890,6 +888,8 @@ class ColourMap(props.PropertyBase):
         """
 
         if isinstance(value, str):
+
+            import matplotlib.cm as mplcm
 
             # Case insensitive match
             cmapKeys   = mplcm.cmap_d.keys()

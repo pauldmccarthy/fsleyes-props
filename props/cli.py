@@ -201,12 +201,12 @@ log = logging.getLogger(__name__)
 import sys
 import argparse
 
-import matplotlib.cm as mplcm
-
 import properties as props
+
 
 # The functions below add an argument to an 
 # ArgumentParser for a specific property type.
+
 
 def _String(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given
@@ -393,6 +393,8 @@ def _ColourMap(
     # instance given its name
     def parse(cmapName):
         try:
+            import matplotlib.cm as mplcm
+            
             cmapKeys   = mplcm.cmap_d.keys()
             cmapNames  = [cm.name for cm in mplcm.cmap_d.values()]
             

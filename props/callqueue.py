@@ -10,11 +10,10 @@ property listener callback functions.
 """
 
 import logging
-log = logging.getLogger(__name__)
-
 import Queue
-import inspect
-import traceback
+
+
+log = logging.getLogger(__name__)
 
 
 class Call(object):
@@ -137,6 +136,7 @@ class CallQueue(object):
                     call.func(*call.args)
                 
                 except Exception as e:
+                    import traceback
                     log.warn('Function {} raised exception: {}'.format(
                         call.name, e), exc_info=True)
                     traceback.print_stack()
@@ -240,6 +240,8 @@ class CallQueue(object):
         """Returns the function name and module name of the given
         function reference. Used purely for debug log statements.
         """
+
+        import inspect
 
         if log.getEffectiveLevel() != logging.DEBUG:
             return '', ''
