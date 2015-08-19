@@ -272,11 +272,14 @@ def _Choice(parser,
     if default is None:
         default = propObj.getConstraint(None, 'default')
 
+    # I'm assuming that all choices and
+    # alternates have the same type
+    cType   = type(choices[0])
     choices = set(choices)
 
     parser.add_argument(shortArg,
                         longArg,
-                        type=str,
+                        type=cType,
                         help=propHelp,
                         choices=choices)
     
