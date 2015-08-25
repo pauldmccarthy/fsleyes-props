@@ -186,14 +186,14 @@ class PropertyBase(object):
         """Disables this property for the given :class:`HasProperties`
         instance.
 
-        An attempt to set the value of a disabled property will result
-        in a :class:`DisabledError`. This behaviour can be circumvented by
-        dealing directly with the underlying
-        :class:`props.properties_value.PropertyValue` object.
+        An attempt to set the value of a disabled property will result in a
+        :class:`DisabledError`. This behaviour can be circumvented by dealing
+        directly with the underlying :class:`.PropertyValue` object.
 
         Changes to the enabled state of a property may be detected by
-        registering a constraint listener (see :meth:`addConstraintListener`)
-        and listening for changes to the ``enabled`` constraint.
+        registering an attribute listener (see
+        :meth:`.PropertyValue.addAttributeListener`) and listening for changes
+        to the ``enabled`` attribute.
         """
         propVal = self.getPropVal(instance)
         propVal.setAttribute('enabled', False) 
@@ -236,29 +236,6 @@ class PropertyBase(object):
         
         if instData is None: return
         else:                instData.propVal.removeListener(name)
-
-        
-    def addConstraintListener(self, instance, name, listener):
-        """Add a listener which will be notified whenever any constraint on the
-        :class:`~props.properties_value.PropertyValue` object bound to the
-        given instance change. An :exc:`AttributeError` will be raised if
-        instance is ``None``.  The listener function must accept the following
-        parameters:
-        
-          - ``instance``:   The :class:`HasProperties` instance
-          - ``constraint``: The name of the constraint that changed
-          - ``value``:      The new constraint value
-        """
-        instData = self._getInstanceData(instance)
-        instData.propVal.addAttributeListener(name, listener)
-
-        
-    def removeConstraintListener(self, instance, name):
-        """Removes the named constraint listener."""
-        instData = self._getInstanceData(instance)
-        
-        if instData is None: return
-        else:                instData.propVal.removeAttributeListener(name)
 
         
     def getConstraint(self, instance, constraint):
@@ -863,22 +840,6 @@ class HasProperties(object):
         propNames, props = self.getAllProperties()
         for propName in propNames:
             self.getPropVal(propName).removeListener(listenerName) 
-
-
-    def addConstraintListener(self, propName, listenerName, callback):
-        """Convenience method, adds the specified constraint listener to the
-        specified property. See :meth:`PropertyBase.addConstraintListener`.
-        """ 
-        self.getProp(propName).addConstraintListener(
-            self, listenerName, callback)
-
-        
-    def removeConstraintListener(self, propName, listenerName):
-        """Convenience method, removes the specified constraint listener
-        from the specified property. See
-        :meth:`PropertyBase.removeConstraintListener`.
-        """
-        self.getProp(propName).removeConstraintListener(self, listenerName) 
 
 
     def isValid(self, propName):
