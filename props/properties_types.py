@@ -6,9 +6,26 @@
 #
 """Definitions for different property types.
 
-This module provides a number of :class:`~props.properties.PropertyBase`
-subclasses which define properties of different types.
+This module provides a number of :class:`.PropertyBase` subclasses which
+define properties of different types.
+
+ .. autosummary::
+    Object
+    Boolean
+    Number
+    Int
+    Real
+    Percentage
+    String
+    Choice
+    FilePath
+    List
+    Colour
+    ColourMap
+    Bounds
+    Point
 """
+
 
 import os.path as op
 
@@ -22,7 +39,7 @@ class Object(props.PropertyBase):
     """A property which encapsulates any value. """
 
     def __init__(self, **kwargs):
-        """Create a :class:`Object` property. If an ``equalityFunc`` is not
+        """Create a ``Object`` property. If an ``equalityFunc`` is not
         provided, any writes to this property will be treated as if the value
         has changed (and any listeners will be notified).
         """
@@ -38,14 +55,10 @@ class Boolean(props.PropertyBase):
     """A property which encapsulates a ``bool`` value."""
 
     def __init__(self, **kwargs):
-        """Create a :class:`Boolean` property.
+        """Create a ``Boolean`` property.
 
         If the ``default`` ``kwarg`` is not provided, a default value of
         ``False`` is used.
-
-        :param kwargs: All passed through to the
-                       :class:`~props.properties.PropertyBase`
-                       constructor.
         """
 
         kwargs['default'] = kwargs.get('default', False)
@@ -53,8 +66,8 @@ class Boolean(props.PropertyBase):
 
         
     def cast(self, instance, attributes, value):
-        """Overrides :class:`~props.properties.PropertyBase.cast`.
-        Casts the given value to a ``bool``.
+        """Overrides :meth:`.PropertyBase.cast`. Casts the given value to a
+        ``bool``.
         """
         return bool(value)
 
@@ -63,7 +76,7 @@ class Number(props.PropertyBase):
     """Base class for the :class:`Int` and :class:`Real` classes.
 
     A property which represents a number.  Don't use/subclass this,
-    use/subclass one of :class:`Int` or :class:`Real`.
+    use/subclass one of ``Int`` or ``Real``.
     """
     
     def __init__(self,
@@ -73,17 +86,16 @@ class Number(props.PropertyBase):
                  **kwargs):
         """Define a :class:`Number` property.
         
-        :param number minval:   Minimum valid value
+        :param minval:  Minimum valid value
         
-        :param number maxval:   Maximum valid value
+        :param maxval:  Maximum valid value
         
-        :param bool clamped:    If ``True``, the value will be clamped to its
-                                min/max bounds.
+        :param clamped: If ``True``, the value will be clamped to its
+                        min/max bounds.
         
-        :param kwargs:          Passed through to the
-                                :class:`~props.properties.PropertyBase`
-                                constructor. If a ``default`` value is not
-                                provided, it is set to something sensible.
+        :param kwargs:  Passed through to :meth:`.PropertyBase.__init__`.
+                        If a ``default`` value is not provided, it is set
+                        to something sensible.
         """
 
         default = kwargs.get('default', None)
@@ -106,22 +118,20 @@ class Number(props.PropertyBase):
 
         
     def validate(self, instance, attributes, value):
-        """Overrides :meth:`~props.properties.PropertyBase.validate`.
-        Validates the given number.
+        """Overrides :meth:`.PropertyBase.validate`. Validates the given
+        number. 
 
-        Calls the :meth:`~props.properties.PropertyBase.validate` method.
-        Then, if the ``minval`` and/or ``maxval`` constraints have been set,
+        Calls the :meth:`.PropertyBase.validate` method.
+        Then, if the ``minval`` and/or ``maxval`` attributes have been set,
         and the given value is not within those values, a :exc:`ValueError` is
         raised.
 
-        :param instance:        The owning
-                                :class:`~props.properties.HasProperties`
-                                instance (or ``None`` for unbound property
-                                values).
+        :param instance:   The owning :class:`.HasProperties` instance (or
+                           ``None`` for unbound property values).
         
-        :param dict attributes: Dictionary containing property constraints.
+        :param attributes: Dictionary containing property constraints.
         
-        :param number value:    The value to validate.
+        :param value:      The value to validate.
         """
         
         props.PropertyBase.validate(self, instance, attributes, value)
@@ -137,11 +147,12 @@ class Number(props.PropertyBase):
 
 
     def cast(self, instance, attributes, value):
-        """Overrides :meth:`~props.properties.PropertyBase.cast`.
+        """Overrides :meth:`.PropertyBase.cast`.
 
         If the ``clamped`` constraint is ``True`` and the ``minval`` and/or
         ``maxval`` have been set, this function ensures that the given value
-        lies within the ``minval`` and ``maxval`` limits.
+        lies within the ``minval`` and ``maxval`` limits. Otherwise the value
+        is returned unchanged.
         """
 
         clamped = attributes['clamped']
@@ -158,12 +169,10 @@ class Number(props.PropertyBase):
         
         
 class Int(Number):
-    """A property which encapsulates an integer."""
+    """A :class:`Number` which encapsulates an integer."""
     
     def __init__(self, **kwargs):
-        """Define an :class:`Int` property. See the :class:`Number` constructor
-        documentation for keyword arguments.
-        """
+        """Create an ``Int`` property. """
         Number.__init__(self, **kwargs)
 
         
@@ -175,21 +184,29 @@ class Int(Number):
         
 
 class Real(Number):
-    """A property which encapsulates a floating point number."""
+    """A :class:`.Number` which encapsulates a floating point number."""
 
 
     def __equals(self, a, b):
-        if any((a is None, b is None)): return a == b
+        """Custom equality function passed to :class`.PropertyBase.__init__`.
+
+        Tests for equality according to the ``precision`` passed to
+        :meth:`__init__`.
+        """
+        if any((a is None, b is None, self.__precision is None)):
+            return a == b
+
         return abs(a - b) < self.__precision
 
     
     def __init__(self, precision=0.000000001, **kwargs):
-        """Define a :class:`Real` property. See the :class:`Number` constructor
-        documentation for keyword arguments.
+        """Define a ``Real`` property.
+
+        :param precision: Tolerance for equality testing. Set to ``None`` to
+                          use exact equality.
         """
-
         self.__precision = precision
-
+        
         Number.__init__(self, equalityFunc=self.__equals, **kwargs)
 
 
@@ -201,13 +218,14 @@ class Real(Number):
         
 
 class Percentage(Real):
-    """A property which represents a percentage.
+    """A :class:`Real` property which represents a percentage.
 
-    A :class:`Percentage` property is just a :class:`Real` property with
-    a default minimum value of ``0`` and maximum value of ``100``.
+    A ``Percentage`` property is just a ``Real`` property with
+    a default minimum value of ``0`` and default maximum value of ``100``.
     """
 
     def __init__(self, **kwargs):
+        """Create a ``Percentage`` property."""
         kwargs['minval']  = kwargs.get('minval',    0.0)
         kwargs['maxval']  = kwargs.get('maxval',  100.0)
         kwargs['default'] = kwargs.get('default',  50.0)
@@ -218,7 +236,7 @@ class String(props.PropertyBase):
     """A property which encapsulates a string."""
     
     def __init__(self, minlen=None, maxlen=None, **kwargs):
-        """Define a :class:`String` property.
+        """Cteate a ``String`` property.
         
         :param int minlen: Minimum valid string length.
         :param int maxlen: Maximum valid string length.
@@ -231,7 +249,7 @@ class String(props.PropertyBase):
 
 
     def cast(self, instance, attributes, value):
-        """Overrides :meth:`~props.properties.PropertyBase.cast`.
+        """Overrides :meth:`.PropertyBase.cast`.
 
         Casts the given value to a string. If the given value is the empty
         string, it is replaced with ``None``.
@@ -245,10 +263,10 @@ class String(props.PropertyBase):
 
         
     def validate(self, instance, attributes, value):
-        """Overrides :meth:`~props.properties.PropertyBase.validate`.
+        """Overrides :meth:`.PropertyBase.validate`.
 
         Passes the given value to
-        :meth:`~props.properties.PropertyBase.validate`. Then, if either the
+        :meth:`.PropertyBase.validate`. Then, if either the
         ``minlen`` or ``maxlen`` constraints have been set, and the given
         value has length less than ``minlen`` or greater than ``maxlen``,
         raises a :exc:`ValueError`.
@@ -276,23 +294,28 @@ class String(props.PropertyBase):
 class Choice(props.PropertyBase):
     """A property which may only be set to one of a set of predefined values.
 
+    Choices can be added/removed via the :meth:`addChoice`,
+    :meth:`removeChoice` method, and :meth:`setChoices` methods. Existing
+    choices can be modified with the :meth:`updateChoice` method.
+
     Individual choices can be enabled/disabled via the :meth:`enableChoice`
-    and :meth:`disableChoice` methods. The ``choiceEnabled`` property
-    constraint/attribute contains a list of boolean values representing the
-    enabled/disabled state of each choice.
+    and :meth:`disableChoice` methods. The ``choiceEnabled`` attribute
+    contains a dictionary of ``{choice : boolean}`` mappings
+    representing the enabled/disabled state of each choice.
     """
 
     def __init__(self, choices=None, labels=None, alternates=None, **kwargs):
-        """Define a :class:`Choice` property.
+        """Create a :class:`Choice` property.
 
-        As an alternative to passing in separate ``choice`` and
-        ``choiceLabels`` lists, you may pass in a dict as the ``choice``
-        parameter. The keys will be used as the choices, and the values as
-        labels. Make sure to use a :class:`collections.OrderedDict` if the
-        display order is important.
+        ..note:: As an alternative to passing in separate ``choice`` and
+          ``choiceLabels`` lists, you may pass in a dict as the ``choice``
+          parameter. The keys will be used as the choices, and the values as
+          labels. Make sure to use a :class:`collections.OrderedDict` if the
+          display order is important.
         
         :arg choices:    List of values, the possible values that this property
-                         can take.
+                         can take. Can alternately be a ``dict`` - see the note
+                         above.
 
         :arg labels:     List of string labels, one for each choice, to be used
                          for display purposes. 
@@ -368,7 +391,7 @@ class Choice(props.PropertyBase):
         
     def disableChoice(self, choice, instance=None):
         """Disables the given choice. An attempt to set the property to
-        a disabled value will result in a ``ValueError``.
+        a disabled value will result in a :exc:`ValueError`.
         """
         choiceEnabled = dict(self.getConstraint(instance, 'choiceEnabled'))
         choiceEnabled[choice] = False
@@ -511,6 +534,15 @@ class Choice(props.PropertyBase):
 
 
     def __updateChoices(self, choices, labels, alternates, instance=None):
+        """Used by all of the public choice modifying methods. Updates
+        all choices, labels, and altenrates.
+
+        :param choices:    A list of choice values
+
+        :param labels:     A dict of ``{choice :  label}`` mappings.
+
+        :param alternates: A dict of ``{choice :  [alternates]}`` mappings.
+        """
         
         propVal    = self.getPropVal(   instance)
         default    = self.getConstraint(instance, 'default')
@@ -563,7 +595,9 @@ class Choice(props.PropertyBase):
 
         
     def validate(self, instance, attributes, value):
-        """Raises a :exc:`ValueError` if the given value is not one of the
+        """Overrides :meth:`.PropertyBase.validate`.
+
+        Raises a :exc:`ValueError` if the given value is not one of the
         possible values for this :class:`Choice` property.
         """
         props.PropertyBase.validate(self, instance, attributes, value)
@@ -587,7 +621,10 @@ class Choice(props.PropertyBase):
 
 
     def cast(self, instance, attributes, value):
-        """
+        """Overrides :meth:`.PropertyBase.cast`.
+
+        Checks to see if the given value is a valid alternate value for a
+        choice. If so, the alternate value is replaced with the choice value.
         """
         alternates = self.getConstraint(instance, 'alternates')
         return alternates.get(value, value)
@@ -602,7 +639,7 @@ class FilePath(String):
     """
 
     def __init__(self, exists=False, isFile=True, suffixes=[], **kwargs):
-        """Define a :class:`FilePath` property.
+        """Create a ``FilePath`` property.
 
         :param bool exists:   If ``True``, the path must exist.
         
@@ -623,7 +660,7 @@ class FilePath(String):
 
         
     def validate(self, instance, attributes, value):
-        """Overrides :meth:`~props.properties.PropertyBase.validate`.
+        """Overrides :meth:`.PropertyBase.validate`.
 
         If the ``exists`` constraint is not ``True``, does nothing. Otherwise,
         if ``isFile`` is ``False`` and the given value is not a path to an
@@ -669,31 +706,22 @@ class FilePath(String):
 class List(props.ListPropertyBase):
     """A property which represents a list of items, of another property type.
 
-    If you use :class:`List` properties, you really should read the
-    documentation for the :class:`~props.properties_value.PropertyValueList`,
-    as it contains important usage information.
+    If you use ``List`` properties, you really should read the documentation
+    for the :class:`.PropertyValueList`, as it contains important usage
+    information.
     """
     
-    def __init__(self,
-                 listType=None,
-                 minlen=None,
-                 maxlen=None,
-                 embed=False,
-                 **kwargs):
-        """Define a :class:`List` property.
+    def __init__(self, listType=None, minlen=None, maxlen=None, **kwargs):
+        """Create a ``List`` property.
         
-        :param listType:   A :class:`~props.properties.PropertyBase` type,
-                           specifying the values allowed in the list. If
-                           ``None``, anything can be stored in the list, 
-                           but no casting or validation will occur.
+        :param listType:   A :class:`.PropertyBase` type, specifying the
+                           values allowed in the list. If ``None``, anything
+                           can be stored in the list, but no casting or
+                           validation will occur.
                 
         :param int minlen: Minimum list length.
+        
         :param int maxlen: Maximum list length.
-        :param bool embed: If ``True``, when a graphical interface is made
-                           to edit this list property, a widget is embedded
-                           directly into the parent GUI. Otherwise, a button
-                           is embedded which, when clicked, opens a dialog
-                           allowing the user to edit the list.
         """
 
         if (listType is not None) and \
@@ -705,13 +733,14 @@ class List(props.ListPropertyBase):
         kwargs['minlen']  = minlen
         kwargs['maxlen']  = maxlen
 
-        self.embed        = embed
+        # This needs to be removed when you update widgets_list.py
+        self.embed = False
 
         props.ListPropertyBase.__init__(self, listType,  **kwargs)
 
 
     def validate(self, instance, attributes, value):
-        """Overrides :meth:`~props.properties.PropertyBase.validate`.
+        """Overrides :meth:`.PropertyBase.validate`.
         
         Checks that the given value (which should be a list) meets the
         ``minlen``/``maxlen`` constraints. Raises a :exc:`ValueError` if it
@@ -732,18 +761,17 @@ class List(props.ListPropertyBase):
 class Colour(props.PropertyBase):
     """A property which represents a RGBA colour, stored as four floating
     point values in the range ``0.0 - 1.0``.
+
+    RGB colours are also accepted - if an RGB colour is provided, the
+    alpha channel is set to 1.0.
     """
 
     
     def __init__(self, **kwargs):
-        """Create a :class:`Colour` property.
+        """Create a ``Colour`` property.
 
         If the ``default`` ``kwarg`` is not provided, the default is set
         to white.
-
-        :param kwargs: All passed through to the
-                       :class:`~props.properties.PropertyBase`
-                       constructor.
         """
 
         default = kwargs.get('default', (1.0, 1.0, 1.0, 1.0))
@@ -757,8 +785,8 @@ class Colour(props.PropertyBase):
 
 
     def validate(self, instance, attributes, value):
-        """Checks the given ``value``, and raises a ``ValueError`` if
-        it does not consist of three floating point numbers in the
+        """Checks the given ``value``, and raises a :exc:`ValueError` if
+        it does not consist of three or four floating point numbers in the
         range ``(0.0 - 1.0)``.
         """
         props.PropertyBase.validate(self, instance, attributes, value)
@@ -775,13 +803,15 @@ class Colour(props.PropertyBase):
     def cast(self, instance, attributes, value):
         """Ensures that the given ``value`` contains three or four floating
         point numbers, in the range ``(0.0 - 1.0)``.
+
+        If the alpha channel is not provided, it is set to the current alpha
+        value (which defaults to ``1.0``).
         """
 
         pv = self.getPropVal(instance)
-        if pv is not None:
-            currentVal = pv.get()
-        else:
-            currentVal = self._defaultConstraints['default']
+        
+        if pv is not None: currentVal = pv.get()
+        else:              currentVal = self._defaultConstraints['default']
 
         value = map(float, value)
 
@@ -802,19 +832,19 @@ class ColourMap(props.PropertyBase):
 
     A ``ColourMap`` property can take any ``Colormap`` instance as its
     value. ColourMap values may be specified either as a
-    :class:`matplotlib.colors.Colormap` instance, or as a string containing
+    ``Colormap`` instance, or as a string containing
     the name of a registered colour map instance.
 
     ``ColourMap`` properties also maintain an internal list of colour
     map names; while these names do not restrict the value that a ``ColourMap``
     property can take, they are used for display purposes - a widget which is
     created for a ``ColourMap`` instance will only display the options returned
-    by the :meth:`getColourMaps` method..
+    by the :meth:`getColourMaps` method. See the :func:`widgets._ColourMap`
+    function.
     """
 
     def __init__(self, cmaps=None, **kwargs):
-        """Define a :class:`ColourMap` property.
-        """
+        """Define a ``ColourMap`` property. """
 
         default = kwargs.get('default', None)
 
@@ -866,9 +896,9 @@ class ColourMap(props.PropertyBase):
 
 
     def validate(self, instance, attributes, value):
-        """Overrides :meth:`~props.properties.PropertyBase.validate`.
+        """Overrides :meth:`.PropertyBase.validate`.
 
-        Raises a ``ValueError`` if the given ``value`` is not a
+        Raises a :exc:`ValueError` if the given ``value`` is not a
         matplotlib :class:`.Colormap` instance.
         """
 
@@ -879,7 +909,7 @@ class ColourMap(props.PropertyBase):
         
 
     def cast(self, instance, attributes, value):
-        """Overrides :meth:`~props.properties.PropertyBase.cast`.
+        """Overrides :meth:`.PropertyBase.cast`.
         
         If the provided value is a string, an attempt is made to convert it to
         a colour map, via the :func:`matplotlib.cm.get_cmap` function. The
@@ -910,8 +940,8 @@ class ColourMap(props.PropertyBase):
 
 
 class BoundsValueList(propvals.PropertyValueList):
-    """A list of values which represent bounds along a number of dimensions
-    (up to 4).
+    """A :class:`.PropertyValueList` with values which represent bounds along
+    a number of dimensions (up to 4).
 
     This class is used by the :class:`Bounds` property to encapsulate bounding
     values for an arbitrary number of dimensions. For ``N+1`` dimensions, the
@@ -920,19 +950,18 @@ class BoundsValueList(propvals.PropertyValueList):
       [lo0, hi0, lo1, hi1, ..., loN, hiN]
 
     This class just adds some convenience methods and attributes to the
-    :class:`~props.properties_value.PropertyValueList` superclass.  For a
-    single dimension, a bound object has a ``lo`` value and a ``hi`` value,
-    specifying the bounds along that dimension. To make things confusing, each
-    dimension also has ``min`` and ``max`` constraints, which define the
-    minimum/maximum values that the ``lo`` and ``high`` values may take for
-    that dimension.
+    ``PropertyValueList`` base class.  For a single dimension, a bound
+    object has a ``lo`` value and a ``hi`` value, specifying the bounds along
+    that dimension. To make things confusing, each dimension also has ``min``
+    and ``max`` constraints, which define the minimum/maximum values that the
+    ``lo`` and ``high`` values may take for that dimension.
 
-    Some dynamic attributes are available on :class:`BoundsValueList` objects,
+    Some dynamic attributes are available on ``BoundsValueList`` objects,
     allowing access to and assignment of bound values and
     constraints. Dimensions ``0, 1, 2, 3`` respectively map to identifiers
     ``x, y, z, t``. If an attempt is made to access/assign an attribute
     corresponding to a dimension which does not exist on a particular
-    :class:`BoundsValueList` instance (e.g. attribute ``t`` on a 3-dimensional
+    ``BoundsValueList`` instance (e.g. attribute ``t`` on a 3-dimensional
     list), an :exc:`IndexError` will be raised. Here is an example of dynamic
     bound attribute access::
 
@@ -956,11 +985,13 @@ class BoundsValueList(propvals.PropertyValueList):
         # constraints for a dimension
         obj.mybounds.xmin = 0
         tmax = obj.mybounds.tmax
-
     """
 
 
     def __init__(self, *args, **kwargs):
+        """Create a ``BoundsValueList`` instance - see
+        :meth:`.PropertyValueList.__init__`.
+        """
         propvals.PropertyValueList.__init__(self, *args, **kwargs)
 
         
@@ -1060,9 +1091,6 @@ class BoundsValueList(propvals.PropertyValueList):
         unrecognised attributes, or an :exc:`IndexError` if an attempt is made
         to access bound values values of a higher dimension than this list
         contains.
-        
-        See the :class:`BoundsValueList` documentation for details on the
-        different attributes available.
         """
 
         lname = name.lower()
@@ -1104,10 +1132,6 @@ class BoundsValueList(propvals.PropertyValueList):
         """Set the specified value. Raises an :exc:`IndexError` if an attempt 
         is made to assign bound values values of a higher dimension than this 
         list contains.
-        
-        See the :class:`BoundsValueList` documentation for details on the
-        different attributes available.
-
         """ 
 
         lname = name.lower()
@@ -1136,20 +1160,20 @@ class BoundsValueList(propvals.PropertyValueList):
 
 
 class Bounds(List):
-    """Property which represents numeric bounds in any number of dimensions,
+    """A property which represents numeric bounds in any number of dimensions,
     as long as that number is no more than 4.
 
-    :class:`Bound` values are stored in a :class:`BoundsValueList`, a list of
+    ``Bounds`` values are stored in a :class:`BoundsValueList`, a list of
     integer or floating point values, with two values (lo, hi) for each
     dimension.
 
-    :class:`Bound` values may also have bounds of their own,
-    i.e. minimium/maximum values that the bound values can take. These
-    bound-limits are referred to as 'min' and 'max', and can be set via the
-    :meth:`BoundsValueList.setMin` and :meth:`BoundsValueList.setMax`
-    methods. The advantage to using these methods, instead of using, for
-    example, :meth:`PropertyValue.setAttribute`, is that if you use the latter
-    you will have to set the constraints on both the low and the high values.
+    ``Bounds`` values may also have bounds of their own, i.e. minimium/maximum
+    values that the bound values can take. These bound-limits are referred to
+    as 'min' and 'max', and can be set via the :meth:`BoundsValueList.setMin`
+    and :meth:`BoundsValueList.setMax` methods. The advantage to using these
+    methods, instead of using, for example,
+    :meth:`.PropertyValue.setAttribute`, is that if you use the latter you will
+    have to set the constraints on both the low and the high values.
     """
 
     def __init__(self,
@@ -1158,7 +1182,7 @@ class Bounds(List):
                  minDistance=None,
                  labels=None,
                  **kwargs):
-        """Define a :class:`Bounds` property.
+        """Create a ``Bounds`` property.
         
         :param int ndims:         Number of dimensions. This is (currently) 
                                   not a property constraint, hence it cannot 
@@ -1212,11 +1236,11 @@ class Bounds(List):
 
         
     def _makePropVal(self, instance):
-        """Overrides :meth:`~props.properties.ListPropertyBase._makePropVal`.
+        """Overrides :meth:`.ListPropertyBase._makePropVal`.
 
-        Creates and returns a :class:`BoundsValueList` instead of a
-        :class:`~props.properties.PropertyValueList`, so callers get to use the
-        convenience methods/attributes defined in the BVL class.
+        Creates and returns a ``BoundsValueList`` instead of a
+        ``PropertyValueList``, so callers get to use the convenience
+        methods/attributes defined in the BVL class.
         """
 
         default = self._defaultConstraints.get('default', None)
@@ -1236,7 +1260,7 @@ class Bounds(List):
 
         
     def validate(self, instance, attributes, value):
-        """Overrides :meth:`~props.properties.PropertyBase.validate`.
+        """Overrides :meth:`.PropertyBase.validate`.
         
         Raises a :exc:`ValueError` if the given value (a list of min/max
         values) is of the wrong length or data type, or if any of the min
@@ -1272,7 +1296,8 @@ class PointValueList(propvals.PropertyValueList):
     values for between 1 and 4 dimensions. 
 
     This class just adds some convenience methods and attributes to the
-    :class:`~props.properties_value.PropertyValueList` superclass.
+    :class:`.PropertyValueList` base class, in a similar manner to the
+    :class:`BoundsValueList` class.
 
     The point values for each dimension may be queried/assigned via the
     dynamic attributes ``x, y, z, t``, which respectively map to dimensions
@@ -1292,6 +1317,9 @@ class PointValueList(propvals.PropertyValueList):
 
     
     def __init__(self, *args, **kwargs):
+        """Create a ``PointValueList`` - see
+        :meth:`.PropertyValueList.__init__`.
+        """
         propvals.PropertyValueList.__init__(self, *args, **kwargs)
 
         
@@ -1337,11 +1365,9 @@ class PointValueList(propvals.PropertyValueList):
 
         
     def __getattr__(self, name):
-        """Return the specified point value. Raises an :exc:AttributeError for
-        unrecognised attributes, or an :exc:`IndexError` if a dimension which
-        does not exist for this :class:`PointValueList` is specified.
-
-        See the :class:`PointValueList` documentation for more details.
+        """Return the specified point value. Raises an :exc:`AttributeError`
+        for unrecognised attributes, or an :exc:`IndexError` if a dimension
+        which does not exist for this ``PointValueList`` is specified.
         """
 
         lname = name.lower()
@@ -1363,10 +1389,8 @@ class PointValueList(propvals.PropertyValueList):
         
     def __setattr__(self, name, value):
         """Set the specified point value. Raises an :exc:`IndexError` if a
-        dimension which does not exist for this :class:`PointValueList` is
+        dimension which does not exist for this ``PointValueList`` is
         specified.
-
-        See the :class:`PointValueList` documentation for more details.
         """ 
 
         lname = name.lower()
@@ -1398,7 +1422,7 @@ class Point(List):
     """A property which represents a point in some n-dimensional (up to 4)
     space.
 
-    :class:`Point` property values are stored in a :class:`PointValueList`, a
+    ``Point`` property values are stored in a :class:`PointValueList`, a
     list of integer or floating point values, one for each dimension.
     """
 
@@ -1407,7 +1431,7 @@ class Point(List):
                  real=True, 
                  labels=None,
                  **kwargs):
-        """Define a :class:`Point` property.
+        """Create a ``Point`` property.
         
         :param int ndims:       Number of dimensions.
         
@@ -1452,11 +1476,11 @@ class Point(List):
 
         
     def _makePropVal(self, instance):
-        """Overrides :meth:`~props.properties.ListPropertyBase._makePropVal`.
+        """Overrides :meth:`.ListPropertyBase._makePropVal`.
 
-        Creates and returns a :class:`PointValueList` instead of a
-        :class:`~props.properties_value.PropertyValueList`, so callers get to
-        use the convenience methods/attributes defined in the PVL class.
+        Creates and returns a ``PointValueList`` instead of a
+        ``PropertyValueList``, so callers get to use the convenience
+        methods/attributes defined in the PVL class.
         """
 
         default = self._defaultConstraints.get('default', None)
