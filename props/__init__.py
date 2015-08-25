@@ -195,9 +195,10 @@ from properties import (
     DisabledError)
 
 # The bindable module monkey-patches the
-# HasProperties class, so must be imported.
-# But it doesn't provide anything that needs
-# to be exposed at the package level.
+# HasProperties and PropertyValue classes,
+# so must be imported. But it doesn't provide
+# anything that needs to be exposed at the
+# package level.
 import bindable
 
 from properties_types import (
