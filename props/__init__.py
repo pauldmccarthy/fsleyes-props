@@ -17,7 +17,7 @@ Example usage
     >>> import props
 
     >>> class PropObj(props.HasProperties):
-    >>>     myProperty = props.Boolean()
+            myProperty = props.Boolean()
 
     >>> myPropObj = PropObj()
 
@@ -25,18 +25,18 @@ Example usage
     # Access the property value as a normal attribute:
     >>> myPropObj.myProperty = True
     >>> myPropObj.myProperty
-    >>> True
+    True
 
 
     # access the props.Boolean instance:
     >>> myPropObj.getProp('myProperty')
-    >>> <props.prop.Boolean at 0x1045e2710>
+    <props.prop.Boolean at 0x1045e2710>
 
 
     # access the underlying props.PropertyValue object
     # (there are caveats for List properties):
     >>> myPropObj.getPropVal('myProperty')
-    >>> <props.prop.PropertyValue instance at 0x1047ef518>
+    <props.prop.PropertyValue instance at 0x1047ef518>
 
 
     # Receive notification of property value changes
@@ -47,7 +47,7 @@ Example usage
     >>>    'myProperty', 'myListener', myPropertyChanged)
 
     >>> myPropObj.myProperty = False
-    >>> New property value: False
+    New property value: False
 
 
     # Remove a previously added listener

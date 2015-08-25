@@ -5,22 +5,92 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""The :mod:`bindable` module adds functionality to the
-:class:`~props.properties.HasProperties` class to allow properties from
-different instances to be bound to each other.
+"""This module adds functionality to the :class:`.HasProperties` class to
+allow properties from different instances to be bound to each other.
 
 The logic defined in this module is separated purely to keep the
-:mod:`props.properties` and :mod:`props.properties_value` module file sizes
-down.
+:mod:`.properties` and :mod:`.properties_value` module file sizes down.
 
 The :func:`bindProps`, :func:`unbindProps`, and :func:`isBound` functions
 defined in this module are added (monkey-patched) as methods of the
-:class:`~props.properties.HasProperties` class.
+:class:`.HasProperties` class.
 
-The :func:`notify` and :func:`notifyAttributeListeners` functions replace
-the :class:`~props.properties_value.PropertyValue` methods of the same
-names.
+The :func:`_notify` and :func:`_notifyAttributeListeners` functions
+respectively replace the :meth:`.PropertyValue.notify` and
+:meth:`.PropertyValue.notifyAttributeListener` methods.
+
+
+-------------
+Example usage
+-------------
+
+::
+
+    >>> import props
+
+    >>> class MyObj(props.HasProperties):
+            myint  = props.Int()
+            myreal = props.Real()
+
+    >>> myobj1 = MyObj()
+    >>> myobj2 = MyObj()
+
+    # Set some initial values
+    >>> myobj1.myint  = 1
+    >>> myobj1.myreal = 0.1
+    >>> myobj2.myint  = 2
+    >>> myobj2.myreal = 0.12
+
+    # Bind myobj1.myint and myobj2.myint.
+    # The instance on which bindProps is
+    # called will inherit the value of the
+    # other instance
+    >>> myobj2.bindProps('myint', myobj1)
+
+    >>> print myobj2
+    MyObj
+       myint = 1
+      myreal = 0.2
+
+    # Changing a bound property value on either
+    # instance will result in the value being
+    # propagated to the other instance.
+    >>> myobj2.myint = 8  
+    >>> print myobj1
+    MyObj
+       myint = 8
+      myreal = 0.1
+
+
+-------
+Details
+-------
+
+
+When a ``HasProperties`` property value is changed, the associated
+``PropertyValue`` instance does two things:
+
+  1. Casts and validates the new value and updates its stored value.
+  2. Notifies all registered listeners of the value change.
+
+In order to allow property values to be bound together, this module modifies
+the above process:
+
+  1. Casts and validates the new value and updates its stored value.
+  2. Updates the value on all bound ``PropertyValue`` instances.
+  3. Notifies all listeners, registered on the source ``PV`` instance, of the
+     value change.
+  4. Notifies all listeners, registered on the bound ``PV`` instances, of the
+     value change.
+
+An important point to note regarding step 2 above is that *all* PV instances
+which are bound, either directly or indirectly, to the source PV instance,
+will be updated. In other words, There are no restrictions on the ways in
+which ``PropertyValue`` instances may be bound.  A tree, chain, or even a
+network of ``PV`` instances can be bound together - the above process will
+still work.
 """
+
 
 import logging
 import weakref
@@ -34,9 +104,8 @@ log = logging.getLogger(__name__)
 
 class Bidict(object):
     """A bare-bones bi-directional dictionary, used for binding
-    :class:`~props.properties_value.PropertyValueList` instances -
-    see the :func:`_bindListProps` and :func:`_boundsListChanged`
-    functions.
+    :class:`.PropertyValueList` instances - see the :func:`_bindListProps` and
+    :func:`_boundsListChanged` functions.
     """
 
     def __init__(self):
@@ -65,31 +134,33 @@ def bindProps(self,
               bindval=True,
               bindatt=True,
               unbind=False):
-    """Binds the properties specified by ``propName``  and
-    ``otherPropName`` such that changes to one are applied
-    to the other.
+    """Binds the properties specified by ``propName`` and ``otherPropName``
+    such that changes to one are applied to the other.
 
-    :arg str propName:        The name of a property on this
-                              :class:`HasProperties` instance.
+    If the properties are :class:`.List` properties, the :func:`_bindListProps`
+    function is called. Otherwise the :func:`_bindProps` function is called.
+
+    :arg str propName:  The name of a property on this ``HasProperties``
+                        instance.
     
-    :arg HasProperties other: Another :class:`HasProperties` instance.
+    :arg other:         Another ``HasProperties`` instance.
     
-    :arg str otherPropName:   The name of a property on ``other`` to
-                              bind to. If ``None`` it is assumed that
-                              there is a property on ``other`` called
-                              ``propName``.
+    :arg otherPropName: The name of a property on ``other`` to
+                        bind to. If ``None`` it is assumed that
+                        there is a property on ``other`` called
+                        ``propName``.
 
-    :arg bindval:             If ``True`` (the default), property values
-                              are bound. This parameter is ignored for
-                              list properties.
+    :arg bindval:       If ``True`` (the default), property values
+                        are bound. This parameter is ignored for
+                        list properties.
 
-    :arg bindatt:             If ``True`` (the default), property attributes
-                              are bound.  For list properties, this parameter
-                              applies to the list values, not to the list
-                              itself.
+    :arg bindatt:       If ``True`` (the default), property attributes
+                        are bound.  For :class:`.List` properties, this
+                        parameter applies to the list values, not to the
+                        list itself.
 
-    :arg unbind:              If ``True``, the properties are unbound.
-                              See the :meth:`unbindProps` method.
+    :arg unbind:        If ``True``, the properties are unbound.
+                        See the :meth:`unbindProps` method.
     """
 
     if otherPropName is None: otherPropName = propName
@@ -124,8 +195,7 @@ def unbindProps(self,
                 otherPropName=None,
                 bindval=True,
                 bindatt=True):
-    """Unbinds two properties previously bound via a call to
-    :meth:`bindProps`. 
+    """Unbinds two properties previously bound via a call to :func:`bindProps`.
     """
     self.bindProps(propName,
                    other,
@@ -137,7 +207,7 @@ def unbindProps(self,
 
 def isBound(self, propName, other, otherPropName=None):
     """Returns ``True`` if the specified property is bound to the
-    other :class:`HasProperties` object, ``False`` otherwise.
+    other ``HasProperties`` instance, ``False`` otherwise.
     """
     
     if otherPropName is None: otherPropName = propName
@@ -161,12 +231,9 @@ def _bindProps(self,
                bindval=True,
                bindatt=True,
                unbind=False):
-    """Binds two :class:`~props.properties_value.PropertyValue` instances
-    together. See the :func:`bindProps` function for
-    details on the parametes.
-
-    The :meth:`_bindListProps` method is used to bind two
-    :class:`~props.properties_value.PropertyValueList` instances.
+    """Binds the :class:`.PropertyValue` instances of two
+    :class:`.PropertyBase` instances together. See the :func:`bindProps`
+    function for details on the parameters.
     """
 
     myPropVal    = myProp   .getPropVal(self)
@@ -183,8 +250,8 @@ def _bindProps(self,
         
     _bindPropVals(myPropVal,
                   otherPropVal,
-                  val=bindval,
-                  att=bindatt,
+                  bindval=bindval,
+                  bindatt=bindatt,
                   unbind=unbind)
 
 
@@ -194,9 +261,9 @@ def _bindListProps(self,
                    otherProp,
                    bindatt=True,
                    unbind=False):
-    """Binds two :class:`~props.properties_value.PropertyValueList`
-    instances together. See the :func:`bindProps` function for
-    details on the parametes.
+    """Binds the :class:`.PropertyValueList` instances of two
+    :class:`.ListPropertyBase` instances together. See the :func:`bindProps`
+    function for details on the parameters.
     """
 
     myPropVal    = myProp   .getPropVal(self)
@@ -251,8 +318,8 @@ def _bindListProps(self,
         # in a list is handled at the list level
         _bindPropVals(myItem,
                       otherItem,
-                      val=False,
-                      att=bindatt,
+                      bindval=False,
+                      bindatt=bindatt,
                       unbind=unbind)
         propValMap[myItem] = otherItem
         
@@ -321,13 +388,13 @@ def _bindListProps(self,
 
 def _bindPropVals(myPropVal,
                   otherPropVal,
-                  val=True,
-                  att=True,
+                  bindval=True,
+                  bindatt=True,
                   unbind=False):
-    """Binds two :class:`~props.properties_value.PropertyValue`
-    instances together such that when the value of one changes,
-    the other is changed. Attributes are also bound between the
-    two instances.
+    """Binds two :class:`.PropertyValue` instances together such that when the
+    value of one changes, the other is changed.
+
+    See :func:`bindProps` for details on the parameters.
     """
 
     mine  = myPropVal
@@ -351,8 +418,8 @@ def _bindPropVals(myPropVal,
     log.debug('{} property values '
               '(val={}, att={}) {}.{} ({}) <-> {}.{} ({})'.format(
                   action,
-                  val,
-                  att,
+                  bindval,
+                  bindatt,
                   myPropVal._context.__class__.__name__,
                   myPropVal._name,
                   id(myPropVal),
@@ -360,7 +427,7 @@ def _bindPropVals(myPropVal,
                   otherPropVal._name,
                   id(otherPropVal)))
 
-    if val:
+    if bindval:
         if unbind:
             myBoundPropVals   .pop(id(other))
             otherBoundPropVals.pop(id(mine))
@@ -368,7 +435,7 @@ def _bindPropVals(myPropVal,
             myBoundPropVals[   id(other)] = other
             otherBoundPropVals[id(mine)]  = mine
         
-    if att:
+    if bindatt:
         if unbind:
             myBoundAttPropVals   .pop(id(other))
             otherBoundAttPropVals.pop(id(mine))
@@ -390,8 +457,8 @@ def _bindPropVals(myPropVal,
 
 
 def _syncPropValLists(masterList, slaveList):
-    """Called when one of a pair of bound
-    :class:`~props.properties_value.PropertyValueList` instances changes.
+    """Called by the :func:`_sync` function when one of a pair of bound
+    :class:`.PropertyValueList` instances changes.
     
     Propagates the change on the ``masterList`` (either an addition, a
     removal, or a re-ordering) to the ``slaveList``.
@@ -435,7 +502,7 @@ def _syncPropValLists(masterList, slaveList):
 
                 # Bind the attributes of
                 # the two new PV objects
-                _bindPropVals(mpv, spv, val=False)
+                _bindPropVals(mpv, spv, bindval=False)
 
     # one or more items have been
     # removed from the master list
@@ -525,7 +592,7 @@ def _syncPropValLists(masterList, slaveList):
 
 
 def _buildBPVList(self, key, node=None, bpvSet=None):
-    """Used by the :func:`_sync` method.
+    """Used by the :func:`_sync` function.
 
     Recursively builds a list of all PVs that are bound to this one, either
     directly or indirectly.  For each PV, we also store a reference to the
@@ -535,9 +602,9 @@ def _buildBPVList(self, key, node=None, bpvSet=None):
     Returns two lists - the first containing bound PVs, and the second
     containing the parent for each bound PV.
     
-    :arg self:   The root PV
+    :arg self:   The root PV.
 
-    :arg key:    Either ``boundPropVals`` or ``boundAttPropVals``
+    :arg key:    A string, either ``boundPropVals`` or ``boundAttPropVals``.
 
     :arg node:   The current PV to begin this step of the recursive search
                  from (do not pass in on the non-recursive call).
@@ -581,14 +648,24 @@ def _buildBPVList(self, key, node=None, bpvSet=None):
     
 
 def _sync(self, atts=False, attName=None, attValue=None):
-    """
+    """Called by :func:`_notify`.
+
+    Synchronises the value or attributes of all bound ``PropertyValue``
+    instances to the the value or attributes of this one.
+
+    :arg atts:     If ``True``, the attribute with ``attName`` and ``attValue``
+                   is synchronised. Otherwise, the property values are
+                   synchronised.
+
+    :arg attName:  If ``att=True``, the name of the attribute to synchronise.
+
+    :arg attValue: If ``att=True``, the value of the attribute to synchronise.
     """
 
     # This PV is already being synced 
     # to some other PV - don't sync back
     if getattr(self, '_syncing', False):
         return []
-
 
     if atts: key = 'boundAttPropVals'
     else:    key = 'boundPropVals'
@@ -668,9 +745,10 @@ def _sync(self, atts=False, attName=None, attValue=None):
 
 
 def _notify(self):
-    """This method replaces :meth:`.PropertyValue.notify`. It ensures that
-    bound :class:`.ProperyValue` objects are synchronised to have the same
-    value, before any registered listeners are notified.
+    """This function replaces the :meth:`.PropertyValue.notify` method.
+
+    It ensures that bound :class:`.ProperyValue` objects are synchronised to
+    have the same value, before any registered listeners are notified.
     """
 
     boundPropVals = _sync(self)
@@ -707,11 +785,11 @@ def _notify(self):
 
 
 def _notifyAttributeListeners(self, name, value):
-    """This method replaces the
-    :meth:`~props.properties_value.PropertyValue.notifyAttributeListeners`
-    method. It ensures that the attributes of any bound
-    :class:`~props.properties_value.PropertyValue` instances are synchronised
-    before any attribute listeners are notified.
+    """This method replaces the :meth:`.PropertyValue.notifyAttributeListeners`
+    method.
+
+    It ensures that the attributes of any bound :class:`.PropertyValue`
+    instances are synchronised before any attribute listeners are notified.
     """
     
     boundPropVals = _sync(self, True, name, value)
@@ -729,7 +807,7 @@ def _notifyAttributeListeners(self, name, value):
         bpv._orig_notifyAttributeListeners(name, value)
 
                          
-# Patch the HasPropertyies and PropertyValue
+# Patch the HasPropertyies and PropertyValue classes
 properties.HasProperties.bindProps   = bindProps
 properties.HasProperties.unbindProps = unbindProps
 properties.HasProperties.isBound     = isBound
