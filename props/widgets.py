@@ -4,7 +4,80 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""Generate wx GUI widgets for :class:`.PropertyBase` objects. """
+"""This module provides functions to generate Generate :mod:`wx` GUI widgets
+which allow the user to edit the properties of a :class:`.HasProperties`
+instance.
+
+
+The functions defined in this module are used by the :mod:`.build` module,
+which generates a GUI from a view specification. The following functions
+are available:
+
+
+ .. autosummary::
+    _FilePath
+    _String
+    _Real
+    _Int
+    _Percentage
+    _Colour
+    _ColourMap
+    _LinkBox
+
+
+Widgets for some other property types are implemented in separate modules,
+purely to keep module file sizes down:
+
+
+ .. autosummary::
+    ~props.widgets_list._List
+    ~props.widgets_bounds._Bounds
+    ~props.widgets_point._Point
+    ~props.widgets_choice._Choice
+    ~props.widgets_boolean._Boolean
+    ~props.widgets_number._Number
+
+
+While all of these functions have a standardised signature, some of them
+(e.g. the ``_Colour`` function) accept extra arguments which provide some
+level of customisation. You can provide these arguments indirectly in the
+:class:`.ViewItem` specification for a specific property. For example::
+
+
+    import props
+
+    class MyObj(props.HasProperties):
+        myColour     = props.Colour()
+        myBoolean    = props.Boolean()
+
+    view = props.VGroup((
+
+        # Give the colour button a size of 32 * 32
+        props.Widget('myColour',  size=(32, 32)),
+
+        # Use a toggle button for the boolean property,
+        # using 'boolean.png' as the button icon
+        props.Widget('myBoolean', icon='boolean.png') ))
+
+    myobj = MyObj()
+
+    dlg = props.buildDialog(None, myobj, view=view)
+
+    dlg.ShowModal()
+
+
+This module also provides a few functions which are made available at the
+:mod:`props` namespace level, and are intended to be called by application
+code:
+
+
+ .. autosummary::
+    makeWidget
+    makeListWidgets
+    makeSyncWidget
+    bindWidget
+    unbindWidget
+"""
 
 import logging
 
@@ -41,7 +114,7 @@ def _propBind(hasProps,
               widgetGet=None,
               widgetSet=None,
               widgetDestroy=None):
-    """Binds a :class:`~props.properties_value.PropertyValue` to a widget.
+    """Binds a :class:`.PropertyValue` instance to a widget.
     
     Sets up event callback functions such that, on a change to the given
     property value, the value displayed by the given GUI widget will be
@@ -49,14 +122,11 @@ def _propBind(hasProps,
     you may pass in a list of event types) occurs, the property value will be
     set to the value controlled by the GUI widget.
 
-    :param hasProps:      The owning :class:`~props.properties.HasProperties`
-                          instance.
+    :param hasProps:      The owning :class:`.HasProperties` instance.
     
-    :param propObj:       The :class:`~props.properties.PropertyBase` property
-                          type.
+    :param propObj:       The :class:`.PropertyBase` property type.
     
-    :param propVal:       The :class:`~props.properties_value.PropertyValue` to 
-                          be bound.
+    :param propVal:       The :class:`.PropertyValue` to be bound.
     
     :param guiObj:        The :mod:`wx` GUI widget
     
@@ -180,27 +250,24 @@ def _propUnbind(hasProps, propObj, propVal, guiObj, evType):
 
 def _setupValidation(widget, hasProps, propObj, propVal):
     """Configures input validation for the given widget, which is assumed to be
-    bound to the given ``propVal`` (a
-    :class:`~props.properties_value.PropertyValue` object).
+    bound to the given ``propVal`` (a :class:`.PropertyValue` object).
 
     Any changes to the property value are validated and, if the new value is
     invalid, the widget background colour is changed to a light red, so that
     the user is aware of the invalid-ness.
 
     This function is only used for a few different property types, namely
-    :class:`~props.properties_types.String`,
-    :class:`~props.properties_types.FilePath`, and
-    :class:`~props.properties_types.Number` properties.
+      - :class:`.String`
+      - :class:`.FilePath`
+      - :class:`.Number`
 
     :param widget:   The :mod:`wx` GUI widget.
     
-    :param hasProps: The owning :class:`~props.properties.HasProperties`
-                     instance.
+    :param hasProps: The owning :class:`.HasProperties` instance.
     
-    :param propObj:  The :class:`~props.properties.PropertyBase` property type.
+    :param propObj:  The :class:`.PropertyBase` property type.
     
-    :param propVal:  The :class:`~props.properties_value.PropertyValue`
-                     instance.
+    :param propVal:  The :class:`.PropertyValue` instance.
     """
 
     invalidBGColour = '#ff9999'
@@ -241,103 +308,18 @@ def _setupValidation(widget, hasProps, propObj, propVal):
     _changeBGOnValidate(None, propVal.isValid(), None)
     
 
-_lastFilePathDir = None
-"""The _lastFilePathDir variable is used to retain the most recently visited
-directory in file dialogs. New file dialogs are initialised to display this
-directory.
-
-This is currently a global setting, but it may be more appropriate to make it
-a per-widget setting.  Easily done, just make this a dict, with the widget (or
-property name) as the key.
-"""
-
-
-def _FilePath(parent, hasProps, propObj, propVal, **kwargs):
-    """Creates and returns a panel containing a :class:`wx.TextCtrl` and a
-    :class:`wx.Button`. The button, when clicked, opens a file dialog allowing
-    the user to choose a file/directory to open, or a location to save (this
-    depends upon how the ``propObj`` [a
-    :class:`~props.properties_types.FilePath`] object was configured).
-
-    See the :func:`_String` documentation for details on the parameters.
-    """
-
-    global _lastFilePathDir
-    if _lastFilePathDir is None:
-        _lastFilePathDir = os.getcwd()
-
-    value = propVal.get()
-    if value is None: value = ''
-
-    panel   = wx.Panel(parent)
-    textbox = wx.TextCtrl(panel)
-    button  = wx.Button(panel, label='Choose')
-
-    sizer = wx.BoxSizer(wx.HORIZONTAL)
-    sizer.Add(textbox, flag=wx.EXPAND, proportion=1)
-    sizer.Add(button,  flag=wx.EXPAND)
-
-    panel.SetSizer(sizer)
-    panel.SetAutoLayout(1)
-    sizer.Fit(panel)
-
-    exists = propObj.getConstraint(hasProps, 'exists')
-    isFile = propObj.getConstraint(hasProps, 'isFile')
-    
-    def _choosePath(ev):
-        global _lastFilePathDir
-
-        if exists and isFile:
-            dlg = wx.FileDialog(parent,
-                                message='Choose file',
-                                defaultDir=_lastFilePathDir,
-                                defaultFile=value,
-                                style=wx.FD_OPEN)
-            
-        elif exists and (not isFile):
-            dlg = wx.DirDialog(parent,
-                               message='Choose directory',
-                               defaultPath=_lastFilePathDir) 
-
-        else:
-            dlg = wx.FileDialog(parent,
-                                message='Save file',
-                                defaultDir=_lastFilePathDir,
-                                defaultFile=value,
-                                style=wx.FD_SAVE)
-
-
-        dlg.ShowModal()
-        path = dlg.GetPath()
-        
-        if path != '' and path is not None:
-            _lastFilePathDir = op.dirname(path)
-            propVal.set(path)
-            
-    _setupValidation(textbox, hasProps, propObj, propVal)
-    _propBind(hasProps, propObj, propVal, textbox, wx.EVT_TEXT)
-
-    button.Bind(wx.EVT_BUTTON, _choosePath)
-    
-    return panel
-    
-
 def _String(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a :class:`wx.TextCtrl` object, allowing the user to
-    edit the given ``propVal`` (managed by a
-    :class:`~props.properties_types.String`) object.
+    edit the given ``propVal`` (managed by a :class:`.String` instance).
 
     :param parent:   The :mod:`wx` parent object.
     
-    :param hasProps: The owning :class:`~props.properties.HasProperties`
-                     instance.
+    :param hasProps: The owning :class:`.HasProperties` instance.
 
-    :param propObj:  The :class:`~props.properties.PropertyBase` instance
-                     (assumed to be a
-                     :class:`~props.properties_types.String`).
+    :param propObj:  The :class:`.PropertyBase` instance (assumed to be a
+                     :class:`.String`).
     
-    :param propVal:  The :class:`~props.properties_value.PropertyValue`
-                     instance.
+    :param propVal:  The :class:`.PropertyValue` instance.
 
     :param kwargs:   Type-specific options.
     """
@@ -367,10 +349,88 @@ def _String(parent, hasProps, propObj, propVal, **kwargs):
     return widget
 
 
+def _FilePath(parent, hasProps, propObj, propVal, **kwargs):
+    """Creates and returns a panel containing a :class:`wx.TextCtrl` and a
+    :class:`wx.Button`.
+
+    The button, when clicked, opens a file dialog allowing the user to choose
+    a file/directory to open, or a location to save (this depends upon how the
+    ``propObj`` [a :class:`.FilePath` instance] object was configured).
+
+    See the :func:`_String` documentation for details on the parameters.
+    """
+
+    # The _lastFilePathDir variable is used to
+    # retain the most recently visited directory
+    # in file dialogs. New file dialogs are
+    # initialised to display this directory.
+
+    # This is currently a global setting, but it
+    # may be more appropriate to make it a per-widget
+    # setting.  Easily done, just make this a dict,
+    # with the widget (or property name) as the key.
+    lastFilePathDir = getattr(_FilePath, 'lastFilePathDir', os.getcwd())
+
+    value = propVal.get()
+    if value is None: value = ''
+
+    panel   = wx.Panel(parent)
+    textbox = wx.TextCtrl(panel)
+    button  = wx.Button(panel, label='Choose')
+
+    sizer = wx.BoxSizer(wx.HORIZONTAL)
+    sizer.Add(textbox, flag=wx.EXPAND, proportion=1)
+    sizer.Add(button,  flag=wx.EXPAND)
+
+    panel.SetSizer(sizer)
+    panel.SetAutoLayout(1)
+    sizer.Fit(panel)
+
+    exists = propObj.getConstraint(hasProps, 'exists')
+    isFile = propObj.getConstraint(hasProps, 'isFile')
+    
+    def _choosePath(ev):
+        global _lastFilePathDir
+
+        if exists and isFile:
+            dlg = wx.FileDialog(parent,
+                                message='Choose file',
+                                defaultDir=lastFilePathDir,
+                                defaultFile=value,
+                                style=wx.FD_OPEN)
+            
+        elif exists and (not isFile):
+            dlg = wx.DirDialog(parent,
+                               message='Choose directory',
+                               defaultPath=lastFilePathDir) 
+
+        else:
+            dlg = wx.FileDialog(parent,
+                                message='Save file',
+                                defaultDir=lastFilePathDir,
+                                defaultFile=value,
+                                style=wx.FD_SAVE)
+
+
+        dlg.ShowModal()
+        path = dlg.GetPath()
+        
+        if path != '' and path is not None:
+            _FilePath.lastFilePathDir = op.dirname(path)
+            propVal.set(path)
+            
+    _setupValidation(textbox, hasProps, propObj, propVal)
+    _propBind(hasProps, propObj, propVal, textbox, wx.EVT_TEXT)
+
+    button.Bind(wx.EVT_BUTTON, _choosePath)
+    
+    return panel
+
+
 def _Real(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a widget allowing the user to edit the given
-    :class:`~props.properties_types.Real` property value. See the
-    :mod:`props.widgets_number` module.
+    :class:`.Real` property value. See the :func:`.widgets_number._Number`
+    function for more details.
 
     See the :func:`_String` documentation for details on the parameters.
     """
@@ -379,8 +439,8 @@ def _Real(parent, hasProps, propObj, propVal, **kwargs):
 
 def _Int(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a widget allowing the user to edit the given
-    :class:`~props.properties_types.Int` property value. See the
-    :mod:`props.widgets_number` module.
+    :class:`.Int` property value. See the :func:`.widgets_number._Number`
+    function for more details.
 
     See the :func:`_String` documentation for details on the parameters.
     """ 
@@ -389,8 +449,8 @@ def _Int(parent, hasProps, propObj, propVal, **kwargs):
 
 def _Percentage(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a widget allowing the user to edit the given
-    :class:`~props.properties_types.Percentage` property value. See the
-    :mod:`props.widgets_number` module.
+    :class:`.Percentage` property value. See the
+    :func:`.widgets_number._Number` function for more details.
 
     See the :func:`_String` documentation for details on the parameters.
     """ 
@@ -399,9 +459,10 @@ def _Percentage(parent, hasProps, propObj, propVal, **kwargs):
         
 
 def _Colour(parent, hasProps, propObj, propVal, size=(16, 16), **kwargs):
-    """Creates and returns a :class:`wx.ColourPickerCtrl` widget, allowing
-    the user to modify the given :class:`props.properties_types.Colour`
-    value.
+    """Creates and returns a :class:`.ColourButton` widget, allowing
+    the user to modify the given :class:`.Colour` property value.
+
+    :arg size: Desired size, in pixels, of the ``ColourButton``.
     """
 
     colourButton = colourbtn.ColourButton(parent, size=size)
@@ -427,7 +488,9 @@ def _Colour(parent, hasProps, propObj, propVal, size=(16, 16), **kwargs):
 
 
 def _makeColourMapBitmap(cmap):
-    """Makes a little bitmap image from a :class:`~matplotlib.colors.Colormap`
+    """Used by the :func:`_ColourMap` function.
+
+    Makes a little bitmap image from a :class:`~matplotlib.colors.Colormap`
     instance.
     """
 
@@ -455,10 +518,10 @@ def _makeColourMapBitmap(cmap):
 
 
 def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
-    """Creates and returns a combobox, allowing the user to change the value of
-    the given :class:`~props.properties_types.ColourMap` property value.
+    """Creates and returns a combobox, allowing the user to change the value
+    of the given :class:`.ColourMap` property value.
 
-    See also the :func:`_makeColourMapComboBox` function.
+    See also the :func:`_makeColourMapBitmap` function.
     """
 
     import matplotlib.cm as mplcm
@@ -620,18 +683,18 @@ def makeSyncWidget(parent, hasProps, propName, **kwargs):
 
 
 def makeWidget(parent, hasProps, propName, **kwargs):
-    """Given ``hasProps`` (a :class:`~props.properties.HasProperties` object),
-    ``propName`` (the name of a property of ``hasProps``), and ``parent``, a
-    GUI object, creates and returns a widget, or a panel containing widgets,
-    which may be used to edit the property.
+    """Given ``hasProps`` (a :class:`.HasProperties` instance), ``propName``
+    (the name of a property of ``hasProps``), and ``parent``, a GUI object,
+    creates and returns a widget, or a panel containing widgets, which may
+    be used to edit the property value.
 
     :param parent:       A :mod:`wx` object to be used as the parent for the
                          generated widget(s).
     
-    :param hasProps:     A :class:`~props.properties.HasProperties` instance.
+    :param hasProps:     A :class:`.HasProperties` instance.
     
-    :param str propName: Name of the :class:`~props.properties.PropertyBase`
-                         property to generate a widget for.
+    :param str propName: Name of the :class:`.PropertyBase` property to
+                         generate a widget for.
 
     :param kwargs:       Type specific arguments.
     """

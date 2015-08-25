@@ -7,8 +7,14 @@
 #
 """Parts for building a GUI.
 
-This module provides definitiions of the parts used by the :mod:`~props.build`
-module to build a GUI from a :mod:`~props.HasProperties` object.
+This module provides definitiions of the parts used by the :mod:`.build`
+module to build a GUI for a :class:`.HasProperties` instance. See the
+:mod:`.build` module documentation for some examples.
+
+
+----------------------------
+Conditional visibility/state
+----------------------------
 
 
 The value of the ``ViewItem.dependencies`` parameter determines the required
@@ -122,7 +128,7 @@ class ViewItem(object):
                              :class:`Widget`, this should be the property
                              name that the widget edits. This key is used to
                              look up labels and tooltips, if they are passed
-                             in as dicts (see :func:`buildGUI`).
+                             in as dicts (see :func:`.buildGUI`).
         
         :param str label:    A label for this item, which may be used in the
                              GUI.
@@ -131,14 +137,13 @@ class ViewItem(object):
                              hovers the mouse over the widget for this
                              :class:`ViewItem`.
         
-        :param visibleWhen:  A function which takes at least one argument
-                             (see note about the ``dependencies`` parameter
-                             above), the
-                             :class:`~props.properties.HasProperties` instance,
-                             and returns a ``bool``. When any property values
-                             change, the function is called. The return value
-                             is used to determine whether this item should be
-                             made visible or invisible.
+        :param visibleWhen:  A function which takes at least one argument (see
+                             note about the ``dependencies`` parameter above),
+                             the ``HasProperties`` instance, and returns a
+                             ``bool``. When any property values change, the
+                             function is called. The return value is used to
+                             determine whether this item should be made
+                             visible or invisible.
         
         :param enabledWhen:  Same as the ``visibleWhen`` parameter, except the
                              state of the item (and its children) is changed
@@ -149,17 +154,15 @@ class ViewItem(object):
                              and the arguments that are passed to the
                              ``visibleWhen``/``enabledWhen`` functions.
 
-        :param setup:        Optional function which is called when te GUI 
-                             object represented by this ViewItem is first 
+        :param setup:        Optional function which is called when te GUI
+                             object represented by this ViewItem is first
                              created. The function is passed the
-                             :class:`~props.properties.HasProperties` instance,
-                             the :mod:`wx` GUI parent object, and the
-                             :mod:`wx` object.
+                             ``HasProperties`` instance, the :mod:`wx` GUI
+                             parent object, and the :mod:`wx` object.
 
         :param kwargs:       Any type-specific options which are to be passed
                              through to the creation function, defined in
-                             the :mod:`props.widgets` module.
-
+                             the :mod:`.widgets` module.
         """
 
         self.key          = key
@@ -184,8 +187,8 @@ class Button(ViewItem):
     function.
 
     When the button is clicked, the callback function is passed two arguemnts
-    - the :class:`~props.properties.HasProperties` instance, and the
-    :class:`wx.Button` instance.
+    - the :class:`.HasProperties` instance, and the :class:`wx.Button`
+    instance.
     """
 
     def __init__(self,

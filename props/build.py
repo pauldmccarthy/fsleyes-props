@@ -6,25 +6,19 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
-"""Automatically build a :mod:`wx` GUI for a
-:class:`.HasProperties` object.
+"""Automatically build a :mod:`wx` GUI for a :class:`.HasProperties` instance.
 
 This module provides functionality to automatically build a :mod:`wx` GUI
 containing widgets which allow the user to change the property values
-(:class:`.PropertyBase` objects) of a specified :class:`.HasProperties`
-object.
+(:class:`.PropertyBase` instances) of a specified :class:`.HasProperties`
+instance.
 
 
-The main entry point for this module is the :func:`buildGUI` function, which
-accepts as parameters a GUI object to be used as the parent (e.g. a
-:class:`wx.Panel` object), a :class:`.HasProperties` object, an optional
-:class:`.ViewItem` object, which specifies how the interface is to be laid out,
-and two optional dictionaries for passing in labels and tooltips.
+This module has two main entry points:
 
-
-The :func:`buildDialog` function is also provided for convenience. It simply
-embeds the result of a call to :func:`buildGUI` in a :class:`wx.Dialog`, and
-returns the dialog instance.
+ .. autosummary::
+    buildGUI
+    buildDialog
 
 
 A number of classes are defined in the separate :mod:`.build_parts` module.
@@ -33,9 +27,11 @@ be customised.  Property widgets may be grouped together by embedding them
 within a :class:`.HGroup` or :class:`.VGroup` object; they will then
 respectively be laid out horizontally or verticaly.  Groups may be embedded
 within a :class:`.NotebookGroup` object, which will result in an interface
-containing a tab for each child :class:`.Group`.  The label for, and behaviour
-of, the widget for an individual property may be customised with a
-:class:`.Widget` object. As an example::
+containing a tab for each child :class:`.Group`.
+
+
+The label for, and behaviour of, the widget for an individual property may be
+customised with a :class:`.Widget` object. As an example::
 
     import wx
     import props
@@ -70,8 +66,10 @@ of, the widget for an individual property may be customised with a
 
     myObjPanel = props.buildGUI(frame, myobj, view)
 
+
 See the :mod:`.build_parts` module for details on the :class:`.Widget` (and
-other :class:`.ViewItem`) definitions .
+other :class:`.ViewItem`) definitions.
+
 
 You may also pass in widget labels and tooltips to the :func:`buildGUI`
 function::
@@ -108,6 +106,7 @@ As an alternative to passing in a view, labels, and tooltips to the
         }
 
     props.buildGUI(frame, myobj)
+
 """
 
 import logging
@@ -914,23 +913,23 @@ def buildGUI(parent,
 
     Parameters:
     
-    :param parent:       parent GUI object. If ``None``, the interface is
-                         embedded within a :class:`wx.Frame`.
+    :param parent:     The parent GUI object. If ``None``, the interface is
+                       embedded within a :class:`wx.Frame`.
     
-    :param hasProps:     :class:`.HasProperties` object
+    :param hasProps:   The :class:`.HasProperties` instance.
     
-    :param view:         :class:`.ViewItem` object, specifying the interface
-                         layout
+    :param view:       A :class:`.ViewItem` object, specifying the interface
+                       layout.
     
-    :param labels:       Dict specifying labels
+    :param labels:     A dictionary specifying labels.
     
-    :param tooltips:     Dict specifying tooltips
+    :param tooltips:   A dictionary specifying tooltips.
     
-    :param showUnlink: If the given ``hasProps`` object is a
-                         :class:`.SyncableHasProperties` instance, and it has
-                         a parent, a 'link/unlink' checkbox will be shown next
-                         to any properties that can be bound/unbound from the
-                         parent object.
+    :param showUnlink: If the given ``hasProps`` instance is a
+                       :class:`.SyncableHasProperties` instance, and it has
+                       a parent, a 'link/unlink' checkbox will be shown next
+                       to any properties that can be bound/unbound from the
+                       parent object.
     """
 
     if view is None:
@@ -982,7 +981,6 @@ def buildDialog(parent,
     :func:`buildGUI` in a :class:`wx.Dialog`.
 
     See the :func:`buildGUI` documentation for details on the paramters.
-
 
     :arg dlgButtons: If ``True``, the dialog will have 'Ok' and 'Cancel'
                      buttons.

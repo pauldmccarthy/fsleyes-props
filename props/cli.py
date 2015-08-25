@@ -5,35 +5,19 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
-"""Generate command line arguments for a
-:class:`~props.properties.HasProperties` object.
+"""Generate command line arguments for a :class:`.HasProperties` instance.
 
 This module provides the following functions:
 
-:func:`addParserArguments`:
-    Given an :class:`argparse.ArgumentParser` and a
-    :class:`~props.properties.HasProperties` class (or instance), adds
-    arguments to the parser for each :class:`~props.properties.PropertyBase`
-    attribute of the :class:`~props.properties.HasProperties` class.
+ .. autosummary::
+    addParserArguments
+    applyArguments
+    generateArguments
 
-:func:`applyArguments`:
-    Given a :class:`~props.properties.HasProperties` instance and an
-    :class:`argparse.Namespace` object assumed to have been created by the
-    parser mentioned above, sets the property values of the
-    :class:`~props.properties.HasProperties` instance from the values stored
-    in the :class:`~argparse.Namespace` object.
-
-:func:`generateArguments`:
-    Basically the inverse of the :func:`applyArguments` function. Given a
-    :class:`~props.properties.HasProperties` instance, generates a string
-    which contains arguments that could be used to re-configure another
-    instance of the same class.
-
-The :func:`addParserArguments` function is used to add arguments to a
-:class:`argparse.ArgumentParser` object for the properties of a
-:class:`~props.properties.HasProperties` class. The simplest way to do so is
-to allow the :func:`addParserArguments` function to automatically generate
-short and long arguments from the property names::
+The ``addParserArguments`` function is used to add arguments to an
+``ArgumentParser`` object for the properties of a ``HasProperties`` class. The
+simplest way to do so is to allow the ``addParserArguments`` function to
+automatically generate short and long arguments from the property names::
 
     >>> import argparse
     >>> import props
@@ -53,7 +37,7 @@ short and long arguments from the property names::
         -b, --boolProp
         -i INT, --intProp INT
 
-Now, if we have a :class:`MyObj` instance, and some arguments::
+Now, if we have a ``MyObj`` instance, and some arguments::
 
     >>> myobj = MyObj()
 
@@ -71,7 +55,7 @@ Now, if we have a :class:`MyObj` instance, and some arguments::
        intProp = 52
 
 If you want to customise the short and long argument tags, and the help text,
-for each property, you can pass them in to the :func:`addParserArguments`
+for each property, you can pass them in to the ``addParserArguments``
 function::
 
     >>> shortArgs = {'intProp' : 'r',              'boolProp' : 't'}
@@ -93,7 +77,7 @@ function::
       -r INT, --TheInt INT  Sets int value
 
 Or, you can add the short and long arguments, and the help text, as specially
-named class attributes of your :class:`~props.properties.HasProperties` class::
+named class attributes of your ``HasProperties`` class::
 
     >>> class MyObj(props.HasProperties):
             intProp  = props.Int()
@@ -130,20 +114,19 @@ named class attributes of your :class:`~props.properties.HasProperties` class::
       boolProp = True
        intProp = 23413
 
-The :func:`generateArguments` function, as the name suggests,
-generates command line arguments from a
-:class:`~props.properties.HasProperties` instance::
+The ``generateArguments`` function, as the name suggests, generates command
+line arguments from a ``HasProperties`` instance::
 
     >>> props.generateArguments(myobj)
     ['--someBool', '--TheInt', '23413']
 
-The :func:`generateArguments` and :func:`applyArguments` functions optionally
-accept a set of *transform* functions which, for ``generateArguments``, take
-the value of a property, and return some transformation of that property,
-suitable to be used as a command line arguments. The transform functions
-passed to the ``applyArguments`` function perform the reverse transformation.
+The ``generateArguments`` and ``applyArguments`` functions optionally accept a
+set of *transform* functions which, for ``generateArguments``, take the value
+of a property, and return some transformation of that property, suitable to be
+used as a command line arguments. The transform functions passed to the
+``applyArguments`` function perform the reverse transformation.
 
-For example:
+For example::
 
     >>> class MyObject(props.HasProperties):
             showBlah = props.Boolean(default=True)
@@ -167,7 +150,7 @@ For example:
                                 xformFuncs=xforms)
         ['--hideBlah']
 
-And for the reverse transformation:
+And for the reverse transformation::
 
     >>> myobj2 = MyObject()
     >>> args   = parser.parse_args(['--hideBlah'])
@@ -183,20 +166,20 @@ And for the reverse transformation:
 Not all property types are supported at the moment. The ones which are
 supported:
 
-  - :class:`~props.properties_types.String`
-  - :class:`~props.properties_types.Choice`
-  - :class:`~props.properties_types.Int`
-  - :class:`~props.properties_types.Real`
-  - :class:`~props.properties_types.Percentage`
-  - :class:`~props.properties_types.Boolean`
-  - :class:`~props.properties_types.ColourMap`
-  - :class:`~props.properties_types.Colour`
-  - :class:`~props.properties_types.Bounds`
-  - :class:`~props.properties_types.Point`
+  - :class:`.String`
+  - :class:`.Choice`
+  - :class:`.Int`
+  - :class:`.Real`
+  - :class:`.Percentage`
+  - :class:`.Boolean`
+  - :class:`.ColourMap`
+  - :class:`.Colour`
+  - :class:`.Bounds`
+  - :class:`.Point`
 """
 
+
 import logging
-log = logging.getLogger(__name__)
 
 import sys
 import argparse
@@ -204,27 +187,27 @@ import argparse
 import properties as props
 
 
-# The functions below add an argument to an 
-# ArgumentParser for a specific property type.
+log = logging.getLogger(__name__)
 
 
 def _String(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
-    """Adds an argument to the given parser for the given
-    :class:`~props.properties_types.String` property.
+    """Adds an argument to the given parser for the given :class:`.String`
+    property.
     
-    :param parser:       An :class:`argparse.ArgumentParser` instance.
+    :param parser:   An ``ArgumentParser`` instance.
     
-    :param propCls:      A :class:`~props.properties.HasProperties` class.
+    :param propCls:  A ``HasProperties`` class or instance.
 
-    :param propObj:      The :class:`~props.properties.PropertyBase` class.
+    :param propObj:  The ``PropertyBase`` class.
     
-    :param str propName: Name of the property.
+    :param propName: Name of the property.
     
-    :param str propHelp: Custom help text for the property.
+    :param propHelp: Custom help text for the property.
     
-    :param str shortArg: String to use as the short argument.
+    :param shortArg: String to use as the short argument.
     
-    :param str longArg:  String to use as the long argument.
+    :param longArg:  String to use as the long argument.
+
     """
     parser.add_argument(shortArg, longArg, help=propHelp) 
 
@@ -239,9 +222,9 @@ def _Choice(parser,
             choices=None,
             default=None,
             useAlts=True):
-    """Adds an argument to the given parser for the given
-    :class:`~props.properties_types.Choice` property. See the
-    :func:`_String` documentation for details on the parameters.
+    """Adds an argument to the given parser for the given :class:`.Choice`
+    property. See the :func:`_String` documentation for details on the
+    parameters.
 
     Only works with ``Choice`` properties with string options (unless
     the ``choices`` argument is provided).
@@ -285,9 +268,9 @@ def _Choice(parser,
     
     
 def _Boolean(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
-    """Adds an argument to the given parser for the given
-    :class:`~props.properties_types.Boolean` property. See the
-    :func:`_String` documentation for details on the parameters.
+    """Adds an argument to the given parser for the given :class:`.Boolean`
+    property. See the :func:`_String` documentation for details on the
+    parameters.
     """
     # Using store_const instead of store_true,
     # because if the user doesn't set this
@@ -303,9 +286,9 @@ def _Boolean(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
 
     
 def _Int(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
-    """Adds an argument to the given parser for the given
-    :class:`~props.properties_types.Int` property. See the
-    :func:`_String` documentation for details on the parameters.
+    """Adds an argument to the given parser for the given :class:`.Int`
+    property. See the :func:`_String` documentation for details on the
+    parameters.
     """ 
     parser.add_argument(shortArg,
                         longArg,
@@ -315,9 +298,9 @@ def _Int(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
 
     
 def _Real(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
-    """Adds an argument to the given parser for the given
-    :class:`~props.properties_types.Real` property. See the
-    :func:`_String` documentation for details on the parameters.
+    """Adds an argument to the given parser for the given :class:`.Real`
+    property. See the :func:`_String` documentation for details on the
+    parameters.
     """ 
     parser.add_argument(shortArg,
                         longArg,
@@ -328,9 +311,9 @@ def _Real(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     
 def _Percentage(
         parser, propObj, propCls, propName, propHelp, shortArg, longArg):
-    """Adds an argument to the given parser for the given
-    :class:`~props.properties_types.Percentage` property. See the
-    :func:`_String` documentation for details on the parameters.
+    """Adds an argument to the given parser for the given :class:`.Percentage`
+    property. See the :func:`_String` documentation for details on the
+    parameters.
     """ 
     parser.add_argument(shortArg,
                         longArg,
@@ -340,9 +323,9 @@ def _Percentage(
 
 
 def _Bounds(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
-    """Adds an argument to the given parser for the given
-    :class:`~props.properties_types.Bounds` property. See the
-    :func:`_String` documentation for details on the parameters.
+    """Adds an argument to the given parser for the given :class:`.Bounds`
+    property. See the :func:`_String` documentation for details on the
+    parameters.
     """ 
     ndims = getattr(propCls, propName)._ndims
     real  = getattr(propCls, propName)._real
@@ -357,9 +340,9 @@ def _Bounds(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
 
 
 def _Point(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
-    """Adds an argument to the given parser for the given
-    :class:`~props.properties_types.Point` property. See the
-    :func:`_String` documentation for details on the parameters.
+    """Adds an argument to the given parser for the given :class:`.Point`
+    property. See the :func:`_String` documentation for details on the
+    parameters.
     """ 
     ndims = getattr(propCls, propName)._ndims
     real  = getattr(propCls, propName)._real
@@ -374,9 +357,9 @@ def _Point(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
 
 
 def _Colour(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
-    """Adds an argument to the given parser for the given
-    :class:`~props.properties_types.Colour` property. See the
-    :func:`_String` documentation for details on the parameters.    
+    """Adds an argument to the given parser for the given :class:`.Colour`
+    property. See the :func:`_String` documentation for details on the
+    parameters.
     """
     parser.add_argument(shortArg,
                         longArg,
@@ -388,9 +371,9 @@ def _Colour(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     
 def _ColourMap(
         parser, propObj, propCls, propName, propHelp, shortArg, longArg):
-    """Adds an argument to the given parser for the given
-    :class:`~props.properties_types.ColourMap` property. See the
-    :func:`_String` documentation for details on the parameters.
+    """Adds an argument to the given parser for the given :class:`.ColourMap`
+    property. See the :func:`_String` documentation for details on the
+    parameters.
     """ 
     # Attempt to retrieve a matplotlib.cm.ColourMap
     # instance given its name
@@ -431,12 +414,12 @@ def _getShortArgs(propCls, propNames, exclude=''):
     the given list of property names. Any letters in the exclude string are
     not used as short arguments.
 
-    :param propCls:        A :class:`~props.properties.HasProperties` class.
+    :param propCls:   A ``HasProperties`` class.
     
-    :param list propNames: List of property names for which short arguments 
-                           are to be generated.
+    :param propNames: List of property names for which short arguments 
+                      are to be generated.
     
-    :param str exclude:    String containing letters which should not be used.
+    :param exclude:   String containing letters which should not be used.
     """
 
     letters   = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -488,28 +471,27 @@ def applyArguments(hasProps,
                    propNames=None,
                    xformFuncs=None,
                    longArgs=None):
-    """Apply arguments to a :class:`~props.properties.HasProperties` instance.
+    """Apply arguments to a ``HasProperties`` instance.
 
-    Given a :class:`~props.properties.HasProperties` instance and an
-    :class:`argparse.Namespace` instance, sets the property values of the
-    :class:`~props.properties.HasProperties` instance from the values
-    stored in the :class:`argparse.Namespace` object.
+    Given a ``HasProperties`` instance and an ``argparse.Namespace`` instance,
+    sets the property values of the ``HasProperties`` instance from the values
+    stored in the ``Namespace`` object.
 
-    :param hasProps:   The :class:`~props.properties.HasProperties` instance.
+    :param hasProps:   The ``HasProperties`` instance.
     
-    :param arguments:  The :class:`argparse.Namespace` instance.
+    :param arguments:  The ``Namespace`` instance.
 
     :param propNames:  List of property names to apply. If ``None``, an attempt
                        is made to set all properties. If not ``None``, the
                        property values are set in the order specified by this
                        list.
     
-    :param xformFuncs: A dictionary of {property name -> function} mappings,
-                       which can be used to transform the value given
+    :param xformFuncs: A dictionary of ``{property name -> function}``
+                       mappings, which can be used to transform the value given
                        on the command line before it is assigned to the 
                        property.
 
-    :param longArgs:   Dict containing {property name : longArg} mappings.
+    :param longArgs:   Dict containing ``{property name : longArg}`` mappings.
     """
 
     if propNames is None:
@@ -552,14 +534,13 @@ def addParserArguments(
         propHelp=None,
         extra=None,
         exclude=''):
-    """Adds arguments to the given :class:`argparse.ArgumentParser` for the
-    properties of the given :class:`~props.properties.HasProperties` object.
+    """Adds arguments to the given ``argparse.ArgumentParser`` for the
+    properties of the given ``HasProperties`` class or instance.
 
-    :param propCls:        A :class:`~props.properties.HasProperties` class. 
-                           An instance may alternately be passed in.
+    :param propCls:        A ``HasProperties`` class. An instance may
+                           alternately be passed in.
     
-    :param parser:         An :class:`argparse.ArgumentParser` to add
-                           arguments to.
+    :param parser:         An ``ArgumentParser`` to add arguments to.
     
     :param list cliProps:  List containing the names of properties to add
                            arguments for. If ``None``, and an attribute called
@@ -664,18 +645,16 @@ def generateArguments(hasProps,
                       shortArgs=None,
                       longArgs=None,
                       exclude=''):
-    """
-    Given a :class:`~props.properties.HasProperties` instance, generates a list
-    of arguments which could be used to configure another instance in the same
-    way. 
+    """Given a ``HasProperties`` instance, generates a list of arguments which
+    could be used to configure another instance in the same way.
     
-    :param hasProps:     The :class:`~props.properties.HasProperties` instance.
+    :param hasProps:     The ``HasProperties`` instance.
 
-    :param useShortArgs: If `True` the short argument version is used instead
+    :param useShortArgs: If ``True`` the short argument version is used instead
                          of the long argument version.
 
-    :param xformFuncs:   A dictionary of {property name -> function} mappings,
-                         which can be used to perform some arbitrary
+    :param xformFuncs:   A dictionary of ``{property name -> function}``
+                         mappings, which can be used to perform some arbitrary
                          transformation of property values.
 
     See the :func:`addParserArguments` function for descriptions of the other

@@ -9,7 +9,12 @@
 This module defines the :class:`PropertyBase`, :class:`ListPropertyBase`,
 which form the basis for defining class properties; and the
 :class:`HasProperties` class, which is intended to be sub-classed by
-application code. 
+application code.
+
+ .. autosummary::
+    HasProperties
+    PropertyBase
+    ListPropertyBase
 """
 
 import weakref
@@ -537,9 +542,9 @@ class HasProperties(object):
 
         .. note:: The ``validateOnChange`` argument warrants some explanation.
         
-           The point validating all other properties when one property changes
-           is to handle the scenario where the validity of one property is
-           dependent upon the values of other properties.
+           The point of validating all other properties when one property
+           changes is to handle the scenario where the validity of one
+           property is dependent upon the values of other properties.
            
            Currently, the only option is to enable this globally;
            i.e. whenever the value of any property changes, all other
