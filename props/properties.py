@@ -6,10 +6,10 @@
 #
 """Python descriptor framework.
 
-This module defines the :class:`PropertyBase`, :class:`ListPropertyBase`, and
-:class:`HasProperties` classes, which form the basis for defining class
-properties. See also the :mod:`~props.properties_value` and
-:mod:`~props.properties_types` modules.
+This module defines the :class:`PropertyBase`, :class:`ListPropertyBase`,
+which form the basis for defining class properties; and the
+:class:`HasProperties` class, which is intended to be sub-classed by
+application code. 
 """
 
 import weakref
@@ -20,10 +20,9 @@ log = logging.getLogger(__name__)
 
 
 class _InstanceData(object):
-    """An :class:`_InstanceData` object is created for every
-    :class:`PropertyBase` object of a :class:`HasProperties` instance. It
-    stores references to the the instance and the associated property
-    value(s).
+    """An ``_InstanceData`` object is created for every ``PropertyBase``
+    object of a ``HasProperties`` instance. It stores references to the 
+    instance and the associated :class:`.PropertyValue` instance.
     """
     
     def __init__(self, instance, propVal):
@@ -32,7 +31,7 @@ class _InstanceData(object):
 
 
 class DisabledError(Exception):
-    """A ``DisabledError`` is raised when an attempt ius made to assign
+    """A ``DisabledError`` is raised when an attempt is made to assign
     a value to a disabled property. See the :meth:`PropertyBase.enable`
     and :meth:`PropertyBase.disable` methods.
     """
@@ -42,30 +41,29 @@ class DisabledError(Exception):
 class PropertyBase(object):
     """The base class for properties.
 
-    For every :class:`HasProperties` object which has this
-    :class:`PropertyBase` object as a property, one :class:`_InstanceData`
-    object is created and attached as an attribute of the
-    :class:`HasProperties` object.
-
-    One important point to note is that a :class:`PropertyBase` object may
-    exist without being bound to a :class:`HasProperties` object (in which
-    case it will not create or manage any
-    :class:`~props.properties_value.PropertyValue` objects). This is
-    useful if you just want validation functionality via the :meth:`validate`,
+    For every ``HasProperties`` instance which has this ``PropertyBase``
+    object as a property, one ``_InstanceData`` object is created and attached
+    as an attribute of the ``HasProperties`` object.
+    
+    One important point to note is that a ``PropertyBase`` object may exist
+    without being bound to a ``HasProperties`` instance (in which case it will
+    not create or manage any ``PropertyValue`` instances). This is useful
+    if you just want validation functionality via the :meth:`validate`,
     :meth:`getConstraint` and :meth:`setConstraint` methods, passing in
     ``None`` for the instance parameter. Nothing else will work properly
     though.
 
-    Subclasses should:
+    Several subclasses are defined in the :mod:`.properties_types` module.
+    All subclasses should:
 
       - Ensure that the superclass :meth:`__init__` is called.
 
       - Override the :meth:`validate` method to implement any built in
         validation rules, ensuring that the the superclass implementation
-        is called first.
+        is called first (see the :class:`.Number` property for an example).
 
       - Override the :meth:`cast` method for implicit casting/conversion logic
-        (see :class:`~props.properties_types.Boolean` for an example).
+        (see the :class:`.Boolean` property for an example).
     """
 
     def __init__(self,
@@ -75,28 +73,25 @@ class PropertyBase(object):
                  required=False,
                  allowInvalid=True,
                  **constraints):
-        """Define a :class:`PropertyBase` property.
+        """Define a ``PropertyBase`` property.
         
         :param default:       Default/initial value.
         
         :param bool required: Boolean determining whether or not this
                               property must have a value. May alternately
                               be a function which accepts one parameter,
-                              the owning :class:`HasProperties` instance,
+                              the owning ``HasProperties`` instance,
                               and returns ``True`` or ``False``.
         
-        :param validateFunc:  Custom validation function. Must accept
-                              three parameters: a reference to the
-                              :class:`HasProperties` instance, the owner
-                              of this property; a dictionary containing
-                              the constraints for this property; and the
-                              new property value. Should return ``True``
-                              if the property value is valid, ``False``
-                              otherwise.
+        :param validateFunc:  Custom validation function. Must accept three
+                              parameters: a reference to the ``HasProperties``
+                              instance, the owner of this property; a
+                              dictionary containing the constraints for this
+                              property; and the new property value. Should
+                              return ``True`` if the property value is valid,
+                              ``False`` otherwise.
 
-        :param equalityFunc:  Function for testing equality of two
-                              property values. See
-                              :class:`~props.properties_value.PropertyValue`.
+        :param equalityFunc:  Function for testing equality of two values. 
         
         :param allowInvalid:  If ``False``, a :exc:`ValueError` will be
                               raised on all attempts to set this property
@@ -107,16 +102,19 @@ class PropertyBase(object):
                               documentation.
         
         :param constraints:   Type specific constraints used to test
-                              validity.
+                              validity - passed to the
+                              :meth:`.PropertyValue.__init__` method as
+                              its ``attributes``.
         """
 
         constraints['default'] = default
         constraints['enabled'] = constraints.get('enabled', True)
 
-        # A _label is added by the PropertyOwner metaclass
-        # for each new HasProperties class that is defined
-        
+        # A _label is added to this dict by the
+        # PropertyOwner metaclass for each new
+        # HasProperties class that is defined
         self._label              = {}
+        
         self._required           = required
         self._validateFunc       = validateFunc
         self._equalityFunc       = equalityFunc
@@ -145,8 +143,8 @@ class PropertyBase(object):
 
         
     def _setLabel(self, cls, label):
-        """Sets the property label for the given class. A RuntimeError is raised
-        if a label already exists for the given class.
+        """Sets the property label for the given class. A :exc:`RuntimeError`
+        is raised if a label already exists for the given class.
         """
         
         if cls in self._label:
@@ -164,9 +162,9 @@ class PropertyBase(object):
 
 
     def getLabel(self, instance):
-        """Returns the property label for the given instance (more specifically, for
-        the class of the given instance), or ``None`` if no such label has
-        been defined.
+        """Returns the property label for the given instance (more
+        specifically, for the class of the given instance), or ``None``
+        if no such label has been defined.
         """
         if instance is None: return None
         return self._label.get(type(instance), None)
@@ -215,12 +213,10 @@ class PropertyBase(object):
                     callback,
                     overwrite=False,
                     weak=True):
-        """Register a listener with the
-        :class:`~props.properties_value.PropertyValue` object managed by
-        this property. See
-        :meth:`~props.properties_value.PropertyValue.addListener`.
-
-        :param instance:  The :class:`HasProperties` instance on which the
+        """Register a listener with the ``PropertyValue`` object managed
+        by this property. See :meth:`.PropertyValue.addListener`.
+        
+        :param instance:  The ``HasProperties`` instance on which the
                           listener is to be registered.
         """
         self._getInstanceData(instance).propVal.addListener(
@@ -228,9 +224,8 @@ class PropertyBase(object):
         
         
     def removeListener(self, instance, name):
-        """De-register the named listener from the
-        :class:`~props.properties_value.PropertyValue` object managed by
-        this property.
+        """De-register the named listener from the ``PropertyValue`` object
+        managed by this property.
         """
         instData = self._getInstanceData(instance)
         
@@ -240,7 +235,8 @@ class PropertyBase(object):
         
     def getConstraint(self, instance, constraint):
         """Returns the value of the named constraint for the specified
-        instance, or the default constraint value if instance is ``None``.
+        ``HasProperties`` instance, or the default constraint value if
+        instance is ``None``.
         """
         instData = self._getInstanceData(instance)
         
@@ -249,9 +245,9 @@ class PropertyBase(object):
 
 
     def setConstraint(self, instance, constraint, value):
-        """Sets the value of the named constraint for the specified instance, or the
-        default value if instance is ``None``.
-
+        """Sets the value of the named constraint for the specified
+        ``HasProperties`` instance, or the default value if instance
+        is ``None``.
         """
 
         instData = self._getInstanceData(instance)
@@ -272,10 +268,9 @@ class PropertyBase(object):
 
 
     def getPropVal(self, instance):
-        """Return the :class:`~props.properties_value.PropertyValue`
-        object(s) for this property, associated with the given
-        :class:`HasProperties` instance, or ``None`` if there is no value
-        for the given instance.
+        """Return the :class:`.PropertyValue` instance(s) for this property,
+        associated with the given ``HasProperties`` instance, or ``None``
+        if there is no value for the given instance.
         """
         instData = self._getInstanceData(instance)
         if instData is None: return None
@@ -283,21 +278,21 @@ class PropertyBase(object):
 
 
     def _getInstanceData(self, instance):
-        """Returns the :class:`_InstanceData` object for the given instance, or
-        ``None`` if there is no :class:`_InstanceData` for the given
-        instance. An :class:`_InstanceData` object, which provides a binding
-        between a :class:`PropertyBase` object and a :class:`HasProperties`
-        instance, is created by that :class:`HasProperties` instance when it
-        is created (see :meth:`HasProperties.__new__`).
+        """Returns the :class:`_InstanceData` object for the given
+        ``HasProperties`` instance, or ``None`` if there is no
+        ``_InstanceData`` for the given instance. An ``_InstanceData``
+        object, which provides a binding between a ``PropertyBase``
+        object and a ``HasProperties`` instance, is created by that
+        ``HasProperties`` instance when it is created (see
+        :meth:`HasProperties.__new__`).
         """
         if instance is None: return None
         return instance.__dict__.get(self.getLabel(instance), None)
 
         
     def _makePropVal(self, instance):
-        """Creates and returns a
-        :class:`~props.properties_value.PropertyValue` object for the given
-        :class:`HasProperties` instance.  
+        """Creates and returns a ``PropertyValue`` object for the given
+        ``HasProperties`` instance.  
         """
         default = self._defaultConstraints.get('default', None)
         return PropertyValue(instance,
@@ -314,11 +309,11 @@ class PropertyBase(object):
         """Called when an attempt is made to set the property value on the
         given instance.
 
-        Called by :class:`~props.properties_value.PropertyValue` objects when
-        their value changes. The sole purpose of :meth:`validate` is to
-        determine whether a given value is valid or invalid; it should not do
-        anything else. In particular, it should not modify any other property
-        values on the instance, as bad things will probably happen.
+        Called by ``PropertyValue`` objects when their value changes. The sole
+        purpose of this method is to determine whether a given value is valid
+        or invalid; it should not do anything else. In particular, it should
+        not modify any other property values on the instance, as bad things
+        will probably happen.
         
         If the given value is invalid, subclass implementations should raise a
         :exc:`ValueError` containing a useful message as to why the value is
@@ -334,18 +329,16 @@ class PropertyBase(object):
         superclass implementation in addition to performing their own
         validation.
 
-        :param instance:        The :class:`HasProperties` instance which
-                                owns this :class:`PropertyBase` instance,
+        :param instance:        The ``HasProperties`` instance which
+                                owns this ``PropertyBase`` instance,
                                 or ``None`` for an unbound property value.
         
-        :param dict attributes: Attributes of the
-                                :class:`~props.properties_value.PropertyValue`
-                                object, which are used to store type-specific
-                                constraints for :class:`PropertyBase`
+        :param dict attributes: Attributes of the ``PropertyValue`` object,
+                                which are used to store type-specific
+                                constraints for ``PropertyBase``
                                 subclasses.
         
         :param value:           The value to be validated.
-
         """
 
         # a value is required
@@ -368,10 +361,10 @@ class PropertyBase(object):
         
     def cast(self, instance, attributes, value):
         """This method is called when a value is assigned to this
-        :class:`PropertyBase` object through a :class:`HasProperties`
-        attribute access. The default implementaton just returns the given
-        value. Subclasses may override this method to perform any required
-        implicit casting or conversion rules.
+        ``PropertyBase`` instance through a ``HasProperties`` attribute
+        access. The default implementaton just returns the given value.
+        Subclasses may override this method to perform any required implicit
+        casting or conversion rules.
         """
         return value
  
@@ -387,11 +380,10 @@ class PropertyBase(object):
 
             
     def __get__(self, instance, owner):
-        """If called on the :class:`HasProperties` class, and not on an
-        instance, returns this :class:`PropertyBase` object. Otherwise,
-        returns the value contained in the
-        :class:`~props.properties_value.PropertyValue` object which is
-        attached to the instance.
+        """If called on the ``HasProperties`` class, and not on an instance,
+        returns this ``PropertyBase`` object. Otherwise, returns the value
+        contained in the ``PropertyValue`` object which is attached to the
+        instance.
         """
 
         if instance is None:
@@ -422,9 +414,9 @@ class ListPropertyBase(PropertyBase):
     """
     
     def __init__(self, listType, **kwargs):
-        """Define a :class:`ListPropertyBase` property.
+        """Define a ``ListPropertyBase`` property.
 
-        :param listType: An unbound :class:`PropertyBase` instance, defining
+        :param listType: An unbound ``PropertyBase`` instance, defining
                          the type of value allowed in the list. This is
                          optional; if not provided, values of any type will be
                          allowed in the list, but no validation or casting
@@ -435,9 +427,8 @@ class ListPropertyBase(PropertyBase):
 
         
     def _makePropVal(self, instance):
-        """Creates and returns a
-        :class:`~props.properties_value.PropertyValueList` object to be
-        associated with the given :class:`HasProperties` instance.
+        """Creates and returns a :class:`.PropertyValueList` object to be
+        associated with the given ``HasProperties`` instance.
         """
 
         if self._listType is not None:
@@ -469,9 +460,12 @@ class ListPropertyBase(PropertyBase):
 
         
     def getPropValList(self, instance):
-        """Returns the list of
-        :class:`~props.properties_value.PropertyValue` objects which
-        represent the items stored in this list.
+        """Returns the list of ``PropertyValue`` objects which represent the
+        items stored in this list.
+
+        Note that this is a list of ``PropertyValue`` instances; it is not the
+        ``PropertyValueList`` instance. The latter can be accessed through
+        the owning ``HasProperties`` instance with a simple attribute access.
         """
         propVal = self.getPropVal(instance)
         if propVal is not None: return propVal.getPropertyValueList()
@@ -479,8 +473,8 @@ class ListPropertyBase(PropertyBase):
 
         
 class PropertyOwner(type):
-    """Metaclass for classes which contain :class:`PropertyBase` objects. Sets
-    :class:`PropertyBase` labels from the corresponding class attribute names.
+    """Metaclass for the ``HasProperties`` class. Sets ``PropertyBase``
+    labels from the corresponding class attribute names.
     """
     def __new__(cls, name, bases, attrs):
 
@@ -503,16 +497,16 @@ class PropertyOwner(type):
 
 
 class HasProperties(object):
-    """Base class for classes which contain :class:`PropertyBase` objects.  All
-    classes which contain :class:`PropertyBase` objects must subclass this
+    """Base class for classes which contain ``PropertyBase`` instances.  All
+    classes which contain ``PropertyBase`` objects must subclass this
     class.
     """
     __metaclass__ = PropertyOwner
 
     
     def __new__(cls, *args, **kwargs):
-        """Here we create a new :class:`HasProperties` instance, and loop
-        through all of its :class:`PropertyBase` properties to ensure that
+        """Here we create a new ``HasProperties`` instance, and loop
+        through all of its ``PropertyBase`` properties to ensure that
         they are initialised.
         """
         
@@ -539,31 +533,37 @@ class HasProperties(object):
 
 
     def __init__(self, validateOnChange=False):
-        """Create a HasProperties instance.
+        """Create a ``HasProperties`` instance.
+
+        .. note:: The ``validateOnChange`` argument warrants some explanation.
+        
+           The point validating all other properties when one property changes
+           is to handle the scenario where the validity of one property is
+           dependent upon the values of other properties.
+           
+           Currently, the only option is to enable this globally;
+           i.e. whenever the value of any property changes, all other
+           properties are validated.
+           
+           At some stage, I may allow more fine grained control;
+           e.g. validation could only occur when specific properties change,
+           and/or only specific properties are validated. This should be
+           fairly straightforward - we could just maintain a dict of
+           ``{propName : [propNames ..]}`` mappings, where the key is the name
+           of a property that should trigger validation, and the value is a
+           list of properties that need to be validated when that property
+           changes.
+
+        :arg validateOnChange: Defaults to ``False``. If set to ``True``,
+                               whenever any property value is changed,
+                               the value of *every* property is re-validated.
+                               This functionality is accomplished by using
+                               the *preNotify* listener on all
+                               ``PropertyValue`` instances - see the
+                               :meth:`.PropertyValue.setPreNotifyFunction`
+                               method.
         """
 
-        # TODO
-        #
-        # The point of validating all other properties when one
-        # property changes is to handle the scenario where
-        # the validity of one property is dependent upon the
-        # values of other properties.
-        #
-        # Currently, the only option is to enable this globally;
-        # i.e. whenever the value of any property changes, all
-        # other properties are validated.
-        #
-        # At some stage, I may allow more fine grained control;
-        # e.g. validation only occurs for specific properties,
-        # and/or only specific properties are validated. This
-        # should be fairly straightforward - just maintain a
-        # dict of {propName -> [propNames ..]}  mappings,
-        # where the key is the name of a property that should
-        # trigger validation, and the value is a list of
-        # properties that need to be validated when that property
-        # changes.
-        #
-        # I'll make this change if/when I need the functionality.
         self.__validateOnChange = validateOnChange
 
         # The prenotify function is added to new properties
@@ -606,7 +606,8 @@ class HasProperties(object):
 
                 
     def addProperty(self, propName, propObj):
-        """Add the given property to this :class:`HasProperties` instance. """
+        """Add the given `PropertyBase`` instance as an attribute of this
+        ``HasProperties`` instance. """
         if not isinstance(propObj, PropertyBase):
             raise ValueError('propObj must be a PropertyBase instance')
 
@@ -652,9 +653,10 @@ class HasProperties(object):
 
         
     def __valueChanged(self, ctx, value, valid, name):
-        """This function is called by
-        :class:`~props.properties_value.PropertyValue` objects which are
-        managed by this :class:`PropertyBase` object. 
+        """This method is only called if ``validateOnChange`` was set
+        to true in :meth:`__init__`. It is registered as the ``preNotify``
+        listener on all ``PropertyValue`` instances. See the note in
+        :meth:`__init__`.
         """
 
         if not self.__validateOnChange:
@@ -680,7 +682,7 @@ class HasProperties(object):
     def getAllProperties(cls):
         """Returns two lists, the first containing the names of all properties
         of this object, and the second containing the corresponding
-        :class:`PropertyBase` objects.
+        ``PropertyBase`` objects.
 
         Properties which have a name beginning with an underscore are not
         returned by this method
@@ -702,13 +704,12 @@ class HasProperties(object):
 
     @classmethod
     def getProp(cls, propName):
-        """Return the :class:`PropertyBase` object for the given property."""
+        """Return the ``PropertyBase`` object for the given property."""
         return getattr(cls, propName)
 
     
     def getPropVal(self, propName):
-        """Return the :class:`~props.properties_value.PropertyValue`
-        object(s) for the given property.
+        """Return the ``PropertyValue`` object(s) for the given property.
         """
         return self.getProp(propName).getPropVal(self)
 
@@ -716,17 +717,25 @@ class HasProperties(object):
     def getLastValue(self, propName):
         """Returns the most recent value of the specified property before its
         current one.
+
+        See the :meth:`.PropertyValue.getLast` method.
         """
         return self.getPropVal(propName).getLast()
 
 
     def enableNotification(self, propName):
-        """Enables notification of listeners on the given property."""
+        """Enables notification of listeners on the given property.
+
+        See the :meth:`.PropertyValue.enableNotification` method.
+        """
         self.getPropVal(propName).enableNotification()
 
     
     def disableNotification(self, propName):
-        """Disables notification of listeners on the given property."""
+        """Disables notification of listeners on the given property.
+
+        See the :meth:`.PropertyValue.disableNotification` method.
+        """
         self.getPropVal(propName).disableNotification()
 
         
@@ -764,6 +773,8 @@ class HasProperties(object):
     def notify(self, propName):
         """Force notification of listeners on the given property. This will
         have no effect if notification for the property is disabled.
+
+        See the :meth:`.PropertyValue.notify` method.
         """
         self.getPropVal(propName).notify()
 
@@ -789,7 +800,7 @@ class HasProperties(object):
                     overwrite=False,
                     weak=True):
         """Convenience method, adds the specified listener to the specified
-        property. See :meth:`PropertyBase.addListener`.
+        property. See :meth:`PropertyValue.addListener`.
         """
         self.getPropVal(propName).addListener(
             listenerName,
@@ -799,8 +810,8 @@ class HasProperties(object):
 
         
     def removeListener(self, propName, listenerName):
-        """Convenience method, removes the specified listener from the specified
-        property. See :meth:`PropertyBase.addListener`.
+        """Convenience method, removes the specified listener from the
+        specified property. See :meth:`PropertyValue.removeListener`.
         """
         self.getPropVal(propName).removeListener(listenerName)
 
@@ -905,6 +916,7 @@ class HasProperties(object):
             lines.append(fmtStr.format(propName, propVal))
             
         return '\n'.join(lines)
+
 
 from properties_value import *
 from properties_types import *
