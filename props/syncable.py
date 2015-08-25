@@ -5,11 +5,15 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""The :mod:`syncable` module provides the :class:`SyncableHasProperties`
-class, an extension to the :class:`props.HasProperties` class which allows a
-parent-child relationship to exist between instances. All that is needed to
-make use of this functionality is to extend the :class:`SyncableHasProperties`
-class instead of the :class:`HasProperties` class::
+"""This module provides the :class:`SyncableHasProperties` class, an extension
+to the :class:`.HasProperties` class which allows a parent-child relationship
+to exist between instances. A one-to-many synchronisation relationship is
+possible between one parent, and many children. Property values are
+synchronised between a parent and its children, using the functionality
+provided by the :mod:`bindable` module.
+
+All that is needed to make use of this functionality is to extend the
+``SyncableHasProperties`` class instead of the ``HasProperties`` class::
 
     >>> import props
 
@@ -25,9 +29,8 @@ between two instances can be set up as follows::
     >>> myParent = MyObj()
     >>> myChild  = MyObj(myParent)
 
-The ``myint`` properties of both instances are now bound to each other (see
-the :mod:`~props.bindable` module) - when it changes in one instance, that
-change is propagated to the other instance::
+The ``myint`` properties of both instances are now bound to each other - when
+it changes in one instance, that change is propagated to the other instance::
 
     >>> def parentPropChanged(*a):
     >>>     print 'myParent.myint changed: {}'.format(myParent.myint)
@@ -51,10 +54,8 @@ This synchronisation can be toggled on the child instance, via the
 :class:`SyncableHasProperties` class.  Listeners to sync state changes may
 be registered on the child instance via the :meth:`addSyncChangeListener`
 method (and de-registered via the :meth:`removeSyncChangeListener` method).
-
-A one-to-many synchronisation relationship is possible between one parent, and
-many children.
 """
+
 
 import weakref
 import logging
@@ -71,13 +72,19 @@ _SYNC_SALT_ = '_sync_'
 
 
 class SyncablePropertyOwner(props.PropertyOwner):
-    """Metaclass for the :class:`SyncableHasProperties` class. Creates
-    a :class:`~props.Boolean` property for every other property in the
-    class, which controls whether the corresponding property is bound
-    to the parent or not.
+    """Metaclass for the ``SyncableHasProperties`` class. Creates a
+    :class:`.Boolean` property for every other property in the class, which
+    controls whether the corresponding property is bound to the parent or not.
     """
 
     def __new__(cls, name, bases, attrs):
+        """Creates a new ``SyncableHasProperties`` class.
+
+        Adds a hidden boolean property for every real property which controls
+        the parent-child binding state of that property.  The logic to control
+        this is configured in the :meth:`SyncableHasProperties.__init__`
+        method.
+        """
 
         newAttrs = dict(attrs)
 
@@ -85,11 +92,7 @@ class SyncablePropertyOwner(props.PropertyOwner):
             
             if not isinstance(propObj, props.PropertyBase): continue
 
-            # Add a hidden boolean property for every
-            # real property which controls the
-            # parent-child bind state of that property.
-            # The logic to control this is configured in
-            # the SyncableHasProperties.__init__ method.
+
             bindProp = types.Boolean(default=True)
             newAttrs['{}{}'.format(_SYNC_SALT_, propName)] = bindProp
 
@@ -100,8 +103,8 @@ class SyncablePropertyOwner(props.PropertyOwner):
 
     
 class SyncableHasProperties(props.HasProperties):
-    """An extension to the :class:`props.HasProperties` class which supports
-    parent-child relationships between instances.
+    """An extension to the ``HasProperties`` class which supports parent-child
+    relationships between instances.
     """
 
     
@@ -135,23 +138,23 @@ class SyncableHasProperties(props.HasProperties):
     
     @classmethod
     def getSyncProperty(cls, propName):
-        """Returns the :class:`~props.properties.PropertyBase` instance
-        which can be used to toggle binding of the given property to the
-        parent property of this instance.
+        """Returns the :class:`.PropertyBase` instance of the boolean property
+        which can be used to toggle binding of the given property to the parent
+        property of this instance.
         """
         return cls.getProp(cls.getSyncPropertyName(propName))
 
     
     def __init__(self, **kwargs):
-        """Create a :class:`SyncableHasProperties` object.
+        """Create a ``SyncableHasProperties`` instance.
 
-        If this :class:`SyncableHasProperties` object does not have a parent,
+        If this ``SyncableHasProperties`` instance does not have a parent,
         there is no need to call this constructor explicitly. Otherwise, the
         parent must be an instance of the same class to which this instance's
         properties should be bound.
         
-        :arg parent:   Another :class:`SyncableHasProperties` instance, which
-                       has the same type as this instance.
+        :arg parent:   Another ``SyncableHasProperties`` instance, which has 
+                       the same type as this instance.
         
         :arg nobind:   A sequence of property names which should not be bound
                        with the parent.
@@ -160,7 +163,7 @@ class SyncableHasProperties(props.HasProperties):
                        from the parent.
 
         :arg state:    Initial synchronised state. Can be either ``True`` or
-                       ``False``, in which case all properties will initiall
+                       ``False``, in which case all properties will initially
                        be either synced or unsynced. Or can be a dictionary
                        of ``{propName : boolean}`` mappings, defining the sync
                        state for each property.
@@ -246,17 +249,18 @@ class SyncableHasProperties(props.HasProperties):
     def getParent(self):
         """Returns the parent of this instance, or ``None`` if there is no
         parent.
+
+        On child ``SyncableHasProperties`` instances, this method must not
+        be called before :meth:`__init__` has been called. If this happens,
+        an :exc:`AttributeError` will be raised.
         """
-        # This will raise an AttributeError if
-        # called before __init__ has been called.
-        # If this happens, it's the user code
-        # which is at fault.
+
         if self._parent is None: return None
         else:                    return self._parent()
 
 
     def getChildren(self):
-        """Returns a list of any children that are synced to this parent
+        """Returns a list of all children that are synced to this parent
         instance, or ``None`` if this instance is not a parent.
         """
         if self._parent is not None:
@@ -278,7 +282,7 @@ class SyncableHasProperties(props.HasProperties):
 
 
     def _initSyncProperty(self, propName, initState):
-        """Called by child instances from __init__.
+        """Called by child instances from :meth:`__init__`.
 
         Configures a binding between this instance and its parent for the
         specified property.
@@ -337,13 +341,13 @@ class SyncableHasProperties(props.HasProperties):
     def syncToParent(self, propName):
         """Synchronise the given property with the parent instance.
 
-        If this :class:`HasProperties` instance has no parent, a
-        `RuntimeError` is raised. If the specified property is in the
-        ``nobind`` list (see :meth:`__init__`), a `RuntimeError` is
+        If this ``SyncableHasProperties`` instance has no parent, a
+        :exc:`RuntimeError` is raised. If the specified property is in the
+        ``nobind`` list (see :meth:`__init__`), a :exc:`RuntimeError` is
         raised.
 
         ..note:: The ``nobind`` check can be avoided by calling
-        :meth:`bindProps` directly. But don't do that.
+        :func:`.bindable.bindProps` directly. But don't do that.
         """
         if propName in self._nobind:
             raise RuntimeError('{} cannot be bound to '
@@ -357,11 +361,12 @@ class SyncableHasProperties(props.HasProperties):
         """Unsynchronise the given property from the parent instance.
 
         If this :class:`SyncableHasProperties` instance has no parent, a
-        `RuntimeError` is raised. If the specified property is in the
-        `nounbind` list (see :meth:`__init__`), a `RuntimeError` is raised.
+        :exc:`RuntimeError` is raised. If the specified property is in the
+        `nounbind` list (see :meth:`__init__`), a :exc:`RuntimeError` is
+        raised.
 
         ..note:: The ``nounbind`` check can be avoided by calling
-        :meth:`bindProps` directly. But don't do that. 
+        :func:`bindable.bindProps` directly. But don't do that.
         """
         if propName in self._nounbind:
             raise RuntimeError('{} cannot be unbound from '
@@ -372,7 +377,10 @@ class SyncableHasProperties(props.HasProperties):
 
 
     def syncAllToParent(self):
-        """Synchronises all properties to the parent instance."""
+        """Synchronises all properties to the parent instance.
+        
+        Does not attempt to synchronise properties in the ``nobind`` list.
+        """
         propNames = self.getAllProperties()[0]
 
         for propName in propNames:
@@ -384,7 +392,10 @@ class SyncableHasProperties(props.HasProperties):
 
 
     def unsyncAllFromParent(self):
-        """Unynchronises all properties from the parent instance."""
+        """Unynchronises all properties from the parent instance.
+        
+        Does not attempt to synchronise properties in the ``nounbind`` list.
+        """
         propNames = self.getAllProperties()[0]
 
         for propName in propNames:
@@ -426,23 +437,23 @@ class SyncableHasProperties(props.HasProperties):
         
     def isSyncedToParent(self, propName):
         """Returns true if the specified property is synced to the parent of
-        this :class:`HasProperties` instance, ``False`` otherwise.
+        this ``SyncableHasProperties`` instance, ``False`` otherwise.
         """
         return getattr(self, self._saltSyncPropertyName(propName))
 
     
     def canBeSyncedToParent(self, propName):
-        """Returns ``True`` if the given property can be synced between a
-        child and its parent (see the ``nobind`` parameter in
-        :meth:`__init__`).
+        """Returns ``True`` if the given property can be synced between this
+        ``SyncableHasProperties`` instance and its parent (see the ``nobind``
+        parameter in :meth:`__init__`).
         """
         return propName not in self._nobind
 
     
     def canBeUnsyncedFromParent(self, propName):
-        """Returns ``True`` if the given property can be unsynced between a
-        child and its parent (see the ``nounbind`` parameter in
-        :meth:`__init__`).
+        """Returns ``True`` if the given property can be unsynced between this
+        ``SyncableHasProperties`` instance and its parent (see the
+        ``nounbind`` parameter in :meth:`__init__`).
         """ 
         return propName not in self._nounbind
 

@@ -4,9 +4,9 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""The :mod:`callqueue` module provides the :class:`CallQueue` class, which
-is used by :class:`~props.properties_value.PropertyValue` objects to enqueue
-property listener callback functions.
+"""This module provides the :class:`CallQueue` class, which is used by
+:class:`.PropertyValue` instances to enqueue property listener callback
+functions.
 """
 
 import logging
@@ -40,7 +40,7 @@ class CallQueue(object):
     """
 
     def __init__(self, skipDuplicates=False):
-        """Create a :class:`CallQueue` instance.
+        """Create a ``CallQueue`` instance.
 
         If ``skipDuplicates`` is ``True``, a function which is already on
         the queue will be silently dropped if an attempt is made to add it
@@ -196,9 +196,8 @@ class CallQueue(object):
 
     
     def __pop(self):
-        """Pops the next function from the queue and returns a 3-tuple
-        containing the function description, the function, and the arguments
-        to be passed to it.
+        """Pops the next function from the queue and returns the ``Call``
+        instance which encapsulates it.
         """
 
         call     = self.__queue.get_nowait()
@@ -218,6 +217,7 @@ class CallQueue(object):
 
 
     def __debug(self, call, prefix, postfix=None):
+        """Prints a standardised log message."""
         
         if log.getEffectiveLevel() != logging.DEBUG:
             return
