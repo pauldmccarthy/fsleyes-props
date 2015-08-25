@@ -40,11 +40,11 @@ def _pointBind(hasProps, propObj, propVal, slider, dim, editLimits):
                         allow the user to edit the point limits.    
     """
 
-    pvl = propVal.getPropertyValueList()
+    dimPropVal = propVal.getPropertyValueList()[dim]
     
     widgets._propBind(hasProps,
                       propObj._listType,
-                      pvl[dim],
+                      dimPropVal,
                       slider,
                       floatslider.EVT_SSP_VALUE)
 
@@ -65,11 +65,10 @@ def _pointBind(hasProps, propObj, propVal, slider, dim, editLimits):
 
     lName = 'PointLimits_{}_{}'.format(id(slider), dim)
 
-    propObj.addItemConstraintListener(
-        hasProps, dim, lName, propLimitsChanged, weak=False)
+    dimPropVal.addAttributeListener(lName, propLimitsChanged, weak=False)
 
     def onDestroy(ev):
-        propObj.removeItemConstraintListener(hasProps, dim, lName)
+        dimPropVal.removeAttributeListener(lName)
         ev.Skip()
 
     slider.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)

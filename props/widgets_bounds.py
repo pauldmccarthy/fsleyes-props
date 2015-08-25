@@ -80,19 +80,17 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     lowProp .addListener(lowName,  lowGuiUpdate,  weak=False)
     highProp.addListener(highName, highGuiUpdate, weak=False)
 
-    propObj.addItemConstraintListener(
-        hasProps, axis * 2,     lowName,  updateSliderRange, weak=False)
-    propObj.addItemConstraintListener(
-        hasProps, axis * 2 + 1, highName, updateSliderRange, weak=False)
+    lowProp .addAttributeListener(lowName,  updateSliderRange, weak=False)
+    highProp.addAttributeListener(highName, updateSliderRange, weak=False)
 
     if editLimits:
         sliderPanel.Bind(rangeslider.EVT_RANGE_LIMIT, updatePropRange)
 
     def onDestroy(ev):
-        lowProp .removeListener(lowName)
-        highProp.removeListener(highName)
-        propObj.removeItemConstraintListener(hasProps, axis * 2,     lowName)
-        propObj.removeItemConstraintListener(hasProps, axis * 2 + 1, highName)
+        lowProp .removeListener(         lowName)
+        highProp.removeListener(         highName)
+        lowProp .removeAttributeListener(lowName)
+        highProp.removeAttributeListener(highName)
         ev.Skip()
         
     sliderPanel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)

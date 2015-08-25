@@ -1148,10 +1148,8 @@ class Bounds(List):
     bound-limits are referred to as 'min' and 'max', and can be set via the
     :meth:`BoundsValueList.setMin` and :meth:`BoundsValueList.setMax`
     methods. The advantage to using these methods, instead of using, for
-    example, :meth:`~props.properties.HasProperties.setItemConstraint`, is
-    that if you use the latter you will have to set the constraints on both
-    the low and the high values.
-
+    example, :meth:`PropertyValue.setAttribute`, is that if you use the latter
+    you will have to set the constraints on both the low and the high values.
     """
 
     def __init__(self,

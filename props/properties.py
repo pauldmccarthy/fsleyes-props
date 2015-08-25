@@ -500,76 +500,6 @@ class ListPropertyBase(PropertyBase):
         if propVal is not None: return propVal.getPropertyValueList()
         else:                   return None
 
-
-    def addItemListener(self, instance, index, name, callback):
-        """Convenience method which adds a listener to the property value
-        object at the given index.
-        """
-        self.getPropValList(instance)[index].addListener(name, callback)
-
-        
-    def removeItemListener(self, instance, index, name):
-        """Convenience method which removes the named listener from the
-        property value at the given index.
-        """
-        pvl = self.getPropValList(instance)
-        if pvl is not None: pvl[index].removeListener(name)
-
-
-    def addItemConstraintListener(self,
-                                  instance,
-                                  index,
-                                  name,
-                                  listener,
-                                  weak=True):
-        """Convenience method which adds a constraint listener (actually an
-        attribute listener) to the
-        :class:`~props.properties_value.PropertyValue` object at the given
-        index.
-        """
-        self.getPropValList(instance)[index].addAttributeListener(
-            name, listener, weak)
-
-        
-    def removeItemConstraintListener(self, instance, index, name):
-        """Convenience method which removes the named constraint listener
-        from the property value at the given index.
-        """
-        pvl = self.getPropValList(instance)
-        if pvl is not None: pvl[index].removeAttributeListener(name)
-
-        
-    def getItemConstraint(self, instance, index, constraint):
-        """Convenience method which returns the specified constraint for the
-        property value at the given index. If ``instance`` is ``None``, the
-        index is ignored, and the default list type constraint value is
-        returned. If no list type was specified for this list, an
-        :exc:AttributeError` is raised.
-        """
-
-        propVal = self.getPropVal(instance)
-
-        if propVal is not None:
-            propVal.getPropertyValueList()[index].getAttribute(constraint)
-        else:
-            self._listType.getConstraint(instance, constraint)
-
-        
-    def setItemConstraint(self, instance, index, constraint, value):
-        """Convenience method which sets the specified constraint to the
-        specified value, for the property value at the given index. If
-        instance is ``None``, the index is ignored, and the default list
-        type constraint value is changed. If no list type was specified
-        for this list, an :exc:`AttributeError` is raised.
-        """
-
-        propVal = self.getPropVal(instance)
-
-        if propVal is not None:
-            propVal.getPropertyValueList()[index].getAttribute(constraint)
-        else:
-            self._listType.setConstraint(instance, constraint) 
-
         
 class PropertyOwner(type):
     """Metaclass for classes which contain :class:`PropertyBase` objects. Sets
@@ -873,27 +803,6 @@ class HasProperties(object):
         the named property. See :meth:`PropertyBase.setConstraint`.
         """ 
         return self.getProp(propName).setConstraint(self, constraint, value)
-
-
-    def getItemConstraint(self, propName, index, constraint):
-        """Convenience method, returns the value of the named constraint for
-        the value at the specified index of the named list property. See
-        :meth:`ListPropertyBase.getItemConstraint`. If the named property is
-        not a list property, an :exc:`AttributeError` is raised.
-        """
-        return self.getProp(propName).getItemConstraint(
-            self, index, constraint)
-
-        
-    def setItemConstraint(self, propName, index, constraint, value):
-        """Convenience method, sets the value of the named constraint for
-        the value at the specified index of the named list property. See
-        :meth:`ListPropertyBase.setItemConstraint`. If the named property
-        is not a list property, an :exc:`AttributeError` is raised.
-
-        """ 
-        return self.getProp(propName).setItemConstraint(
-            self, index, constraint, value)
 
 
     def addListener(self,
