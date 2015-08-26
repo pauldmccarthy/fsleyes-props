@@ -28,7 +28,7 @@ def _Bounds(parent,
             **kwargs):
     """Creates and returns a panel containing sliders/spinboxes which
     allow the user to edit the low/high values along each dimension of the
-    given :class:`.Bounds` value.
+    given :class:`.Bounds` property value.
 
     
     If both the ``slider`` and ``spin`` arguments are ``True``, a
@@ -133,19 +133,12 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     one axis of the given :class:`.BoundsValueList` so that changes in one are
     propagated to the other.
 
-    :param hasProps:    The owning :class:`.HasProperties` instance.
+    :arg sliderPanel: The :class:`.RangeSliderSpinPanel`/:class:`.RangePanel`
+                      instance.
     
-    :param propObj:     The :class:`.Bounds` instance.
-    
-    :param sliderPanel: The :class:`.RangeSliderSpinPanel`/:class:`.RangePanel`
-                        instance.
-    
-    :param propVal:     The :class:`.BoundsValueList` instance.
-    
-    :param axis:        The 0-indexed axis of the :class:`.Bounds` value.
+    :arg axis:        The 0-indexed axis of the :class:`.Bounds` value.
 
-    :param editLimits: If ``True`` assumes that the ``sliderPanel`` has been
-                        configured to allow the user to edit the bound limits.
+    See :func:`_Bounds` for details on the other arguments.
     """
 
     

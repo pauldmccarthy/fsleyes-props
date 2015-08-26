@@ -4,10 +4,9 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""A widget for editing a :class:`~props.properties_types.Number` property.
-
-This module is not intended to be used directly - it is imported into the
-:mod:`props.widgets` namespace.
+"""This module provides the :func:`_Number` function, which is imported into
+the :mod:`widgets` module namespace. It is separated purely to keep the
+``widgets`` module file size down.
 """
 
 import logging
@@ -26,9 +25,75 @@ import pwidgets.floatspin   as floatspin
 log = logging.getLogger(__name__)
 
 
+def _Number(
+        parent,
+        hasProps,
+        propObj,
+        propVal,
+        slider=True,
+        spin=True,
+        showLimits=True,
+        editLimits=True,
+        mousewheel=False,
+        **kwargs):
+    """Creates and returns a widget allowing the user to edit the given
+    :class:`.Number` property value.
+
+    If both the ``slider`` and ``spin`` arguments are ``True``, a
+    :class:`.SliderSpinPanel` widget is returned; otherwise a
+    :class:`.FloatSpinCtrl`, or :class:`.FloatSliders` widget is returned.
+
+    
+    If both ``slider`` and ``spin`` are ``False``, a :exc:`ValueError` is
+    raised.
+    
+
+    :arg slider:     Display slider widgets allowing the user to control the
+                     bound values.
+
+    :arg spin:       Display spin control widgets allowing the user to control 
+                     the bound values.
+
+    :arg showLimits: Show labels displaying the min/max values, if thye are 
+                     set on the ``Number`` property.
+
+    :arg editLimits: Allow the user to edit the min/max values.
+
+    :arg mousewheel: If ``True``, mouse wheel events on the spin/slider
+                     control(s) will change the value.
+
+    See the :func:`.widgets._String` documentation for details on the
+    parameters.
+    """
+
+    if not (slider or spin):
+        raise ValueError('One of slider or spin must be True')
+
+    minval  = propVal.getAttribute('minval')
+    maxval  = propVal.getAttribute('maxval')
+    isRange = (minval is not None) and (maxval is not None)
+
+    if (not isRange) or (not slider):
+        return _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel)
+    
+    else:
+        return _makeSlider(parent,
+                           hasProps,
+                           propObj,
+                           propVal,
+                           spin,
+                           showLimits,
+                           editLimits,
+                           mousewheel)
+
+
 def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel):
-    """Creates a :class:`wx.SpinCtrl` or :class:`wx.SpinCtrlDouble` bound to
-    the given :class:`~props.properties_value.PropertyValue` object.
+    """Used by the :func:`_Number` function.
+
+    Creates a :class:`.FloatSpinCtrl` and binds it to the given
+    :class:`.PropertyValue` instance.
+
+    See :func:`_Number` for details on the parameters.
     """
 
     def getMinVal(val):
@@ -112,8 +177,12 @@ def _makeSlider(parent,
                 showLimits,
                 editLimits,
                 mousewheel):
-    """Creates a :class:`~pwidgets.floatslider.SliderSpinPanel` bound to the
-    given :class:`~props.properties_value.PropertyValue` object.
+    """Used by the :func:`_Number` function.
+
+    Creates and returns a :class:`.FloatSlider` or :class:`.SliderSpinPanel`,
+    and binds it to the given :class:`.PropertyValue` instance.
+
+    See :func:`_Number` for details on the parameters.
     """
 
     value  = propVal.get()
@@ -184,42 +253,3 @@ def _makeSlider(parent,
         slider.Bind(floatslider.EVT_SSP_LIMIT, updatePropRange)
 
     return slider
-
-
-def _Number(
-        parent,
-        hasProps,
-        propObj,
-        propVal,
-        slider=True,
-        spin=True,
-        showLimits=True,
-        editLimits=True,
-        mousewheel=False,
-        **kwargs):
-    """Creates and returns a widget allowing the user to edit the given
-    :class:`~props.properties_types.Number` property value.
-
-    See the :func:`~props.widgets._String` documentation for details on the
-    parameters.
-    """
-
-    if not (slider or spin):
-        raise ValueError('One of slider or spin must be True')
-
-    minval  = propVal.getAttribute('minval')
-    maxval  = propVal.getAttribute('maxval')
-    isRange = (minval is not None) and (maxval is not None)
-
-    if (not isRange) or (not slider):
-        return _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel)
-    
-    else:
-        return _makeSlider(parent,
-                           hasProps,
-                           propObj,
-                           propVal,
-                           spin,
-                           showLimits,
-                           editLimits,
-                           mousewheel)

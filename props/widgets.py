@@ -51,8 +51,8 @@ purely to keep module file sizes down:
     ~props.widgets_number._Number
 
 
- .. warning:: Widget generation code for the :class:`.List` property has not
-              been looked at in a while, and is probably broken.
+ .. warning:: The :mod:`.widgets_list` module has not been looked at
+              in a while, and is probably broken.
 
 
 While all of these functions have a standardised signature, some of them

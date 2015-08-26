@@ -30,7 +30,7 @@ def _Choice(parent,
             style=None,
             **kwargs):
     """Creates and returns a widget allowing the user to modify the given
-    :class:`.Choice` instance (``propObj``).
+    :class:`.Choice` property value.
 
     
     By default, ``wx.Choice`` widget is used. However, if the ``icons``
