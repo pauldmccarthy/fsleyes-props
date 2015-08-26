@@ -181,6 +181,69 @@ all the properties of a child instance are by default synchronised to those of
 the parent, and this synchronisation can be independently enabled/disabled for
 each property. To use this functionality, simply inherit from the
 ``SyncableHasProperties`` class instead of the ``HasProperties`` class.
+
+
+------------
+API overview
+------------
+
+
+The following classes are provided as building-blocks for your application
+code:
+
+.. autosummary::
+   ~props.properties.HasProperties
+   ~props.syncable.SyncableHasProperties
+   ~props.properties_types.Object
+   ~props.properties_types.Boolean
+   ~props.properties_types.Int
+   ~props.properties_types.Real
+   ~props.properties_types.Percentage
+   ~props.properties_types.String
+   ~props.properties_types.FilePath
+   ~props.properties_types.Choice
+   ~props.properties_types.List
+   ~props.properties_types.Colour
+   ~props.properties_types.ColourMap
+   ~props.properties_types.Bounds
+   ~props.properties_types.Point 
+
+
+The following functions are provided to manage command-line argument
+generation and parsing:
+
+.. autosummary::
+   ~props.cli.applyArguments
+   ~props.cli.addParserArguments
+   ~props.cli.generateArguments
+
+
+The following classes are provided for you to create GUI specifications:
+
+.. autosummary::
+   ~props.build_parts.ViewItem
+   ~props.build_parts.Button
+   ~props.build_parts.Label
+   ~props.build_parts.Widget
+   ~props.build_parts.Group
+   ~props.build_parts.NotebookGroup
+   ~props.build_parts.HGroup
+   ~props.build_parts.VGroup 
+
+
+If the :func:`initGUI` function is called, the following GUI-related functions
+will be made available in the ``props`` package namespace:
+
+
+.. autosummary::
+   ~props.widgets.makeWidget
+   ~props.widgets.makeListWidgets
+   ~props.widgets.makeSyncWidget
+   ~props.widgets.bindWidget
+   ~props.widgets.unbindWidget
+   ~props.widgets.bindListWidgets
+   ~props.build.buildGUI
+   ~props.build.buildDialog
 """
 
 import sys
