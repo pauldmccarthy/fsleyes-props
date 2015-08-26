@@ -36,7 +36,10 @@ frame   = wx.Frame(None)
 panel   = wx.Panel(frame)
 pSizer  = wx.BoxSizer(wx.VERTICAL)
 fSizer  = wx.BoxSizer(wx.VERTICAL)
-choice  = props.makeWidget(panel, bag, 'mob')
+choice  = props.makeWidget(panel,
+                           bag,
+                           'mob',
+                           labels=lambda c: 'Great choice: {}'.format(c))
 listbox = elistbox.EditableListBox(panel, style=elistbox.ELB_EDITABLE)
 
 
@@ -61,7 +64,7 @@ def lbAdd(ev):
     n   = str(np.random.randint(1, 1000))
     lbl = 'New choice {}'.format(n)
     
-    cprop.addChoice(n, label=lbl, alternate=[lbl], instance=bag)
+    cprop.addChoice(n, alternate=[lbl], instance=bag)
     listbox.Append(lbl, n)
 
     print '                 choice value after:  {}'.format(bag.mob)
@@ -69,7 +72,9 @@ def lbAdd(ev):
     
 def lbRemove(ev):
     print 'Listbox remove - choice value before: {}'.format(bag.mob)
-    cprop.removeChoice(ev.data, instance=bag)
+
+    choice = cprop.getChoices()[ev.idx]
+    cprop.removeChoice(choice, instance=bag)
     print '                 choice value after:  {}'.format(bag.mob)
 
 
@@ -79,7 +84,6 @@ def lbMove(ev):
     choices    = listbox.GetData()
     alternates = [[lbl] for choice, lbl in zip(choices, labels)]
     cprop.setChoices(choices,
-                     labels=labels,
                      alternates=alternates,
                      instance=bag)
     print '                 choice value after:  {}'.format(bag.mob)
@@ -91,7 +95,7 @@ def lbEdit(ev):
     choice   = ev.data
     newLabel = ev.label
     newAlt   = [newLabel]
-    cprop.updateChoice(choice, newLabel=newLabel, newAlt=newAlt, instance=bag)
+    cprop.updateChoice(choice, newAlt=newAlt, instance=bag)
     print '                 choice value after:  {}'.format(bag.mob)
 
 

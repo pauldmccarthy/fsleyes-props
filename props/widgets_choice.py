@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 #
-# widgets_choice.py -
+# widgets_choice.py - Create widgets for modifying Choice properties.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+"""This module provides the :func:`_Choice` function, which is imported into
+the :mod:`widgets` module namespace. It is separated purely to keep the
+``widgets`` module file size down.
+"""
 
 import logging
 
@@ -21,18 +25,47 @@ def _Choice(parent,
             hasProps,
             propObj,
             propVal,
+            labels=None,
             icons=None,
             style=None,
             **kwargs):
-    """Creates and returns a :class:`wx.Choice` allowing the user to set the
-    given ``propObj`` (props.Choice) object.
+    """Creates and returns a widget allowing the user to modify the given
+    :class:`.Choice` instance (``propObj``).
 
-    If the ``icons`` parameter is provided, a :class:`.BitmapRadioBox` is
-    used instead of a ``wx.Choice`` widget. The ``icons`` should be a
-    dictionary of ``{ choice : imageFile}`` mappings, containing an icon
-    files to be used for each choice.
+    
+    By default, ``wx.Choice`` widget is used. However, if the ``icons``
+    argument is specified, a :class:`.BitmapRadioBox` is used instead.
 
-    See the :func:`_String` documentation for details on the parameters.
+
+    :arg labels:  A dict of ``{choice : label}`` mappings, specifying the
+                  label to be displayed for each choice. If not provided,
+                  the string representation of each choice is used. Not
+                  used if the ``icons`` argument is specified.
+    
+                  .. note:: If the ``Choice`` property is dynamic (i.e.
+                            choices are going to be added/removed during
+                            program execution), you must ensure that the
+                            ``labels`` dictionary contains a value for
+                            all possible choices, not just the initial
+                            choices.
+
+                            As an alternative to passing in a ``dict``, you
+                            may also set ``labels`` to a function. In this
+                            case, the ``labels`` function must accept a single
+                            choice value as its only argument, and return a
+                            label for that choice. 
+
+    :arg icons:   If provided, a :class:`.BitmapRadioBox` is used instead of a
+                  ``wx.Choice`` widget. The ``icons`` should be a dictionary
+                  of ``{ choice : imageFile}`` mappings, containing an icon
+                  files to be used for each choice.
+
+    :arg style:   Passed through to the :meth:`.BitmapRadioBox.__init__` 
+                  method. Not used if no ``icons`` were provided.
+
+    
+    See the :func:`.widgets._String` documentation for details on the other
+    parameters.
     """
 
     # If we have been given some icons, we will use
@@ -76,21 +109,35 @@ def _Choice(parent,
     # when they change.
     def choicesChanged(ctx, name, *a):
 
-        if name not in ('choices', 'labels', 'choiceEnabled'):
+        if name not in ('choices', 'choiceEnabled'):
             return
 
-        choices = propObj.getChoices(hasProps)
-        labels  = propObj.getLabels( hasProps)
+        choices   = propObj.getChoices(hasProps)
+        curLabels = []
+
+        if labels is None: curLabels = [str(c)    for c in choices]
+        else:
+
+            # labels can either be a dict
+            # of {choice : label} mappings
+            if isinstance(labels, dict):
+                curLabels = [labels[c] for c in choices]
+                
+            # or a function which, given a
+            # choice, returns a label for it
+            else: curLabels = map(labels, choices)
 
         # If we're using a wx.Choice widget, remove
         # any disabled choices from the list.
         # It would be nice if wx.Choice allowed
-        # us to enable/disable individual items.
+        # us to enable/disable individual items, but
+        # it doesn't, so our only option is to hide
+        # the disabled ones.
         if icons is None:
             for i, choice in enumerate(choices):
                 if not propObj.choiceEnabled(choice, hasProps):
-                    labels.pop(i)
-
+                    curLabels.pop(i)
+                    
         log.debug('Updating options for Widget '
                   '{} ({}) from {}.{} ({}): {}'.format(
                       widget.__class__.__name__,
@@ -98,10 +145,10 @@ def _Choice(parent,
                       hasProps.__class__.__name__,
                       propVal._name,
                       id(hasProps),
-                      labels))
+                      curLabels))
 
         if icons is None:
-            widget.Set(labels)
+            widget.Set(curLabels)
         else:
 
             widget.Clear()

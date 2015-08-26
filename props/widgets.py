@@ -152,8 +152,14 @@ def _propBind(hasProps,
 
     listenerName = 'WidgetBind_{}'.format(id(guiObj))
 
-    if widgetGet is None: widgetGet = guiObj.GetValue
-    if widgetSet is None: widgetSet = guiObj.SetValue
+    if widgetGet is None:
+        widgetGet = guiObj.GetValue
+    if widgetSet is None:
+
+        handleNone = True
+        widgetSet  = guiObj.SetValue
+    else:
+        handleNone = False
 
     log.debug('Binding PropertyValue ({}.{} [{}]) to widget {} ({})'.format(
         hasProps.__class__.__name__,
@@ -171,7 +177,7 @@ def _propBind(hasProps,
         if widgetGet() == value: return
 
         # most wx widgets complain if you try to set their value to None
-        if value is None: value = ''
+        if handleNone and (value is None): value = ''
 
         log.debug('Updating Widget {} ({}) from {}.{} ({}): {}'.format(
             guiObj.__class__.__name__,
