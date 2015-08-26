@@ -6,7 +6,18 @@
 ``props``
 =========
 
+.. toctree::
+   :hidden:   
+   :maxdepth: 1
+              
+   props
+   props.properties_types
+   props.build
+   props.widgets
+   props.cli
+   pwidgets
 
+   
 The props package uses `python descriptors
 <http://nbviewer.ipython.org/gist/ChrisBeaumont/5758381/descriptor_writeup.ipynb>`_
 to implement an event programming framework. It also includes the ability for
@@ -19,11 +30,11 @@ The more important parts of this documentation are as follows:
 
  - The :mod:`.properties_types` module for details of available property types.
 
- - The :mod:`.widgets` module for creating widgets linked to properties.
-
  - The :mod:`.build` module for details on GUI specification and generation.
 
  - The :mod:`.cli` module for details on CLI specification and generation.
+
+ - The :mod:`.widgets` module for creating widgets linked to properties.
 
  - The :mod:`.bindable` and :mod:`.syncable` modules for details on binding
    properties between instances, and building hierarchical relationships between
@@ -34,12 +45,3 @@ The more important parts of this documentation are as follows:
 
  - The :mod:`pwidgets` package for some custom ``wx`` widgets used in the
    ``props`` package.
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
