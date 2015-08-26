@@ -33,9 +33,10 @@ def _Boolean(parent,
     name of an image file, or a list of two image file names.  In the former
     case, a ``wx.ToggleButton`` is used instead of a ``CheckBox``.
 
-    If two icon images are provided, if the ``toggle`` argument is ``True``, a
-    :class:`.BitmapToggleButton`, otherwise a :class:`.BitmapRadioBox` is
-    used.  In the latter case, the ``style`` argument is passed through to the
+    If two icon images are provided, and the ``toggle`` argument is ``True``,
+    a :class:`.BitmapToggleButton` is used. If ``toggle=False``, a
+    :class:`.BitmapRadioBox` is used instead.  In the latter case, the
+    ``style`` argument is passed through to the
     :meth:`.BitmapRadioBox.__init__` method.
 
     See the :func:`.widgets._String` documentation for details on the other

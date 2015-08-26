@@ -6,14 +6,21 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 """This module adds functionality to the :class:`.HasProperties` class to
-allow properties from different instances to be bound to each other.
-
-The logic defined in this module is separated purely to keep the
+allow properties from different instances to be bound to each other.  The
+logic defined in this module is separated purely to keep the
 :mod:`.properties` and :mod:`.properties_value` module file sizes down.
 
-The :func:`bindProps`, :func:`unbindProps`, and :func:`isBound` functions
-defined in this module are added (monkey-patched) as methods of the
-:class:`.HasProperties` class.
+
+The following functions are defined in this module and are added
+(monkey-patched) as methods of the :class:`.HasProperties` class.
+
+
+ .. autosummary::
+    bindProps
+    unbindProps
+    isBound
+
+
 
 The :func:`_notify` and :func:`_notifyAttributeListeners` functions
 respectively replace the :meth:`.PropertyValue.notify` and
