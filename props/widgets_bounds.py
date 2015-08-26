@@ -5,38 +5,147 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
-"""Create widgets for modifying :class:`~props.properties_types.Bounds`
-properties.
-
-This module is not intended to be used directly - it is imported into the
-:mod:`props.widgets` namespace.
+"""This module provides the :func:`_Bounds` function, which is imported into
+the :mod:`widgets` module namespace. It is separated purely to keep the
+``widgets`` module file size down.
 """
 
 import wx
 
 import pwidgets.rangeslider as rangeslider
 
+
+def _Bounds(parent,
+            hasProps,
+            propObj,
+            propVal,
+            slider=True,
+            spin=True,
+            showLimits=True,
+            editLimits=True,
+            mousewheel=False,
+            labels=None,
+            **kwargs):
+    """Creates and returns a panel containing sliders/spinboxes which
+    allow the user to edit the low/high values along each dimension of the
+    given :class:`.Bounds` value.
+
+    
+    If both the ``slider`` and ``spin`` arguments are ``True``, a
+    :class:`.RangeSliderSpinPanel` widget is returned; otherwise
+    a :class:`.RangePanel` is returned.
+
+    
+    If both ``slider`` and ``spin`` are ``False``, a :exc:`ValueError` is
+    raised.
+    
+
+    :arg slider:     Display slider widgets allowing the user to control the
+                     bound values.
+
+    :arg spin:       Display spin control widgets allowing the user to control 
+                     the bound values.
+
+    :arg showLimits: Show the bound limits.
+
+    :arg editLimits: Add buttons allowing the user to edit the bound limits.
+
+    :arg mousewheel: If ``True``, mouse wheel events over the slider/spin
+                     controls will change the bounds values.
+
+    :arg labels:     A list of strings of length ``2 * ndims``, where ``ndims``
+                     is the number of dimensions on the ``Bounds`` property;
+                     the strings are used as labels on the widget.
+
+    
+    See the :func:`.widgets._String` documentation for details on the other
+    parameters.
+    """
+
+    ndims    = propObj._ndims
+    panel    = wx.Panel(parent)
+    sizer    = wx.BoxSizer(wx.VERTICAL)
+
+    if labels is None:
+        labels = [None] * 2 * ndims
+    
+    panel.SetSizer(sizer)
+
+    for i in range(ndims):
+        minDistance = propObj.getConstraint(hasProps, 'minDistance')
+        minval      = propVal.getMin(i)
+        maxval      = propVal.getMax(i)
+        loval       = propVal.getLo(i)
+        hival       = propVal.getHi(i)
+
+        if minDistance is None: minDistance = 0
+
+        if slider and spin:
+
+            if minval is None: minval = loval
+            if maxval is None: maxval = hival
+        
+            slider = rangeslider.RangeSliderSpinPanel(
+                panel,
+                minValue=minval,
+                maxValue=maxval,
+                lowValue=loval,
+                highValue=hival,
+                lowLabel=labels[i * 2],
+                highLabel=labels[i * 2 + 1],
+                minDistance=minDistance, 
+                showLimits=showLimits,
+                editLimits=editLimits,
+                mousewheel=mousewheel)
+        else:
+            if slider:
+                widgetType = 'slider'
+                if minval is None: minval = loval
+                if maxval is None: maxval = hival                
+            elif spin:
+                widgetType = 'spin'
+            else: raise ValueError('One of slider or spin must be True')
+            
+            slider = rangeslider.RangePanel(
+                panel,
+                widgetType,
+                minValue=minval,
+                maxValue=maxval,
+                lowValue=loval,
+                highValue=hival,
+                lowLabel=labels[i * 2],
+                highLabel=labels[i * 2 + 1],
+                minDistance=minDistance,
+                mousewheel=mousewheel) 
+
+        sizer.Add(slider, flag=wx.EXPAND)
+
+        _boundBind(hasProps, propObj, slider, propVal, i, editLimits)
+
+    panel.Layout()
+    return panel
+
+
 def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
-    """Binds the given :class:`~pwidgets.rangeslider.RangeSliderSpinPanel` to
-    one axis of the given :class:`~props.properties_types.BoundsValueList` so
-    that changes in one are propagated to the other.
+    """Called by the :func:`_Bounds` function.
 
-    :param hasProps:    The owning :class:`~props.properties.HasProperties`
-                        instance.
-    
-    :param propObj:     The :class:`~props.properties_types.Bounds` instance.
-    
-    :param sliderPanel: The :class:`~pwidgets.rangeslider.RangeSliderSpinPanel`
-                        instance.
-    
-    :param propVal:     The :class:`~props.properties_types.BoundsValueList`
-                        instance.
-    
-    :param axis:        The 0-indexed axis of the
-                        :class:`~props.properties_types.Bounds` value.
+    Binds the given :class:`.RangeSliderSpinPanel` or :class:`.RangePanel` to
+    one axis of the given :class:`.BoundsValueList` so that changes in one are
+    propagated to the other.
 
-    :param editLimits:  If ``True`` the ``sliderPanel`` has been configure to
-                        allow the user to edit the bound limits.
+    :param hasProps:    The owning :class:`.HasProperties` instance.
+    
+    :param propObj:     The :class:`.Bounds` instance.
+    
+    :param sliderPanel: The :class:`.RangeSliderSpinPanel`/:class:`.RangePanel`
+                        instance.
+    
+    :param propVal:     The :class:`.BoundsValueList` instance.
+    
+    :param axis:        The 0-indexed axis of the :class:`.Bounds` value.
+
+    :param editLimits: If ``True`` assumes that the ``sliderPanel`` has been
+                        configured to allow the user to edit the bound limits.
     """
 
     
@@ -94,85 +203,3 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         ev.Skip()
         
     sliderPanel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
-
-
-def _Bounds(parent,
-            hasProps,
-            propObj,
-            propVal,
-            slider=True,
-            spin=True,
-            showLimits=True,
-            editLimits=True,
-            mousewheel=False,
-            labels=None,
-            **kwargs):
-    """Creates and returns a panel containing sliders/spinboxes which
-    allow the user to edit the low/high values along each dimension of the
-    given :class:`~props.properties_types.Bounds` value.
-    """
-
-    ndims    = propObj._ndims
-    panel    = wx.Panel(parent)
-    sizer    = wx.BoxSizer(wx.VERTICAL)
-
-    if labels is None:
-        labels = propObj._labels
-        if labels is None:
-            labels = [None] * 2 * ndims
-    
-    panel.SetSizer(sizer)
-
-    for i in range(ndims):
-        minDistance = propObj.getConstraint(hasProps, 'minDistance')
-        minval      = propVal.getMin(i)
-        maxval      = propVal.getMax(i)
-        loval       = propVal.getLo(i)
-        hival       = propVal.getHi(i)
-
-        if minDistance is None: minDistance = 0
-
-        if slider and spin:
-
-            if minval is None: minval = loval
-            if maxval is None: maxval = hival
-        
-            slider = rangeslider.RangeSliderSpinPanel(
-                panel,
-                minValue=minval,
-                maxValue=maxval,
-                lowValue=loval,
-                highValue=hival,
-                lowLabel=labels[i * 2],
-                highLabel=labels[i * 2 + 1],
-                minDistance=minDistance, 
-                showLimits=showLimits,
-                editLimits=editLimits,
-                mousewheel=mousewheel)
-        else:
-            if slider:
-                widgetType = 'slider'
-                if minval is None: minval = loval
-                if maxval is None: maxval = hival                
-            elif spin:
-                widgetType = 'spin'
-            else: raise ValueError('One of slider or spin must be True')
-            
-            slider = rangeslider.RangePanel(
-                panel,
-                widgetType,
-                minValue=minval,
-                maxValue=maxval,
-                lowValue=loval,
-                highValue=hival,
-                lowLabel=labels[i * 2],
-                highLabel=labels[i * 2 + 1],
-                minDistance=minDistance,
-                mousewheel=mousewheel) 
-
-        sizer.Add(slider, flag=wx.EXPAND)
-
-        _boundBind(hasProps, propObj, slider, propVal, i, editLimits)
-
-    panel.Layout()
-    return panel

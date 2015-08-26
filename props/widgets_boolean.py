@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 #
-# widgets_boolean.py -
+# widgets_boolean.py - Generate a widget to control a Boolean property.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+"""This module provides the :func:`_Boolean` function, which is imported into
+the :mod:`widgets` module namespace. It is separated purely to keep the
+``widgets`` module file size down.
+"""
 
 
 import wx
@@ -22,16 +26,20 @@ def _Boolean(parent,
              toggle=False,
              style=None,
              **kwargs):
-    """Creates and returns a :class:`wx.CheckBox`, allowing the user to set the
-    given :class:`~props.properties_types.Boolean` property value.
+    """Creates and returns a ``wx.CheckBox``, allowing the user to set the
+    given :class:`.Boolean` property value.
 
-    If the ``icon`` argument is provided, it should be a string
-    containing the name of an image file, or a list of two image file names.
-    In the former case, a :class:`wx.ToggleButton` is used instead of
-    a ``CheckBox``. In the latter case, a :class:`.BitmapRadioBox` is
-    used.
+    If the ``icon`` argument is provided, it should be a string containing the
+    name of an image file, or a list of two image file names.  In the former
+    case, a ``wx.ToggleButton`` is used instead of a ``CheckBox``.
 
-    See the :func:`_String` documentation for details on the parameters.
+    If two icon images are provided, if the ``toggle`` argument is ``True``, a
+    :class:`.BitmapToggleButton`, otherwise a :class:`.BitmapRadioBox` is
+    used.  In the latter case, the ``style`` argument is passed through to the
+    :meth:`.BitmapRadioBox.__init__` method.
+
+    See the :func:`.widgets._String` documentation for details on the other
+    parameters.
     """
 
     widgetGet = None

@@ -1180,7 +1180,6 @@ class Bounds(List):
                  ndims=1,
                  real=True, 
                  minDistance=None,
-                 labels=None,
                  **kwargs):
         """Create a ``Bounds`` property.
         
@@ -1194,10 +1193,6 @@ class Bounds(List):
         
         :param float minDistance: Minimum distance to be maintained between the
                                   low/high values for each dimension.
-        
-        :param list labels:       List of labels of length ``2*ndims``, 
-                                  containing (low, high) labels for each
-                                  dimension.
         """
 
         default = kwargs.get('default', None)
@@ -1215,15 +1210,12 @@ class Bounds(List):
         elif len(default) != 2 * ndims:
             raise ValueError('{} bound values are required'.format(2 * ndims))
 
-        if labels is not None and len(labels) != 2 * ndims:
-            raise ValueError('A label for each dimension is required')
 
         kwargs['default']     = default
         kwargs['minDistance'] = minDistance
 
         self._real   = real
         self._ndims  = ndims
-        self._labels = labels
 
         if real: listType = Real(clamped=True)
         else:    listType = Int( clamped=True)

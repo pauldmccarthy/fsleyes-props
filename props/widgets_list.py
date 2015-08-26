@@ -6,8 +6,8 @@
 #
 """A widget for editing a :class:`~props.properties_types.List` property.
 
-This module is not intended to be used directly - it is imported into the
-:mod:`props.widgets` namespace.
+.. warning:: The code in this module is old, and probably doesn't work. It 
+             will be  updated when I, or somebody else,  needs a list widget.
 """
 
 import wx

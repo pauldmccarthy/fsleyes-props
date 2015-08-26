@@ -9,9 +9,22 @@ which allow the user to edit the properties of a :class:`.HasProperties`
 instance.
 
 
-The functions defined in this module are used by the :mod:`.build` module,
-which generates a GUI from a view specification. The following functions
-are available:
+This module provides a few functions which are made available at the
+:mod:`props` namespace level, and are intended to be called by application
+code:
+
+
+ .. autosummary::
+    makeWidget
+    makeListWidgets
+    makeSyncWidget
+    bindWidget
+    unbindWidget
+
+
+The other functions defined in this module are used by the :mod:`.build`
+module, which generates a GUI from a view specification. The following
+functions are available:
 
 
  .. autosummary::
@@ -36,6 +49,10 @@ purely to keep module file sizes down:
     ~props.widgets_choice._Choice
     ~props.widgets_boolean._Boolean
     ~props.widgets_number._Number
+
+
+ .. warning:: Widget generation code for the :class:`.List` property has not
+              been looked at in a while, and is probably broken.
 
 
 While all of these functions have a standardised signature, some of them
@@ -64,19 +81,6 @@ level of customisation. You can provide these arguments indirectly in the
     dlg = props.buildDialog(None, myobj, view=view)
 
     dlg.ShowModal()
-
-
-This module also provides a few functions which are made available at the
-:mod:`props` namespace level, and are intended to be called by application
-code:
-
-
- .. autosummary::
-    makeWidget
-    makeListWidgets
-    makeSyncWidget
-    bindWidget
-    unbindWidget
 """
 
 import logging
