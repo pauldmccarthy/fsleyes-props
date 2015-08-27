@@ -22,7 +22,8 @@ def _Point(parent,
            propObj,
            propVal,
            showLimits=True,
-           editLimits=True):
+           editLimits=False,
+           mousewheel=False):
     """Creates and returns a :class:`.SliderSpinPanel` allowing the user to
     edit the low/high values along each dimension of the given
     :class:`.Point` property value.
@@ -30,6 +31,9 @@ def _Point(parent,
     :arg showLimits: Show labels displaying the point limits.
     
     :arg editLimits: Show buttons allowing the user to edit the point limits.
+
+    :arg mousewheel: The user can use the mouse wheel to change the point
+                     value.
 
     See the :func:`.widgets._String` documentation for details on the other
     parameters. 
@@ -46,15 +50,19 @@ def _Point(parent,
 
     for dim in range(len(propVal)):
 
+        style = 0
+        if not real:   style |= floatslider.SSP_INTEGER
+        if showLimits: style |= floatslider.SSP_SHOW_LIMITS
+        if editLimits: style |= floatslider.SSP_EDIT_LIMITS
+        if mousewheel: style |= floatslider.SSP_MOUSEWHEEL
+
         slider = floatslider.SliderSpinPanel(
             panel,
-            real=real,
             value=propVal[dim],
             minValue=propVal.getMin(dim),
             maxValue=propVal.getMax(dim),
             label=labels[dim],
-            showLimits=showLimits,
-            editLimits=editLimits)
+            style=style)
 
         sizer.Add(slider, flag=wx.EXPAND)
 

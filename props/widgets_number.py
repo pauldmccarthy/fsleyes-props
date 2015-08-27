@@ -209,16 +209,20 @@ def _makeSlider(parent,
             style=style)
         
     else:
-        evt    = floatslider.EVT_SSP_VALUE 
+        evt    = floatslider.EVT_SSP_VALUE
+        style  = 0
+        
+        if not real:   style |= floatslider.SSP_INTEGER
+        if showLimits: style |= floatslider.SSP_SHOW_LIMITS
+        if editLimits: style |= floatslider.SSP_EDIT_LIMITS
+        if mousewheel: style |= floatslider.SSP_MOUSEWHEEL
+        
         slider = floatslider.SliderSpinPanel(
             parent,
-            real=real,
             value=value,
             minValue=minval,
             maxValue=maxval,
-            showLimits=showLimits,
-            editLimits=editLimits,
-            mousewheel=mousewheel)
+            style=style)
 
     # bind the slider value to the property value
     widgets._propBind(hasProps, propObj, propVal, slider, evt)
