@@ -26,8 +26,8 @@ The :class:`.ViewItem` class allows the layout of the generated interface to
 be customised.  Property widgets may be grouped together by embedding them
 within a :class:`.HGroup` or :class:`.VGroup` object; they will then
 respectively be laid out horizontally or verticaly.  Groups may be embedded
-within a :class:`.NotebookGroup` object, which will result in an interface
-containing a tab for each child :class:`.Group`.
+within a :class:`.NotebookGroup` object, which will result in a notebook-like
+interface containing a tab for each child :class:`.Group`.
 
 
 The label for, and behaviour of, the widget for an individual property may be
@@ -88,8 +88,8 @@ function::
 
 As an alternative to passing in a view, labels, and tooltips to the
 :func:`buildGUI` function, they may be specified as class attributes of the
-``HasProperties`` object, with respective names ``_view``, ``_labels``, and
-``_tooltips``::
+``HasProperties`` instance or class, with respective names ``_view``,
+``_labels``, and ``_tooltips``::
 
     class MyObj(props.HasProperties):
         myint  = props.Int()

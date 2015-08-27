@@ -12,7 +12,8 @@ logic defined in this module is separated purely to keep the
 
 
 The following functions are defined in this module and are added
-(monkey-patched) as methods of the :class:`.HasProperties` class.
+(`monkey-patched <https://en.wikipedia.org/wiki/Monkey_patch>`_) as methods of
+the :class:`.HasProperties` class.
 
 
  .. autosummary::
@@ -25,6 +26,10 @@ The following functions are defined in this module and are added
 The :func:`_notify` and :func:`_notifyAttributeListeners` functions
 respectively replace the :meth:`.PropertyValue.notify` and
 :meth:`.PropertyValue.notifyAttributeListener` methods.
+
+ .. autosummary::
+    _notify
+    _notifyAttributeListeners
 
 
 -------------
@@ -92,10 +97,11 @@ the above process:
 
 An important point to note regarding step 2 above is that *all* PV instances
 which are bound, either directly or indirectly, to the source PV instance,
-will be updated. In other words, There are no restrictions on the ways in
+will be updated. In other words, there are no restrictions on the ways in
 which ``PropertyValue`` instances may be bound.  A tree, chain, or even a
 network of ``PV`` instances can be bound together - the above process will
 still work.
+
 """
 
 
@@ -792,7 +798,7 @@ def _notify(self):
 
 
 def _notifyAttributeListeners(self, name, value):
-    """This method replaces the :meth:`.PropertyValue.notifyAttributeListeners`
+    """This function replaces the :meth:`.PropertyValue.notifyAttributeListeners`
     method.
 
     It ensures that the attributes of any bound :class:`.PropertyValue`

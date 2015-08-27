@@ -8,10 +8,10 @@
 which allow the user to edit the properties of a :class:`.HasProperties`
 instance.
 
-
-This module provides a few functions which are made available at the
-:mod:`props` namespace level, and are intended to be called by application
-code:
+Most of the functions in this module are not intended to be called directly -
+they are used by the :mod:`.build` module. However, a few functions defined
+here are made available at the :mod:`props` namespace level, and are intended
+to be called by application code:
 
 
  .. autosummary::
@@ -81,6 +81,7 @@ level of customisation. You can provide these arguments indirectly in the
     dlg = props.buildDialog(None, myobj, view=view)
 
     dlg.ShowModal()
+
 """
 
 import logging

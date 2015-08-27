@@ -34,17 +34,16 @@ Example usage
 
 
     # access the underlying props.PropertyValue object
-    # (there are caveats for List properties):
     >>> myPropObj.getPropVal('myProperty')
     <props.prop.PropertyValue instance at 0x1047ef518>
 
 
     # Receive notification of property value changes
     >>> def myPropertyChanged(value, *args):
-    >>>     print('New property value: {}'.format(value))
+            print('New property value: {}'.format(value))
 
     >>> myPropObj.addListener(
-    >>>    'myProperty', 'myListener', myPropertyChanged)
+           'myProperty', 'myListener', myPropertyChanged)
 
     >>> myPropObj.myProperty = False
     New property value: False
@@ -61,7 +60,7 @@ Package structure
 
 To use ``props``, your first step will be to define a subclass of
 :class:`.HasProperties`, which contains one or more :class:`.PropertyBase`
-class instances (see the :mod:`.properties_types` module for the available
+class attributes (see the :mod:`.properties_types` module for the available
 types).
 
 
@@ -92,7 +91,7 @@ attributes are accessed and assigned.
 
 
 The following link provides a good overview, and contains the ideas
-which form the basis for the implementation in this module:
+which form the basis for the implementation in this package:
 
 
  -  http://nbviewer.ipython.org/urls/gist.github.com/\
@@ -109,12 +108,12 @@ introduction to descriptors:
 A :class:`.HasProperties` subclass contains a collection of
 :class:`.PropertyBase` instances as class attributes. When an instance of the
 ``HasProperties`` class is created, a :class:`.PropertyValue` object is
-created for each of the `PropertyBase`` instances (or a
+created for each of the ``PropertyBase`` instances (or a
 :class:`~.PropertyValueList` for :class:`.ListPropertyBase` instances).  Each
 of these ``PropertyValue`` instances encapsulates a single value, of any type
 (a ``PropertyValueList`` instance encapsulates multiple ``PropertyValue``
-instances).  Whenever a variable value changes, the ``PropertyValue`` instance
-notifies any registered listeners of the change.
+instances).  Whenever this value changes, the ``PropertyValue`` instance
+notifies any registered listeners of the change.  
 
 
 ^^^^^^^^^^^^
@@ -162,9 +161,9 @@ allows ``minval`` and ``maxval`` constraints to be set.  These may be set via
 of a ``HasProperties`` definition), and may be queried and changed on
 individual ``HasProperties`` instances via the
 :meth:`.HasProperties.getConstraint`/:meth:`.HasProperties.setConstraint`
-methods, which are available on both ``PropertyBase`` and ``HasProperties``
-objects. Some ``PropertyBase`` classes provide additional convenience methods
-for accessing their constraints.
+methods; similarly named methods are also available on ``PropertyBase``
+instances. Some ``PropertyBase`` classes provide additional convenience
+methods for accessing their constraints (e.g. :meth`.Choice.addChoice`).
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -244,6 +243,7 @@ will be made available in the ``props`` package namespace:
    ~props.widgets.bindListWidgets
    ~props.build.buildGUI
    ~props.build.buildDialog
+
 """
 
 import sys

@@ -18,10 +18,10 @@ All that is needed to make use of this functionality is to extend the
     >>> import props
 
     >>> class MyObj(props.SyncableHasProperties):
-    >>>     myint = props.Int()
-    >>>     def __init__(self, parent=None):
-    >>>         props.SyncableHasProperties.__init__(self, parent=parent)
-    >>>
+            myint = props.Int()
+            def __init__(self, parent=None):
+                props.SyncableHasProperties.__init__(self, parent=parent)
+    
 
 Given a class definition such as the above, a parent-child relationship
 between two instances can be set up as follows::
@@ -33,10 +33,10 @@ The ``myint`` properties of both instances are now bound to each other - when
 it changes in one instance, that change is propagated to the other instance::
 
     >>> def parentPropChanged(*a):
-    >>>     print 'myParent.myint changed: {}'.format(myParent.myint)
+            print 'myParent.myint changed: {}'.format(myParent.myint)
     >>>
     >>> def childPropChanged(*a):
-    >>>     print 'myChild.myint changed: {}'.format(myChild.myint)
+            print 'myChild.myint changed: {}'.format(myChild.myint)
 
     >>> myParent.addListener('myint', 'parentPropChanged', parentPropChanged)
     >>> myChild.addListener( 'myint', 'childPropChanged',  childPropChanged)

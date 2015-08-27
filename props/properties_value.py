@@ -8,6 +8,10 @@
 """Definitions of the :class:`PropertyValue` and :class:`PropertyValueList`
 classes.
 
+ .. autosummary::
+    PropertyValue
+    PropertyValueList
+
 
 ``PropertyValue`` and ``PropertyValueList`` instances are intended to be
 created and managed by :class:`.PropertyBase` and :class:`.ListPropertyBase`
@@ -15,10 +19,10 @@ instances respectively, and are used to encapsulate attribute values of
 :class:`.HasProperties` instances.
 
 
-These class definitions are really a part of the :mod:`.properties` module.
-However, the :class:`.PropertyValue` class definitions have absolutely no
-dependencies upon the :class:`.PropertyBase` or :class:`.HasProperties`
-definitions. The same can't be said for the other way around though.
+These class definitions are really a part of the :mod:`.properties` module -
+they are separated to keep file sizes down.  However, the
+:class:`.PropertyValue` class definitions have no dependence upon the
+:class:`.PropertyBase` or :class:`.HasProperties` definitions.
 """
 
 
@@ -147,8 +151,8 @@ class WeakFunctionRef(object):
 class PropertyValue(object):
     """An object which encapsulates a value of some sort.
 
-    The value may be subjected to validation rules, and listeners may be
-    registered for notification of value and validity changes.
+    The value may be subjected to casting and validation rules, and listeners
+    may be registered for notification of value and validity changes.
     """
 
 

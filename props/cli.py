@@ -77,7 +77,7 @@ function::
       -r INT, --TheInt INT  Sets int value
 
 Or, you can add the short and long arguments, and the help text, as specially
-named class attributes of your ``HasProperties`` class::
+named class attributes of your ``HasProperties`` class or instance::
 
     >>> class MyObj(props.HasProperties):
             intProp  = props.Int()
@@ -123,8 +123,12 @@ line arguments from a ``HasProperties`` instance::
 The ``generateArguments`` and ``applyArguments`` functions optionally accept a
 set of *transform* functions which, for ``generateArguments``, take the value
 of a property, and return some transformation of that property, suitable to be
-used as a command line arguments. The transform functions passed to the
-``applyArguments`` function perform the reverse transformation.
+used as a command line argument value. The transform functions passed to the
+``applyArguments`` function perform the reverse transformation.  Transforms
+are useful for properties which cannot easily be converted to/from strings,
+and also for properties where the value you wish users to pass in on the
+command line does not correspond exactly to the value you wish the property to
+be given.
 
 For example::
 
@@ -150,7 +154,8 @@ For example::
                                 xformFuncs=xforms)
         ['--hideBlah']
 
-And for the reverse transformation::
+In this example, we can use the same transform function for the reverse
+operation::
 
     >>> myobj2 = MyObject()
     >>> args   = parser.parse_args(['--hideBlah'])
@@ -161,21 +166,21 @@ And for the reverse transformation::
     >>> print myobj2
         MyObject
             showBlah = False
-    
 
-Not all property types are supported at the moment. The ones which are
-supported:
+The ``cli`` module supports the following property types:
 
-  - :class:`.String`
-  - :class:`.Choice`
-  - :class:`.Int`
-  - :class:`.Real`
-  - :class:`.Percentage`
-  - :class:`.Boolean`
-  - :class:`.ColourMap`
-  - :class:`.Colour`
-  - :class:`.Bounds`
-  - :class:`.Point`
+.. autosummary::
+   _String
+   _Choice
+   _Boolean
+   _Int
+   _Real
+   _Percentage
+   _Bounds
+   _Point
+   _Colour
+   _ColourMap
+
 """
 
 

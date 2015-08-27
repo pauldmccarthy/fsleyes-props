@@ -5,8 +5,8 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 """This module provides the :class:`CallQueue` class, which is used by
-:class:`.PropertyValue` instances to enqueue property listener callback
-functions.
+:class:`.PropertyValue` instances to enqueue and execute property listener
+callback functions.
 """
 
 import logging
@@ -45,6 +45,30 @@ class CallQueue(object):
         If ``skipDuplicates`` is ``True``, a function which is already on
         the queue will be silently dropped if an attempt is made to add it
         again.
+
+          .. note::
+
+             The ``skipDuplicates`` test is based solely on the name of the
+             function. This means that the ``CallQueue`` does not support
+             enqueueing the same function with different arguments.
+
+             Testing for function *and* argument equality is a difficult task:
+        
+               - I can't take the hash of the arguments, as I can't assume
+                 that they are hashable (e.g.  ``numpy`` arrays).
+        
+               - I can't test for identity, as things which have the same
+                 value may not have the same id (e.g. strings).
+        
+               - I can't test argument equality, because in some cases the
+                 argument may be a mutable type (e.g. a ``list``), and its
+                 value may have changed between the time the function was
+                 queued, and the time it is called. *And* the arguments might
+                 be big (again, ``numpy`` arrays), so an equality test could
+                 be expensive.
+        
+             So this is quite a pickle. Something to come back to if things
+             are breaking because of it.
         """
 
         # The queue is a queue of Call instances
@@ -160,29 +184,8 @@ class CallQueue(object):
         funcName, modName = self.__getCallbackDetails(call.func)
         enqueued          = self.__queued.get(call.name, [])
 
-        # I'm only taking into account the call
-        # name when checking for duplicates, meaning
-        # that the callqueue does not support
-        # enqueueing the same function with different
-        # arguments.
-        #
-        # I can't take the hash of the arguments, as
-        # I can't assume that they are hashable (e.g.
-        # numpy arrays).
-        #
-        # I can't test for identity, as things which
-        # have the same value may not have the same
-        # id (e.g. strings).
-        #
-        # I can't test argument equality, because in
-        # some cases the argument may be a mutable
-        # type, and its value may have changed between
-        # the time the function was queued, and the
-        # time it is called.
-        # 
-        # So this is quite a pickle. Something to come
-        # back to if things are breaking because of it.
-        
+        # Skip this function if there are already
+        # functions in the queue with the same name
         if self.__skipDuplicates and (len(enqueued) > 0):
             self.__debug(call, 'Skipping function')
             return False

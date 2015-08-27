@@ -7,7 +7,8 @@
 """Definitions for different property types.
 
 This module provides a number of :class:`.PropertyBase` subclasses which
-define properties of different types.
+define properties of different types. These classes are intended to be
+added as attributes of a :class:`.HasProperties` class definition.
 
  .. autosummary::
     Object
