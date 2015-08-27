@@ -17,6 +17,8 @@ instance.
 This module has two main entry points:
 
  .. autosummary::
+    :nosignatures:
+
     buildGUI
     buildDialog
 

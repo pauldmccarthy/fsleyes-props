@@ -10,6 +10,8 @@
 This module provides the following functions:
 
  .. autosummary::
+    :nosignatures:
+
     addParserArguments
     applyArguments
     generateArguments
@@ -170,6 +172,8 @@ operation::
 The ``cli`` module supports the following property types:
 
 .. autosummary::
+   :nosignatures:
+
    _String
    _Choice
    _Boolean

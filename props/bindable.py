@@ -17,6 +17,8 @@ the :class:`.HasProperties` class.
 
 
  .. autosummary::
+    :nosignatures:
+
     bindProps
     unbindProps
     isBound
@@ -28,6 +30,8 @@ respectively replace the :meth:`.PropertyValue.notify` and
 :meth:`.PropertyValue.notifyAttributeListener` methods.
 
  .. autosummary::
+    :nosignatures:
+
     _notify
     _notifyAttributeListeners
 

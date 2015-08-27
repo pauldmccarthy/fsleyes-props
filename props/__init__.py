@@ -191,6 +191,8 @@ The following classes are provided as building-blocks for your application
 code:
 
 .. autosummary::
+   :nosignatures:
+
    ~props.properties.HasProperties
    ~props.syncable.SyncableHasProperties
    ~props.properties_types.Object
@@ -212,6 +214,8 @@ The following functions are provided to manage command-line argument
 generation and parsing:
 
 .. autosummary::
+   :nosignatures:
+
    ~props.cli.applyArguments
    ~props.cli.addParserArguments
    ~props.cli.generateArguments
@@ -220,6 +224,8 @@ generation and parsing:
 The following classes are provided for you to create GUI specifications:
 
 .. autosummary::
+   :nosignatures:
+
    ~props.build_parts.ViewItem
    ~props.build_parts.Button
    ~props.build_parts.Label
@@ -235,6 +241,8 @@ will be made available in the ``props`` package namespace:
 
 
 .. autosummary::
+   :nosignatures:
+
    ~props.widgets.makeWidget
    ~props.widgets.makeListWidgets
    ~props.widgets.makeSyncWidget
@@ -243,7 +251,6 @@ will be made available in the ``props`` package namespace:
    ~props.widgets.bindListWidgets
    ~props.build.buildGUI
    ~props.build.buildDialog
-
 """
 
 import sys

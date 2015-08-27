@@ -9,6 +9,8 @@
 classes.
 
  .. autosummary::
+    :nosignatures:
+
     PropertyValue
     PropertyValueList
 

@@ -15,6 +15,8 @@ to be called by application code:
 
 
  .. autosummary::
+    :nosignatures:
+
     makeWidget
     makeListWidgets
     makeSyncWidget
@@ -28,6 +30,8 @@ functions are available:
 
 
  .. autosummary::
+    :nosignatures:
+
     _FilePath
     _String
     _Real
@@ -43,6 +47,8 @@ purely to keep module file sizes down:
 
 
  .. autosummary::
+    :nosignatures:
+
     ~props.widgets_list._List
     ~props.widgets_bounds._Bounds
     ~props.widgets_point._Point

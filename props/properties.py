@@ -12,6 +12,8 @@ which form the basis for defining class properties; and the
 application code.
 
  .. autosummary::
+    :nosignatures:
+
     HasProperties
     PropertyBase
     ListPropertyBase

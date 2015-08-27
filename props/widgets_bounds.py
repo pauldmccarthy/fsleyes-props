@@ -62,9 +62,10 @@ def _Bounds(parent,
     parameters.
     """
 
-    ndims    = propObj._ndims
-    panel    = wx.Panel(parent)
-    sizer    = wx.BoxSizer(wx.VERTICAL)
+    ndims = propObj._ndims
+    real  = propObj._real
+    panel = wx.Panel(parent)
+    sizer = wx.BoxSizer(wx.VERTICAL)
 
     if labels is None:
         labels = [None] * 2 * ndims
@@ -79,12 +80,18 @@ def _Bounds(parent,
         hival       = propVal.getHi(i)
 
         if minDistance is None: minDistance = 0
+        if minval      is None: minval      = loval
+        if maxval      is None: maxval      = hival
 
         if slider and spin:
 
-            if minval is None: minval = loval
-            if maxval is None: maxval = hival
-        
+            style = 0
+
+            if mousewheel: style |= rangeslider.RSSP_MOUSEWHEEL
+            if not real:   style |= rangeslider.RSSP_INTEGER
+            if showLimits: style |= rangeslider.RSSP_SHOW_LIMITS
+            if editLimits: style |= rangeslider.RSSP_EDIT_LIMITS
+
             slider = rangeslider.RangeSliderSpinPanel(
                 panel,
                 minValue=minval,
@@ -93,22 +100,19 @@ def _Bounds(parent,
                 highValue=hival,
                 lowLabel=labels[i * 2],
                 highLabel=labels[i * 2 + 1],
-                minDistance=minDistance, 
-                showLimits=showLimits,
-                editLimits=editLimits,
-                mousewheel=mousewheel)
-        else:
-            if slider:
-                widgetType = 'slider'
-                if minval is None: minval = loval
-                if maxval is None: maxval = hival                
-            elif spin:
-                widgetType = 'spin'
-            else: raise ValueError('One of slider or spin must be True')
+                minDistance=minDistance,
+                style=style)
             
+        elif slider or spin:
+
+            style = 0
+
+            if mousewheel: style |= rangeslider.RP_MOUSEWHEEL
+            if slider:     style |= rangeslider.RP_SLIDER
+            if not real:   style |= rangeslider.RP_INTEGER
+
             slider = rangeslider.RangePanel(
                 panel,
-                widgetType,
                 minValue=minval,
                 maxValue=maxval,
                 lowValue=loval,
@@ -116,7 +120,9 @@ def _Bounds(parent,
                 lowLabel=labels[i * 2],
                 highLabel=labels[i * 2 + 1],
                 minDistance=minDistance,
-                mousewheel=mousewheel) 
+                style=style)
+        else:
+            raise ValueError('One of slider or spin must be True')
 
         sizer.Add(slider, flag=wx.EXPAND)
 

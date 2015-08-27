@@ -11,6 +11,8 @@ define properties of different types. These classes are intended to be
 added as attributes of a :class:`.HasProperties` class definition.
 
  .. autosummary::
+    :nosignatures:
+
     Object
     Boolean
     Number
