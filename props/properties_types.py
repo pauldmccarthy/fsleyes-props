@@ -1374,17 +1374,14 @@ class Point(List):
     def __init__(self,
                  ndims=2,
                  real=True, 
-                 labels=None,
                  **kwargs):
         """Create a ``Point`` property.
         
-        :param int ndims:       Number of dimensions.
+        :param int ndims: Number of dimensions.
         
-        :param bool real:       If ``True`` the point values are stored as
-                                :class:`Real` values, otherwise they are
-                                stored as :class:`Int` values.
-
-        :param list labels:     List of labels, one for each dimension.
+        :param bool real: If ``True`` the point values are stored as
+                          :class:`Real` values, otherwise they are
+                          stored as :class:`Int` values.
         """
 
         default = kwargs.get('default', None)
@@ -1401,14 +1398,10 @@ class Point(List):
         elif len(default) != ndims:
             raise ValueError('{} point values are required'.format(ndims))
 
-        if labels is not None and len(labels) != ndims:
-            raise ValueError('A label for each dimension is required')
-
         kwargs['default']    = default
         
         self._ndims   = ndims
         self._real    = real
-        self._labels  = labels
 
         if real: listType = Real(clamped=True)
         else:    listType = Int( clamped=True)

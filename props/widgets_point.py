@@ -21,12 +21,16 @@ def _Point(parent,
            hasProps,
            propObj,
            propVal,
+           labels=None,
            showLimits=True,
            editLimits=False,
            mousewheel=False):
     """Creates and returns a :class:`.SliderSpinPanel` allowing the user to
     edit the low/high values along each dimension of the given
     :class:`.Point` property value.
+
+    :arg labels:     One label for each dimension, to be shown alongside the
+                     corresponding controls.
 
     :arg showLimits: Show labels displaying the point limits.
     
@@ -44,9 +48,9 @@ def _Point(parent,
 
     ndims  = propObj._ndims
     real   = propObj._real
-    labels = propObj._labels
 
-    if labels is None: labels = [None] * ndims
+    if labels is None:
+        labels = [None] * ndims
 
     for dim in range(len(propVal)):
 
