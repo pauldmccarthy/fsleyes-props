@@ -18,7 +18,7 @@
    pwidgets
 
    
-The props package uses `python descriptors
+The ``props`` package uses `python descriptors
 <http://nbviewer.ipython.org/gist/ChrisBeaumont/5758381/descriptor_writeup.ipynb>`_
 to implement an event programming framework. It also includes the ability for
 automatic CLI generation and, optionally, automatic GUI generation (if
