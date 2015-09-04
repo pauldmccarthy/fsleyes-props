@@ -542,6 +542,9 @@ class HasProperties(object):
     def __init__(self, validateOnChange=False):
         """Create a ``HasProperties`` instance.
 
+        ``HasProperties.__init__`` does not need to be called if
+        ``validateOnChange=False``.
+
         .. note:: The ``validateOnChange`` argument warrants some explanation.
         
            The point of validating all other properties when one property
