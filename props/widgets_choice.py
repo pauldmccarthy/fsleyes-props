@@ -115,9 +115,8 @@ def _Choice(parent,
         if name not in ('choices', 'choiceEnabled'):
             return
 
-        oldSelection = choices[0][widget.GetSelection()]
-        choices[0]   = propObj.getChoices(hasProps)
-        curLabels    = []
+        choices[0] = propObj.getChoices(hasProps)
+        curLabels  = []
 
         if labels is None:
             curLabels = [str(c) for c in choices[0]]
@@ -177,9 +176,9 @@ def _Choice(parent,
                 if not propObj.choiceEnabled(choice, hasProps):
                     widget.Disable(i)
 
-        # Restore the widget selection if possible
-        if oldSelection in choices[0]:
-            widget.SetSelection(choices[0].index(oldSelection))
+        # Make sure the widget
+        # selection is up to date
+        widget.SetSelection(choices[0].index(propVal.get()))
 
     listenerName = 'WidgetChoiceUpdate_{}'.format(id(widget))
     propVal.addAttributeListener(listenerName, choicesChanged, weak=False)
