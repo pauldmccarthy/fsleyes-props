@@ -284,7 +284,8 @@ from properties_types import (
     Colour,
     ColourMap,
     Bounds,
-    Point)
+    Point,
+    Array)
 
 from syncable import (
     SyncableHasProperties)

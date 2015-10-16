@@ -27,12 +27,15 @@ added as attributes of a :class:`.HasProperties` class definition.
     ColourMap
     Bounds
     Point
+    Array
 """
 
 
 import os.path as op
 
 import collections
+
+import numpy as np
 
 import properties        as props
 import properties_value  as propvals
@@ -1435,3 +1438,168 @@ class Point(List):
             itemAttributes=self._listType._defaultConstraints)
         
         return pvl
+
+
+class ArrayProxy(propvals.PropertyValue):
+    """A proxy class indended to encapsulate a ``numpy`` array.  ``ArrayProxy``
+    instances are used by the :class:`Array` property type.
+
+    
+    An ``ArrayProxy`` is a :class:`.PropertyValue` which contains, and tries
+    to act like, a ``numpy`` array.  Element access andassignment, and
+    attribute access can be performed through the ``ArrayProxy``.
+
+
+    All element assignments which occur via an ``ArrayProxy`` instance will
+    result in notification of all registered listeners (see the
+    :meth:`.PropertyValue.addListener` method). A limitation of this
+    implementation is that notification will occur even if the assignment
+    does not change the array values.
+
+
+    The underlying ``numpy`` array is accessible via the :meth:`getArray`
+    method. However, changes made directly to the numpy array will
+    bypass the :class:`.PropertyValue` notification procedure.
+    """
+
+    
+    def __init__(self, *args, **kwargs):
+        """Create an ``ArrayProxy``. All arguments are passed through to the
+        :meth:`.PropertyValue.__init__` method.
+        """
+
+        def defaultEquals(this, other):
+            if isinstance(this,  ArrayProxy): this  = this .getArray()
+            if isinstance(other, ArrayProxy): other = other.getArray() 
+
+            return np.all(this == other)
+        
+        kwargs['equalityFunc'] = kwargs.get('equalityFunc', defaultEquals)
+        propvals.PropertyValue.__init__(self, *args, **kwargs)
+
+
+    def get(self):
+        """Overrides :meth:`.PropertyValue.get`. Returns this ``ArrayProxy``.
+        """
+        return self
+
+    
+    def getArray(self):
+        """Returns a reference to the ``numpy`` array encapsulated by this
+        ``ArrayProxy``.
+        """
+        return propvals.PropertyValue.get(self)
+
+
+    def __getattr__(self, name):
+        """Returns the attribute of the ``numpy`` array with the given name.
+        """
+        return getattr(self.getArray(), name)
+
+
+    def __getitem__(self, *args, **kwargs):
+        """Calls the ``__getitem``__ method of the ``numpy`` array. """
+        return self.getArray().__getitem__(*args, **kwargs)
+
+
+    def __setitem__(self, *args, **kwargs):
+        """Calls the ``__setitem__`` method of the ``numpy`` array, and triggers
+        notification of all registered listeners.
+        """
+
+        array = self.getArray()
+        
+        array.__setitem__(*args, **kwargs)
+
+        notifState = self.getNotificationState()
+        self.disableNotification()
+        
+        self.set(array)
+        
+        self.setNotificationState(notifState)
+        self.notify()
+
+        
+class Array(props.PropertyBase):
+    """A property which represents a ``numpy`` array. Each array is
+    encapsulated within an :class:`ArrayProxy` instance.
+    """
+
+    def __init__(self, dtype=None, shape=None, resizable=True, **kwargs):
+        """Create an ``Array`` property.
+
+        .. warning:: If you set a ``default`` value here (see
+                     :meth:`.PropertyBase.__init__`), *do not* use a ``numpy``
+                     array - use a regular python list. It will be converted
+                     in a ``numpy`` array internally. An equality test is made
+                     on the ``default`` attribute, so if you use a ``numpy``
+                     array, a :exc:`ValueError` will be raised, as ``numpy``
+                     performs equality tests on an element-wise basis.
+
+        :arg dtype:     ``numpy`` data type.
+        
+        :arg shape:     Initial shape of the array.
+        
+        :arg resizable: Defaults to ``True``. If ``False``, the array size
+                        will be fixed to the ``shape`` specified
+                        here. Different sized arrays will still be allowed, if
+                        the ``allowInvalid`` parameter to
+                        :meth:`.PropertyBase.__init__` is set to ``True``.
+        """
+
+        if dtype is None: dtype = np.float64
+        if shape is None: shape = (4, 4)
+
+        kwargs['dtype']     = dtype
+        kwargs['shape']     = shape
+        kwargs['resizable'] = resizable
+        kwargs['default']   = kwargs.get('default', np.zeros(shape, dtype))
+
+        props.PropertyBase.__init__(self, **kwargs)
+
+    
+    def _makePropVal(self, instance):
+        """Overrides :meth`.PropertyBase._makePropVal`. Creates and returns
+        an :class:`.ArrayProxy` for the given ``instance``.
+        """
+        
+        default = self._defaultConstraints.get('default', None)
+        ap      = ArrayProxy(
+            instance,
+            name=self.getLabel(instance),
+            value=default,
+            castFunc=self.cast,
+            validateFunc=self.validate,
+            allowInvalid=self._allowInvalid,
+            **self._defaultConstraints)
+        
+        return ap
+
+
+    def cast(self, instance, attributes, value):
+        """Overrides :meth`.PropertyBase.cast`. Casts the given value to a
+        ``numpy`` array (with the data type that was specified in
+        :meth:`__init__`).
+        """
+        dtype = attributes['dtype']
+        return np.array(value, dtype=dtype)
+
+
+    def validate(self, instance, attributes, value):
+        """Overrides :meth`.PropertyBase.validate`. If the given ``value`` has
+        the wrong data type, or this ``Array`` is not resizable and the
+        ``value`` has the wrong shape, a :exc:`ValueError` is raised.
+        """ 
+        props.PropertyBase.validate(self, instance, attributes, value)
+
+        dtype     = attributes['dtype']
+        shape     = attributes['shape']
+        resizable = attributes['resizable']
+
+        if value.dtype != dtype:
+            raise ValueError('Invalid data type: {} (should be {})'.format(
+                value.dtype, dtype))
+        
+        if (not resizable) and (value.shape != shape):
+            raise ValueError('Invalid shape: {} (should be {})'.format(
+                value.shape, shape))
