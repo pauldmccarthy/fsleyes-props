@@ -68,6 +68,11 @@ def _Choice(parent,
     parameters.
     """
 
+    # A reference to the choices - this is
+    # shared by the inner functions defined
+    # below, and updated in choicesChanged
+    choices = [propObj.getChoices(hasProps)]
+
     # If we have been given some icons, we will use
     # a BitmapRadioBox, which has a toggle button
     # for each choice
@@ -92,18 +97,16 @@ def _Choice(parent,
     # return the corresponding choice
     # value
     def widgetGet():
-        choices = propObj.getChoices(hasProps)
-
-        if len(choices) > 0: return choices[widget.GetSelection()]
-        else:                return None
+        if len(choices[0]) > 0: return choices[0][widget.GetSelection()]
+        else:                   return None
 
     # When the property value changes,
     # update the widget value
     def widgetSet(value):
-        choices = propObj.getChoices(hasProps)
-        
-        if len(choices) > 0: return widget.SetSelection(choices.index(value))
-        else:                return None
+        if len(choices[0]) > 0:
+            return widget.SetSelection(choices[0].index(value))
+        else:
+            return None
 
     # Update the combobox choices
     # when they change.
@@ -112,20 +115,22 @@ def _Choice(parent,
         if name not in ('choices', 'choiceEnabled'):
             return
 
-        choices   = propObj.getChoices(hasProps)
-        curLabels = []
+        oldSelection = choices[0][widget.GetSelection()]
+        choices[0]   = propObj.getChoices(hasProps)
+        curLabels    = []
 
-        if labels is None: curLabels = [str(c)    for c in choices]
-        else:
+        if labels is None:
+            curLabels = [str(c) for c in choices[0]]
 
-            # labels can either be a dict
-            # of {choice : label} mappings
-            if isinstance(labels, dict):
-                curLabels = [labels[c] for c in choices]
+        # labels can either be a dict
+        # of {choice : label} mappings
+        elif isinstance(labels, dict):
+            curLabels = [labels[c] for c in choices[0]]
                 
-            # or a function which, given a
-            # choice, returns a label for it
-            else: curLabels = map(labels, choices)
+        # or a function which, given a
+        # choice, returns a label for it
+        else:
+            curLabels = map(labels, choices[0])
 
         # If we're using a wx.Choice widget, remove
         # any disabled choices from the list.
@@ -134,7 +139,7 @@ def _Choice(parent,
         # it doesn't, so our only option is to hide
         # the disabled ones.
         if icons is None:
-            for i, choice in enumerate(choices):
+            for i, choice in enumerate(choices[0]):
                 if not propObj.choiceEnabled(choice, hasProps):
                     curLabels.pop(i)
                     
@@ -156,7 +161,7 @@ def _Choice(parent,
             # If using a BitmapRadio widget, we can
             # show all choices, but disable  the
             # buttons for disabled choices
-            for i, choice in enumerate(choices):
+            for i, choice in enumerate(choices[0]):
 
                 # Load the image file for each choice
                 # if they have not already been loaded
@@ -170,7 +175,11 @@ def _Choice(parent,
 
                 widget.AddChoice(icons[choice])
                 if not propObj.choiceEnabled(choice, hasProps):
-                    widget.Disable(i) 
+                    widget.Disable(i)
+
+        # Restore the widget selection if possible
+        if oldSelection in choices[0]:
+            widget.SetSelection(choices[0].index(oldSelection))
 
     listenerName = 'WidgetChoiceUpdate_{}'.format(id(widget))
     propVal.addAttributeListener(listenerName, choicesChanged, weak=False)
