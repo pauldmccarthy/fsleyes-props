@@ -102,6 +102,9 @@ This all sounds a bit convoluted, but in practice is pretty simple.  Example::
     app.MainLoop()
 """
 
+
+import copy
+
 import logging
 
 
@@ -180,6 +183,23 @@ class ViewItem(object):
 
     
     def __repr__(self): return self.__str__()
+
+    
+    def __deepcopy__(self, memo):
+        """Creates a deep copy of this ``ViewItem``. Deep copies are made
+        of all attributes, except for the ``dependencies`` list, which may
+        contain references to objects that cannot be deep-copied.
+        """
+
+        new = self.__class__.__new__(self.__class__)
+
+        memo[id(self)] = new
+
+        for k, v in self.__dict__.items():
+            if k == 'dependencies': setattr(new, k, copy.copy(    v))
+            else:                   setattr(new, k, copy.deepcopy(v, memo))
+
+        return new
 
 
 class Button(ViewItem):

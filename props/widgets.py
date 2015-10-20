@@ -222,6 +222,7 @@ def _propBind(hasProps,
             guiObj.Enable(val)
 
     _guiUpdate(propVal.get())
+    _attUpdate(hasProps, 'enabled')
 
     # set up the callback functions
     for ev in evType: guiObj.Bind(ev, _propUpdate)
