@@ -499,6 +499,83 @@ class PropertyValue(object):
         self.revalidate()
 
 
+    def _prepareListeners(self, att=False):
+        """Used by :meth:`notify` and :meth:`notifyAttributeListeners`.
+        Prepares a list of :class:`Listener` instances ready to be called.
+
+        :arg att: If ``True``, attribute listeners are returned, otherwise
+                  value listeners are returned.
+        """
+
+        if att: lDict = self._attributeListeners
+        else:   lDict = self._changeListeners
+
+        allListeners = []
+        
+        for lName, listener in list(lDict.items()):
+
+            cb = listener.function
+
+            if isinstance(cb, WeakFunctionRef):
+                cb = cb.function()
+
+            if cb is None:
+                
+                log.debug('Removing dead listener {}'.format(lName))
+                if att:
+                    self.removeAttributeListener(
+                        self.__unsaltListenerName(lName))
+                else:
+                    self.removeListener(
+                        self.__unsaltListenerName(lName))
+                continue
+
+            allListeners.append(listener)
+
+        # if we're preparing value listenres, add
+        # the pre-notify and post-notify functions
+        if not att:
+
+            if self._preNotifyListener.function is not None:
+                allListeners = [self._preNotifyListener] + allListeners
+            
+            if self._postNotifyListener.function is not None:
+                allListeners = allListeners + [self._postNotifyListener]
+
+        return allListeners
+
+
+    def _callListeners(self, listeners, args):
+        """Used by :meth:`notify` and :meth:`notifyAttributeListeners`.
+        Calls each of the listeners in the ``listeners`` list, passing
+        them the given ``args``.
+
+        :arg listeners: List of :class:`Listener` instances to be called.
+
+        :arg args:      Arguments to pass to each listener.
+        """
+        
+        queued = []
+
+        for l in listeners:
+
+            if not l.enabled:
+                continue
+
+            cb = l.function
+
+            if isinstance(cb, WeakFunctionRef):
+                cb = cb.function()
+
+            if l.immediate:
+                log.debug('Calling immediate listener {}'.format(l.name))
+                cb(*args)
+            else:
+                queued.append((cb, self.__makeQueueCallName(l.name), args))
+
+        self.queue.callAll(queued) 
+
+
     def notifyAttributeListeners(self, name, value):
         """Notifies all registered attribute listeners of an attribute change
         (unless notification has been disabled via the
@@ -507,31 +584,10 @@ class PropertyValue(object):
 
         if not self.__notification: return
 
-        attListeners = []
-        args         = (self._context(), name, value, self._name)
-        
-        for lName, listener in list(self._attributeListeners.items()):
+        args      = (self._context(), name, value, self._name)
+        listeners = self._prepareListeners(True)
 
-            cb = listener.function
-
-            if isinstance(cb, WeakFunctionRef):
-                cb = cb.function()
-
-            if cb is None:
-                log.debug('Removing dead attribute listener {}'.format(lName))
-                
-                self.removeAttributeListener(self.__unsaltListenerName(lName))
-                continue
-
-            if listener.immediate:
-                log.debug('Calling immediate attribute '
-                          'listener {}'.format(lName))
-                cb(*args)
-            else:
-                attListeners.append(
-                    (cb, self.__makeQueueCallName(lName), args))
-
-        self.queue.callAll(attListeners)
+        self._callListeners(listeners, args)
         
         
     def addListener(self,
@@ -783,49 +839,10 @@ class PropertyValue(object):
         if not self.__notification:
             return
         
-        value        = self.get()
-        valid        = self.__valid
-        listeners    = []
-        allListeners = OrderedDict()
-        args         = (value, valid, self._context(), self._name)
+        args      = (self.get(), self.__valid, self._context(), self._name)
+        listeners = self._prepareListeners(False)
 
-        # call prenotify listener first
-        if self._preNotifyListener.function is not None:
-            allListeners['prenotify'] = self._preNotifyListener
-
-        # registered listeners second
-        allListeners.update(self._changeListeners)
-
-        # and postnotify last
-        if self._postNotifyListener.function is not None:
-            allListeners['postnotify'] = self._postNotifyListener
-
-        # filter out listeners which have been disabled
-        for lName, listener  in list(allListeners.items()):
-            
-            if not listener.enabled:
-                continue
-
-            cb = listener.function
-
-            # If the listener is a WeakFunctionRef
-            # instance, we retrieve the actual function
-            if isinstance(cb, WeakFunctionRef):
-                cb = cb.function()
-
-            if cb is None:
-                log.debug('Removing dead listener {}'.format(lName))
-                
-                self.removeListener(self.__unsaltListenerName(lName))
-                continue
-
-            if listener.immediate:
-                log.debug('Calling immediate listener {}'.format(lName)) 
-                cb(*args)
-            else:
-                listeners.append((cb, self.__makeQueueCallName(lName), args))
-        
-        self.queue.callAll(listeners)
+        self._callListeners(listeners, args)
 
         # If this PV is a member of a PV list, 
         # tell the list that this PV has
