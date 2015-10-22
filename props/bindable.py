@@ -11,8 +11,7 @@ logic defined in this module is separated purely to keep the
 :mod:`.properties` and :mod:`.properties_value` module file sizes down.
 
 
-The following functions are defined in this module and are added
-(`monkey-patched <https://en.wikipedia.org/wiki/Monkey_patch>`_) as methods of
+The following functions are defined in this module and are used by the
 the :class:`.HasProperties` class.
 
 
@@ -24,16 +23,14 @@ the :class:`.HasProperties` class.
     isBound
 
 
-
-The :func:`_notify` and :func:`_notifyAttributeListeners` functions
-respectively replace the :meth:`.PropertyValue.notify` and
-:meth:`.PropertyValue.notifyAttributeListener` methods.
+The :class:`.PropertyValue` class uses the following methods for
+synchronisation of attribute and values, and notification of their
+listeners:
 
  .. autosummary::
     :nosignatures:
-
-    _notify
-    _notifyAttributeListeners
+    syncAndNotify
+    syncAndNotifyAtts
 
 
 -------------
@@ -87,16 +84,14 @@ When a ``HasProperties`` property value is changed, the associated
 ``PropertyValue`` instance does two things:
 
   1. Casts and validates the new value and updates its stored value.
-  2. Notifies all registered listeners of the value change.
+  2. Calls the :func:`syncAndNotify` function.
 
-In order to allow property values to be bound together, this module modifies
-the above process:
+The ``syncAndNotify`` function then does the following:
 
-  1. Casts and validates the new value and updates its stored value.
-  2. Updates the value on all bound ``PropertyValue`` instances.
-  3. Notifies all listeners, registered on the source ``PV`` instance, of the
+  3. Updates the value on all bound ``PropertyValue`` instances.
+  4. Notifies all listeners, registered on the source ``PV`` instance, of the
      value change.
-  4. Notifies all listeners, registered on the bound ``PV`` instances, of the
+  5. Notifies all listeners, registered on the bound ``PV`` instances, of the
      value change.
 
 An important point to note regarding step 2 above is that *all* PV instances
@@ -105,7 +100,6 @@ will be updated. In other words, there are no restrictions on the ways in
 which ``PropertyValue`` instances may be bound.  A tree, chain, or even a
 network of ``PV`` instances can be bound together - the above process will
 still work.
-
 """
 
 
@@ -239,6 +233,38 @@ def isBound(self, propName, other, otherPropName=None):
 
     return (otherPropVal in myBoundPropVals and
             myPropVal    in otherBoundPropVals)
+
+
+def syncAndNotifyAtts(self, name, value):
+    """This method is called by the
+    :meth:`.PropertyValue.notifyAttributeListeners` method.
+    
+    It ensures that the attributes of any bound :class:`.PropertyValue`
+    instances are synchronised, and then notifies all attribute listeners.
+    """
+    
+    boundPropVals = _sync(self, True, name, value)
+    boundPropVals = [self] + [bpv[0] for bpv in boundPropVals]
+
+    _callAllListeners(boundPropVals, True, name, value)
+
+
+def syncAndNotify(self):
+    """Synchronises the value contained in all bound :class:`.PropertyValue`
+    instances with the value contained in this instance, and notifies all
+    registered listeners of the value change. This method is called by the
+    :meth:`.PropertyValue.notify` method.
+    """
+
+    bpvs    = _sync(self)
+    allBpvs = []
+
+    for bpv, listItems in bpvs:
+        if isinstance(bpv, properties_value.PropertyValueList):
+            allBpvs.extend(listItems)
+        allBpvs.append(bpv)
+
+    _callAllListeners([self] + allBpvs, False)
     
 
 def _bindProps(self,
@@ -360,9 +386,9 @@ def _bindListProps(self,
             # notify attribute listeners first
             if bindatt:
                 for name, val in atts.items():
-                    _notifyAttributeListeners(myItem, name, val) 
+                    syncAndNotifyAtts(myItem, name, val) 
             
-            _notify(myItem)
+            syncAndNotify(myItem)
 
     # This mapping is stored on the PVL objects,
     # and used by the _syncListPropVals function
@@ -398,9 +424,9 @@ def _bindListProps(self,
     # is propagated to other bound PVs,
     # and notify all listeners.
     for name, val in atts.items():
-        _notifyAttributeListeners(myPropVal, name, val)
+        syncAndNotifyAtts(myPropVal, name, val)
         
-    _notify(myPropVal)
+    syncAndNotify(myPropVal)
 
 
 def _bindPropVals(myPropVal,
@@ -761,79 +787,50 @@ def _sync(self, atts=False, attName=None, attValue=None):
     return changedPropVals
 
 
-def _notify(self):
-    """This function replaces the :meth:`.PropertyValue.notify` method.
+def _callAllListeners(propVals, att, name=None, value=None):
+    """Calls all listeners of the given list of :class:`.PropertyValue`
+    instances.
 
-    It ensures that bound :class:`.ProperyValue` objects are synchronised to
-    have the same value, before any registered listeners are notified.
+    :arg att:   If ``True``, attribute listeners are notified, otherwise
+                value listeners are notified.
+    :arg name:  If ``att == True``, the attribute name.
+    :arg value: If ``att == True``, the attribute value.
     """
 
-    boundPropVals = _sync(self)
+    queued = []
+    q      = properties_value.PropertyValue.queue
 
-    # Now that the master-slave values are synced,
-    # call the real PropertyValue.notify method
-    self._orig_notify()
-
-    # Call the registered property listeners 
-    # of any slave PVs which changed value
-    for i, (bpv, listItems) in enumerate(boundPropVals):
-
-        # Normal PropertyValue objects
-        if not isinstance(bpv, properties_value.PropertyValueList):
-            bpv._orig_notify()
-
-        # PropertyValueList objects -
-        # notify for each list item,
-        # and then notify at the list
-        # level
-        else:
-            listNotifState = bpv.getNotificationState()
-            bpv.disableNotification()
-
-            # Call the notify method on any individual
-            # list items which changed value
-            for li in listItems:
-                li._orig_notify()
-
-            # Notify any list-level
-            # listeners on the slave list
-            bpv.setNotificationState(listNotifState)
-            bpv._orig_notify()
-
-
-def _notifyAttributeListeners(self, name, value):
-    """This function replaces the :meth:`.PropertyValue.notifyAttributeListeners`
-    method.
-
-    It ensures that the attributes of any bound :class:`.PropertyValue`
-    instances are synchronised before any attribute listeners are notified.
-    """
+    # Hold the queue to inhibitany callbacks which
+    # are triggered by immediate listener calls
+    q.hold()
     
-    boundPropVals = _sync(self, True, name, value)
+    for i, pv in enumerate(propVals):
 
-    # Notify the attribute listeners of the master
-    # PV, and then of any slave PVs for which the
-    # attribute changed value
-    self._orig_notifyAttributeListeners(name, value)
-    
-    #
-    # TODO what if the attribute change caused
-    # a change to the property value?
-    # 
-    for bpv, _ in boundPropVals:
-        bpv._orig_notifyAttributeListeners(name, value)
+        listeners, args = pv.prepareListeners(att, name, value)
 
-                         
-# Patch the HasPropertyies and PropertyValue classes
-properties.HasProperties.bindProps   = bindProps
-properties.HasProperties.unbindProps = unbindProps
-properties.HasProperties.isBound     = isBound
+        for l in listeners:
 
-properties_value.PropertyValue._orig_notify = \
-    properties_value.PropertyValue.notify
-properties_value.PropertyValue._orig_notifyAttributeListeners = \
-    properties_value.PropertyValue.notifyAttributeListeners
+            func = l.function
 
-properties_value.PropertyValue.notify                   = _notify
-properties_value.PropertyValue.notifyAttributeListeners = \
-    _notifyAttributeListeners
+            if isinstance(func, properties_value.WeakFunctionRef):
+                func = func.function()
+
+            # TODO Do I need to disable notification
+            # on parents of PV list items during the
+            # item notification, like I am doing below
+            # in the old code?
+                
+            if l.immediate:
+                func(*args)
+
+            else:
+                queued.append((func, l.makeQueueName(), args))
+
+    # Free the queue, and append any held
+    # functions on to the end of the call
+    # list, so they are executed after all
+    # of the listeners for the original
+    # property value change
+    q.release()
+    held = q.clearHeld()
+    q.callAll(queued + held)

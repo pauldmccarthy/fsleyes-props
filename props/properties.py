@@ -22,6 +22,8 @@ application code.
 import weakref
 import logging
 
+import bindable
+
 
 log = logging.getLogger(__name__)
 
@@ -607,6 +609,21 @@ class HasProperties(object):
             setattr(copy, propName, getattr(self, propName))
             
         return copy
+
+
+    def bindProps(self, *args, **kwargs):
+        """See :func:`.bindable.bindProps`. """
+        bindable.bindProps(self, *args, **kwargs)
+
+        
+    def unbindProps(self, *args, **kwargs):
+        """See :func:`.bindable.unbindProps`. """
+        bindable.unbindProps(self, *args, **kwargs)
+
+        
+    def isBound(self, *args, **kwargs):
+        """See :func:`.bindable.isBound`. """
+        bindable.isBound(self, *args, **kwargs) 
 
                 
     def addProperty(self, propName, propObj):

@@ -35,6 +35,7 @@ import weakref
 from collections import OrderedDict
 
 import callqueue
+import bindable
 
 
 log = logging.getLogger(__name__)
@@ -154,9 +155,10 @@ class Listener(object):
     """The ``Listener`` class is used by :class:`PropertyValue` instances to
     manage their listeners - see :meth:`PropertyValue.addListener`.
     """
-    def __init__(self, name, function, enabled, immediate):
+    def __init__(self, propVal, name, function, enabled, immediate):
         """Create a ``Listener``.
 
+        :arg propVal:   The ``PropertyValue`` that owns this ``Listener``.
         :arg name:      The listener name.
         :arg function:  The callback function.
         :arg enabled:   Whether the listener is enabled/disabled.
@@ -164,10 +166,23 @@ class Listener(object):
                         via the :attr:`PropertyValue.queue`.
         """
 
+        self.propVal   = propVal
         self.name      = name
         self.function  = function
         self.enabled   = enabled
         self.immediate = immediate
+
+
+    def makeQueueName(self):
+        """Returns a more descriptive name for this ``Listener``, which
+        is used as its name when passed to the :class:`.CallQueue`.
+        """
+
+        ctxName = self.propVal._context().__class__.__name__
+        pvName  = self.propVal._name
+
+        return '{} ({}.{})'.format(self.name, ctxName, pvName)
+ 
 
 
 class PropertyValue(object):
@@ -175,6 +190,10 @@ class PropertyValue(object):
 
     The value may be subjected to casting and validation rules, and listeners
     may be registered for notification of value and validity changes.
+
+    Notification of value and attribute listeners is performed by the
+    :mod:`.bindable` module - see the :func:`.bindable.syncAndNotify` and
+    :func:`.bindable.syncAndNotifyAtts` functions.
     """
 
 
@@ -292,11 +311,13 @@ class PropertyValue(object):
         self.__lastValid              = False
         self.__notification           = True
 
-        self._preNotifyListener  = Listener('prenotify',
+        self._preNotifyListener  = Listener(self,
+                                            'prenotify',
                                             preNotifyFunc,
                                             True,
                                             True)
-        self._postNotifyListener = Listener('postnotify',
+        self._postNotifyListener = Listener(self,
+                                            'postnotify',
                                             postNotifyFunc,
                                             True,
                                             False)
@@ -336,17 +357,6 @@ class PropertyValue(object):
         this instance, ``False`` otherwise.
         """ 
         return not self.__eq__(other)
-
-
-    def __makeQueueCallName(self, cbName):
-        """Munges the given listener function name before it gets passed
-        to the :class:`.CallQueue` for execution.
-        """
-        
-        return '{} ({}.{})'.format(
-            cbName,
-            self._context().__class__.__name__,
-            self._name) 
 
     
     def __saltListenerName(self, name):
@@ -441,7 +451,8 @@ class PropertyValue(object):
             listener = WeakFunctionRef(listener)
         
         name = self.__saltListenerName(name)
-        self._attributeListeners[name] = Listener(name,
+        self._attributeListeners[name] = Listener(self,
+                                                  name,
                                                   listener,
                                                   True,
                                                   immediate)
@@ -499,13 +510,18 @@ class PropertyValue(object):
         self.revalidate()
 
 
-    def _prepareListeners(self, att=False):
-        """Used by :meth:`notify` and :meth:`notifyAttributeListeners`.
-        Prepares a list of :class:`Listener` instances ready to be called.
+    def prepareListeners(self, att, name=None, value=None):
+        """Prepares a list of :class:`Listener` instances ready to be called,
+        and a list of arguments to pass to them.
 
-        :arg att: If ``True``, attribute listeners are returned, otherwise
-                  value listeners are returned.
+        :arg att:   If ``True``, attribute listeners are returned, otherwise
+                    value listeners are returned.
+        :arg name:  If ``att == True``, the attribute name.
+        :arg value: If ``att == True``, the attribute value.
         """
+
+        if not self.__notification:
+            return [], []
 
         if att: lDict = self._attributeListeners
         else:   lDict = self._changeListeners
@@ -513,12 +529,17 @@ class PropertyValue(object):
         allListeners = []
         
         for lName, listener in list(lDict.items()):
+            
+            if not listener.enabled:
+                continue
 
             cb = listener.function
 
             if isinstance(cb, WeakFunctionRef):
                 cb = cb.function()
 
+            # The owner of the referred function/method 
+            # has been GC'd - remove it
             if cb is None:
                 
                 log.debug('Removing dead listener {}'.format(lName))
@@ -536,58 +557,26 @@ class PropertyValue(object):
         # the pre-notify and post-notify functions
         if not att:
 
-            if self._preNotifyListener.function is not None:
+            if self._preNotifyListener.function is not None and \
+               self._preNotifyListener.enabled:
                 allListeners = [self._preNotifyListener] + allListeners
             
-            if self._postNotifyListener.function is not None:
+            if self._postNotifyListener.function is not None and \
+               self._postNotifyListener.enabled:
                 allListeners = allListeners + [self._postNotifyListener]
 
-        return allListeners
+        if att: args = self._context(), name, value, self._name
+        else:   args = (self.get(), self.__valid, self._context(), self._name)
 
-
-    def _callListeners(self, listeners, args):
-        """Used by :meth:`notify` and :meth:`notifyAttributeListeners`.
-        Calls each of the listeners in the ``listeners`` list, passing
-        them the given ``args``.
-
-        :arg listeners: List of :class:`Listener` instances to be called.
-
-        :arg args:      Arguments to pass to each listener.
-        """
-        
-        queued = []
-
-        for l in listeners:
-
-            if not l.enabled:
-                continue
-
-            cb = l.function
-
-            if isinstance(cb, WeakFunctionRef):
-                cb = cb.function()
-
-            if l.immediate:
-                log.debug('Calling immediate listener {}'.format(l.name))
-                cb(*args)
-            else:
-                queued.append((cb, self.__makeQueueCallName(l.name), args))
-
-        self.queue.callAll(queued) 
+        return allListeners, args
 
 
     def notifyAttributeListeners(self, name, value):
-        """Notifies all registered attribute listeners of an attribute change
-        (unless notification has been disabled via the
-        :meth:`disableNotification` method).
+        """Notifies all registered attribute listeners of an attribute
+        changed - see the :func:`.bindable.syncAndNotifyAtts` function.
         """
 
-        if not self.__notification: return
-
-        args      = (self._context(), name, value, self._name)
-        listeners = self._prepareListeners(True)
-
-        self._callListeners(listeners, args)
+        bindable.syncAndNotifyAtts(self, name, value)
         
         
     def addListener(self,
@@ -659,7 +648,8 @@ class PropertyValue(object):
             prior.immediate = immediate
             
         else:
-            self._changeListeners[fullName] = Listener(fullName,
+            self._changeListeners[fullName] = Listener(self,
+                                                       fullName,
                                                        callback,
                                                        True,
                                                        immediate)
@@ -704,8 +694,8 @@ class PropertyValue(object):
             if isinstance(cb, WeakFunctionRef):
                 cb = cb.function()
 
-                if cb is not None:
-                    PropertyValue.queue.dequeue(self.__makeQueueCallName(name))
+            if cb is not None:
+                PropertyValue.queue.dequeue(listener.makeQueueName())
 
 
     def enableListener(self, name):
@@ -816,33 +806,19 @@ class PropertyValue(object):
             self.__value,
             'valid' if valid else 'invalid - {}'.format(validStr)))
         
-        # Notify any registered listeners. It is
-        # critical that this is the last step in
-        # the set() method, due to the way that
-        # the bindable module monkey-patches it,
-        # adding in extra functionality, to
-        # synchronise bound PV objects before any
-        # notification occurs.
+        # Notify any registered listeners. 
         self.notify()
 
 
     def notify(self):
-        """Notifies registered listeners.
-
-        Calls the ``preNotify`` function (if it is set), any listeners which
-        have been registered with this ``PropertyValue`` instance, and the
-        ``postNotify`` function (if it is set). If notification has been
-        disabled (via the :meth:`disableNotification` method), this method
-        does nothing.
+        """Notifies registered listeners - see the
+        :func:`.bindable.syncAndNotify` function.
         """
+
+        bindable.syncAndNotify(self)
 
         if not self.__notification:
             return
-        
-        args      = (self.get(), self.__valid, self._context(), self._name)
-        listeners = self._prepareListeners(False)
-
-        self._callListeners(listeners, args)
 
         # If this PV is a member of a PV list, 
         # tell the list that this PV has

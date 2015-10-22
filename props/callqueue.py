@@ -69,6 +69,19 @@ class CallQueue(object):
         
              So this is quite a pickle. Something to come back to if things
              are breaking because of it.
+
+        
+        **Holding the queue**
+
+        
+        The :meth:`hold` method temporarily stops the ``CallQueue`` from
+        queueing and executing functions. Any functions which are enqueued
+        while the queue is held are kept in a separate queue. The queue is
+        released via the :meth:`release` method, after which any held
+        functions may be accessed via the :meth:`clearHeld` method (which
+        also clears the internal queue of held functions). Once the queue
+        has been released, these held functions can be re-queued as normal
+        via the :meth:`call` or :meth:`callAll` methods.
         """
 
         # The queue is a queue of Call instances
@@ -80,6 +93,17 @@ class CallQueue(object):
         self.__queued         = {}
         self.__skipDuplicates = skipDuplicates
         self.__calling        = False
+
+
+        # Every call to hold will increment
+        # this count, and every call to
+        # release will decrement it.
+        self.__holding        = 0
+        
+
+        # If the queue is being held, enqueued
+        # functions are added to this list
+        self.__held           = []
 
 
     def dequeue(self, name):
@@ -133,6 +157,29 @@ class CallQueue(object):
         if anyEnqueued:
             self.__call()
 
+
+    def hold(self):
+        """Holds the queue. For every call to ``hold``, the :meth:`release`
+        method must be called once before the queue will be truly released.
+        """
+        self.__holding += 1
+
+    
+    def release(self):
+        """Releases the queue. """
+        self.__holding -= 1
+
+
+    def clearHeld(self):
+        """Clears and returns the list of held functions. """
+
+        if self.__holding > 0:
+            return []
+        
+        held = self.__held
+        self.__held = []
+        return held
+
         
     def __call(self):
         """Call all of the functions which are currently enqueued.
@@ -183,6 +230,11 @@ class CallQueue(object):
 
         funcName, modName = self.__getCallbackDetails(call.func)
         enqueued          = self.__queued.get(call.name, [])
+
+        if self.__holding > 0:
+            self.__debug(call, 'Holding function')
+            self.__held.append((call.func, call.name, call.args))
+            return False
 
         # Skip this function if there are already
         # functions in the queue with the same name
