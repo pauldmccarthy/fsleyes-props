@@ -214,20 +214,14 @@ class PropertyBase(object):
         return propVal.getAttribute('enabled')
 
     
-    def addListener(self,
-                    instance,
-                    name,
-                    callback,
-                    overwrite=False,
-                    weak=True):
+    def addListener(self, instance, *args, **kwargs):
         """Register a listener with the ``PropertyValue`` object managed
         by this property. See :meth:`.PropertyValue.addListener`.
         
         :param instance:  The ``HasProperties`` instance on which the
                           listener is to be registered.
         """
-        self._getInstanceData(instance).propVal.addListener(
-            name, callback, overwrite=overwrite, weak=weak)
+        self._getInstanceData(instance).propVal.addListener(*args, **kwargs)
         
         
     def removeListener(self, instance, name):
@@ -803,20 +797,11 @@ class HasProperties(object):
         return self.getProp(propName).setConstraint(self, constraint, value)
 
 
-    def addListener(self,
-                    propName,
-                    listenerName,
-                    callback,
-                    overwrite=False,
-                    weak=True):
+    def addListener(self, propName, *args, **kwargs):
         """Convenience method, adds the specified listener to the specified
         property. See :meth:`PropertyValue.addListener`.
         """
-        self.getPropVal(propName).addListener(
-            listenerName,
-            callback,
-            overwrite=overwrite,
-            weak=weak)
+        self.getPropVal(propName).addListener(*args, **kwargs)
 
         
     def removeListener(self, propName, listenerName):
@@ -840,18 +825,13 @@ class HasProperties(object):
         self.getPropVal(propName).disableListener(name)
 
 
-    def addGlobalListener(self,
-                          listenerName,
-                          callback,
-                          overwrite=False,
-                          weak=True):
+    def addGlobalListener(self, *args, **kwargs):
         """Registers the given listener so that it will be notified of
         changes to any of the properties of this HasProperties instance.
         """
         propNames, props = self.getAllProperties()
         for propName in propNames:
-            self.getPropVal(propName).addListener(
-                listenerName, callback, overwrite=overwrite, weak=weak)
+            self.getPropVal(propName).addListener(*args, **kwargs)
     
     
     def removeGlobalListener(self, listenerName):

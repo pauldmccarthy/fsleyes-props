@@ -150,6 +150,26 @@ class WeakFunctionRef(object):
         except: return self.__findPrivateMethod()
 
 
+class Listener(object):
+    """The ``Listener`` class is used by :class:`PropertyValue` instances to
+    manage their listeners - see :meth:`PropertyValue.addListener`.
+    """
+    def __init__(self, name, function, enabled, immediate):
+        """Create a ``Listener``.
+
+        :arg name:      The listener name.
+        :arg function:  The callback function.
+        :arg enabled:   Whether the listener is enabled/disabled.
+        :arg immediate: Whether the listener is to be called immediately, or
+                        via the :attr:`PropertyValue.queue`.
+        """
+
+        self.name      = name
+        self.function  = function
+        self.enabled   = enabled
+        self.immediate = immediate
+
+
 class PropertyValue(object):
     """An object which encapsulates a value of some sort.
 
@@ -256,33 +276,36 @@ class PropertyValue(object):
         if castFunc is not None: value = castFunc(context, attributes, value)
         if equalityFunc is None: equalityFunc = lambda a, b: a == b
         
-        self._context              = weakref.ref(context)
-        self._validate             = validateFunc
-        self._name                 = name
-        self._equalityFunc         = equalityFunc
-        self._castFunc             = castFunc
-        self._preNotifyFunc        = preNotifyFunc
-        self._postNotifyFunc       = postNotifyFunc
-        self._allowInvalid         = allowInvalid
-        self._attributes           = attributes.copy()
-        self._changeListeners      = OrderedDict()
-        self._changeListenerStates = {}
-        self._attributeListeners   = OrderedDict()
+        self._context                 = weakref.ref(context)
+        self._validate                = validateFunc
+        self._name                    = name
+        self._equalityFunc            = equalityFunc
+        self._castFunc                = castFunc
+        self._allowInvalid            = allowInvalid
+        self._attributes              = attributes.copy()
+        self._changeListeners         = OrderedDict()
+        self._attributeListeners      = OrderedDict()
 
-        self.__value               = value
-        self.__valid               = False
-        self.__lastValue           = None
-        self.__lastValid           = False
-        self.__notification        = True
+        self.__value                  = value
+        self.__valid                  = False
+        self.__lastValue              = None
+        self.__lastValid              = False
+        self.__notification           = True
+
+        self._preNotifyListener  = Listener('prenotify',
+                                            preNotifyFunc,
+                                            True,
+                                            True)
+        self._postNotifyListener = Listener('postnotify',
+                                            postNotifyFunc,
+                                            True,
+                                            False)
 
         if parent is not None: self._parent = weakref.ref(parent)
         else:                  self._parent = None
 
         if not allowInvalid and validateFunc is not None:
             validateFunc(context, self._attributes, value)
-
-        self._changeListenerStates['prenotify']  = True
-        self._changeListenerStates['postnotify'] = True
 
 
     def __repr__(self):
@@ -386,7 +409,7 @@ class PropertyValue(object):
         else:     self.disableNotification()
 
         
-    def addAttributeListener(self, name, listener, weak=True):
+    def addAttributeListener(self, name, listener, weak=True, immediate=False):
         """Adds an attribute listener for this ``PropertyValue``. The
         listener callback function must accept the following arguments:
         
@@ -398,14 +421,18 @@ class PropertyValue(object):
 
           - ``name``:      The name of this ``PropertyValue`` instance.
 
-        :param name:     A unique name for the listener. If a listener with
-                         the specified name already exists, it will be
-                         overwritten.
+        :param name:      A unique name for the listener. If a listener with
+                          the specified name already exists, it will be
+                          overwritten.
         
-        :param listener: The callback function.
+        :param listener:  The callback function.
 
-        :param weak:     If ``True`` (the default), a weak reference to the
-                         callback function is used.
+        :param weak:      If ``True`` (the default), a weak reference to the
+                          callback function is used.
+
+        :param immediate: If ``False`` (the default), the listener is called
+                          immediately; otherwise, it is called via the
+                          :attr:`queue`.
         """
         log.debug('Adding attribute listener on {}.{} ({}): {}'.format(
             self._context().__class__.__name__, self._name, id(self), name))
@@ -414,7 +441,10 @@ class PropertyValue(object):
             listener = WeakFunctionRef(listener)
         
         name = self.__saltListenerName(name)
-        self._attributeListeners[name] = listener
+        self._attributeListeners[name] = Listener(name,
+                                                  listener,
+                                                  True,
+                                                  immediate)
 
         
     def removeAttributeListener(self, name):
@@ -480,23 +510,36 @@ class PropertyValue(object):
         attListeners = []
         args         = (self._context(), name, value, self._name)
         
-        for cbName, cb in list(self._attributeListeners.items()):
+        for lName, listener in list(self._attributeListeners.items()):
+
+            cb = listener.function
 
             if isinstance(cb, WeakFunctionRef):
                 cb = cb.function()
 
             if cb is None:
-                log.debug('Removing dead attribute listener {}'.format(cbName))
+                log.debug('Removing dead attribute listener {}'.format(lName))
                 
-                self.removeAttributeListener(self.__unsaltListenerName(cbName))
+                self.removeAttributeListener(self.__unsaltListenerName(lName))
                 continue
-                
-            attListeners.append((cb, self.__makeQueueCallName(cbName), args))
+
+            if listener.immediate:
+                log.debug('Calling immediate attribute '
+                          'listener {}'.format(lName))
+                cb(*args)
+            else:
+                attListeners.append(
+                    (cb, self.__makeQueueCallName(lName), args))
 
         self.queue.callAll(attListeners)
         
         
-    def addListener(self, name, callback, overwrite=False, weak=True):
+    def addListener(self,
+                    name,
+                    callback,
+                    overwrite=False,
+                    weak=True,
+                    immediate=False):
         """Adds a listener for this value.
 
         When the value changes, the listener callback function is called. The
@@ -527,6 +570,14 @@ class PropertyValue(object):
                           inner function, you will probably want to set
                           ``weak`` to ``False``, in which case a strong
                           reference will be used.
+
+        :param immediate: If ``False`` (the default), this listener will be
+                          notified through the :class:`.CallQueue` - listeners
+                          for all ``PropertyValue`` instances are queued, and
+                          notified in turn. If ``True``, If ``True``, the
+                          ``CallQueue`` will not be used, and this listener
+                          will be notified as soon as this ``PropertyValue``
+                          changes.
         """
 
         if name in ('prenotify', 'postnotify'):
@@ -544,12 +595,18 @@ class PropertyValue(object):
         if weak:
             callback = WeakFunctionRef(callback)
 
-        if   prior is None: self._changeListeners[fullName] = callback
-        elif overwrite:     self._changeListeners[fullName] = callback
-        else:               raise RuntimeError('Listener {} already '
-                                               'exists'.format(name))
-
-        self._changeListenerStates[fullName] = True
+        if (prior is not None) and (not overwrite):
+            raise RuntimeError('Listener {} already exists'.format(name))
+        
+        elif prior is not None:
+            prior.function  = callback
+            prior.immediate = immediate
+            
+        else:
+            self._changeListeners[fullName] = Listener(fullName,
+                                                       callback,
+                                                       True,
+                                                       immediate)
 
 
     def removeListener(self, name):
@@ -581,22 +638,25 @@ class PropertyValue(object):
                 srcMod,
                 srcLine))
 
-        name = self.__saltListenerName(name)
-        cb   = self._changeListeners     .pop(name, None)
-        self       ._changeListenerStates.pop(name, None)
+        name     = self.__saltListenerName(name)
+        listener = self._changeListeners.pop(name, None)
 
-        if isinstance(cb, WeakFunctionRef):
-            cb = cb.function()
+        if listener is not None:
+            
+            cb = listener.function
 
-        if cb is not None:
-            PropertyValue.queue.dequeue(self.__makeQueueCallName(name))
+            if isinstance(cb, WeakFunctionRef):
+                cb = cb.function()
+
+                if cb is not None:
+                    PropertyValue.queue.dequeue(self.__makeQueueCallName(name))
 
 
     def enableListener(self, name):
         """(Re-)Enables the listener with the specified ``name``."""
         name = self.__saltListenerName(name)
         log.debug('Enabling listener on {}: {}'.format(self._name, name))
-        self._changeListenerStates[name] = True
+        self._changeListeners[name].enabled = True
 
     
     def disableListener(self, name):
@@ -605,7 +665,7 @@ class PropertyValue(object):
         """
         name = self.__saltListenerName(name)
         log.debug('Disabling listener on {}: {}'.format(self._name, name))
-        self._changeListenerStates[name] = False
+        self._changeListeners[name].enabled = False
 
 
     def hasListener(self, name):
@@ -621,14 +681,14 @@ class PropertyValue(object):
         """Sets the function to be called on value changes, before any
         registered listeners.
         """
-        self._preNotifyFunc = preNotifyFunc
+        self._preNotifyListener.function = preNotifyFunc
 
         
     def setPostNotifyFunction(self, postNotifyFunc):
         """Sets the function to be called on value changes, after any
         registered listeners.
         """
-        self._postNotifyFunc = postNotifyFunc
+        self._postNotifyListener.function = postNotifyFunc
 
 
     def getLast(self):
@@ -645,10 +705,10 @@ class PropertyValue(object):
         """Sets the property value.
 
         The property is validated and, if the property value or its validity
-        has changed, the ``preNotifyFunc``, any registered listeners, and the
-        ``postNotifyFunc`` are called.  If ``allowInvalid`` was set to
-        ``False``, and the new value is not valid, a :exc:`ValueError` is
-        raised, and listeners are not notified.
+        has changed, any registered listeners are called through the
+        :meth:`notify` method.  If ``allowInvalid`` was set to ``False``, and
+        the new value is not valid, a :exc:`ValueError` is raised, and
+        listeners are not notified.
         """
 
         # cast the value if necessary.
@@ -709,7 +769,7 @@ class PropertyValue(object):
         # notification occurs.
         self.notify()
 
-        
+
     def notify(self):
         """Notifies registered listeners.
 
@@ -730,21 +790,23 @@ class PropertyValue(object):
         args         = (value, valid, self._context(), self._name)
 
         # call prenotify listener first
-        if self._preNotifyFunc is not None:
-            allListeners['prenotify'] = self._preNotifyFunc
+        if self._preNotifyListener.function is not None:
+            allListeners['prenotify'] = self._preNotifyListener
 
         # registered listeners second
         allListeners.update(self._changeListeners)
 
         # and postnotify last
-        if self._postNotifyFunc is not None:
-            allListeners['postnotify'] = self._postNotifyFunc
+        if self._postNotifyListener.function is not None:
+            allListeners['postnotify'] = self._postNotifyListener
 
         # filter out listeners which have been disabled
-        for cbName, cb in list(allListeners.items()):
+        for lName, listener  in list(allListeners.items()):
             
-            if not self._changeListenerStates[cbName]:
+            if not listener.enabled:
                 continue
+
+            cb = listener.function
 
             # If the listener is a WeakFunctionRef
             # instance, we retrieve the actual function
@@ -752,12 +814,16 @@ class PropertyValue(object):
                 cb = cb.function()
 
             if cb is None:
-                log.debug('Removing dead listener {}'.format(cbName))
+                log.debug('Removing dead listener {}'.format(lName))
                 
-                self.removeListener(self.__unsaltListenerName(cbName))
+                self.removeListener(self.__unsaltListenerName(lName))
                 continue
-            
-            listeners.append((cb, self.__makeQueueCallName(cbName), args))
+
+            if listener.immediate:
+                log.debug('Calling immediate listener {}'.format(lName)) 
+                cb(*args)
+            else:
+                listeners.append((cb, self.__makeQueueCallName(lName), args))
         
         self.queue.callAll(listeners)
 
