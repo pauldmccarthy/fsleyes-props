@@ -391,19 +391,46 @@ class PropertyValue(object):
         self._allowInvalid = bool(allow)
     
         
-    def enableNotification(self):
+    def enableNotification(self, bound=False):
         """Enables notification of property value and attribute listeners for
         this ``PropertyValue`` object.
+
+        :arg bound: If ``True``, notification is enabled on all other
+                    ``PropertyValue`` instances that are bound to this one
+                    (see the :mod:`.bindable` module). If ``False`` (the
+                    default), notification is only enabled on this
+                    ``PropertyValue``.
         """
         self.__notification = True
 
+        if not bound:
+            return
+
+        bpvs = bindable.buildBPVList(self, 'boundPropVals')[0]
+        for bpv in bpvs:
+            bpv.enableNotification()
+
         
-    def disableNotification(self):
+    def disableNotification(self, bound=False):
         """Disables notification of property value and attribute listeners for
         this ``PropertyValue`` object. Notification can be re-enabled via
         the :meth:`enableNotification` or :meth:`setNotificationState` methods.
+
+
+        :arg bound: If ``True``, notification is disabled on all other
+                    ``PropertyValue`` instances that are bound to this one
+                    (see the :mod:`.bindable` module). If ``False`` (the
+                    default), notification is only disabled on this
+                    ``PropertyValue``. 
         """
         self.__notification = False
+
+        if not bound:
+            return 
+
+        bpvs = bindable.buildBPVList(self, 'boundPropVals')[0]
+        for bpv in bpvs:
+            bpv.disableNotification() 
 
         
     def getNotificationState(self):
@@ -1072,19 +1099,6 @@ class PropertyValueList(PropertyValue):
             **itemAtts)
         
         return propVal
-
-
-    def enableNotification(self):
-        """Enables notification of list-level listeners. """
-        PropertyValue.enableNotification(self)
-
-        
-    def disableNotification(self):
-        """Disables notification of list-level listeners. Listeners on
-        individual ``PropertyValue`` items will still be notified
-        of item changes.
-        """
-        PropertyValue.disableNotification(self)
 
 
     def getLast(self):

@@ -744,20 +744,20 @@ class HasProperties(object):
         return self.getPropVal(propName).getLast()
 
 
-    def enableNotification(self, propName):
+    def enableNotification(self, propName, bound=False):
         """Enables notification of listeners on the given property.
 
         See the :meth:`.PropertyValue.enableNotification` method.
         """
-        self.getPropVal(propName).enableNotification()
+        self.getPropVal(propName).enableNotification(bound)
 
     
-    def disableNotification(self, propName):
+    def disableNotification(self, propName, bound=False):
         """Disables notification of listeners on the given property.
 
         See the :meth:`.PropertyValue.disableNotification` method.
         """
-        self.getPropVal(propName).disableNotification()
+        self.getPropVal(propName).disableNotification(bound)
 
         
     def enableAllNotification(self):

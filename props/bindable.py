@@ -23,14 +23,15 @@ the :class:`.HasProperties` class.
     isBound
 
 
-The :class:`.PropertyValue` class uses the following methods for
-synchronisation of attribute and values, and notification of their
-listeners:
+:class:`.PropertyValue` instances use the following methods for
+synchronisation of attribute and values, notification of their listeners, and
+access to other ``PropertyValue`` instances to which they are bound:
 
  .. autosummary::
     :nosignatures:
     syncAndNotify
     syncAndNotifyAtts
+    buildBPVList
 
 
 -------------
@@ -634,13 +635,13 @@ def _syncPropValLists(masterList, slaveList):
     return changed
 
 
-def _buildBPVList(self, key, node=None, bpvSet=None):
-    """Used by the :func:`_sync` function.
+def buildBPVList(self, key, node=None, bpvSet=None):
+    """Recursively builds a list of all PVs that are bound to this one, either
+    directly or indirectly.
 
-    Recursively builds a list of all PVs that are bound to this one, either
-    directly or indirectly.  For each PV, we also store a reference to the
-    'parent' PV, i.e. the PV to which it is directly bound, as the direct
-    bindings are needed to synchronise list PVs.
+    For each PV, we also store a reference to the 'parent' PV, i.e. the PV to
+    which it is directly bound, as the direct bindings are needed to
+    synchronise list PVs.
 
     Returns two lists - the first containing bound PVs, and the second
     containing the parent for each bound PV.
@@ -682,7 +683,7 @@ def _buildBPVList(self, key, node=None, bpvSet=None):
     bpvParents   .extend([node] * len(bpvs))
 
     for bpv in bpvs:
-        childBpvs, childBpvps = _buildBPVList(self, key, bpv, bpvSet)
+        childBpvs, childBpvps = buildBPVList(self, key, bpv, bpvSet)
 
         boundPropVals.extend(childBpvs)
         bpvParents   .extend(childBpvps)
@@ -713,7 +714,7 @@ def _sync(self, atts=False, attName=None, attValue=None):
     if atts: key = 'boundAttPropVals'
     else:    key = 'boundPropVals'
 
-    boundPropVals, bpvParents = _buildBPVList(self, key)
+    boundPropVals, bpvParents = buildBPVList(self, key)
 
     # Sync all the values that need syncing. Store
     # a ref to each PV which was synced, but not
@@ -800,37 +801,40 @@ def _callAllListeners(propVals, att, name=None, value=None):
     queued = []
     q      = properties_value.PropertyValue.queue
 
-    # Hold the queue to inhibitany callbacks which
+    # Hold the queue to inhibit any callbacks which
     # are triggered by immediate listener calls
     q.hold()
-    
-    for i, pv in enumerate(propVals):
 
-        listeners, args = pv.prepareListeners(att, name, value)
+    try:
+        for i, pv in enumerate(propVals):
 
-        for l in listeners:
+            listeners, args = pv.prepareListeners(att, name, value)
 
-            func = l.function
+            for l in listeners:
 
-            if isinstance(func, properties_value.WeakFunctionRef):
-                func = func.function()
+                func = l.function
 
-            # TODO Do I need to disable notification
-            # on parents of PV list items during the
-            # item notification, like I am doing below
-            # in the old code?
-                
-            if l.immediate:
-                func(*args)
+                if isinstance(func, properties_value.WeakFunctionRef):
+                    func = func.function()
 
-            else:
-                queued.append((func, l.makeQueueName(), args))
+                # TODO Do I need to disable notification
+                # on parents of PV list items during the
+                # item notification, like I am doing below
+                # in the old code?
 
-    # Free the queue, and append any held
-    # functions on to the end of the call
-    # list, so they are executed after all
-    # of the listeners for the original
-    # property value change
-    q.release()
+                if l.immediate:
+                    func(*args)
+
+                else:
+                    queued.append((func, l.makeQueueName(), args))
+
+    # Make sure the queue is freed
+    finally:
+        q.release()
+
+    # Append any held functions on to the
+    # end of the call list, so they are
+    # executed after all of the listeners
+    # for the original property value change
     held = q.clearHeld()
     q.callAll(queued + held)
