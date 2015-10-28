@@ -842,6 +842,13 @@ class HasProperties(object):
         self.getPropVal(propName).disableListener(name)
 
 
+    def hasListener(self, propName, name):
+        """Returns ``True`` if a listener is registered on the given property,
+        ``False`` otherwise.
+        """
+        return self.getPropVal(propName).hasListener(name)
+
+
     def addGlobalListener(self, *args, **kwargs):
         """Registers the given listener so that it will be notified of
         changes to any of the properties of this HasProperties instance.
