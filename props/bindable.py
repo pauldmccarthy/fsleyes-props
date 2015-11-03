@@ -29,6 +29,7 @@ access to other ``PropertyValue`` instances to which they are bound:
 
  .. autosummary::
     :nosignatures:
+
     syncAndNotify
     syncAndNotifyAtts
     buildBPVList
