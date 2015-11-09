@@ -50,7 +50,8 @@ sizer     = wx.BoxSizer(wx.VERTICAL)
 tagpanel1 = texttag.TextTagPanel(frame,
                                  style=(texttag.TTP_ALLOW_NEW_TAGS |
                                         texttag.TTP_ADD_NEW_TAGS   |
-                                        texttag.TTP_NO_DUPLICATES))
+                                        texttag.TTP_NO_DUPLICATES  |
+                                        texttag.TTP_KEYBOARD_NAV))
 tagpanel2 = texttag.TextTagPanel(frame,
                                  style=(texttag.TTP_ALLOW_NEW_TAGS |
                                         texttag.TTP_NO_DUPLICATES))
