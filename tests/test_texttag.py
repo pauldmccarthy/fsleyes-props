@@ -21,33 +21,31 @@ import pwidgets.texttag      as texttag
 import pwidgets.autotextctrl as autotextctrl
 
 
-options = ['signal',
+options = ['Signal',
            'sign',
-           'sausage',
+           'Sausage',
            'sasquatch',
-           'seepage',
+           'Seepage',
            'silly',
-           'sumptuous',
+           'Sumptuous',
            'noise',
-           'nose',
+           'Nose',
            'nobby',
-           'noddy',
+           'Noddy',
            'nibble',
-           'no',
+           'No',
            'not',
-           'never'
+           'Never'
            'grey matter',
-           'green',
+           'Green',
            'gooey',
-           'gabbo',
+           'Gabbo',
            'gummy',
-           'great']
+           'Great']
 
 app       = wx.App()
 frame     = wx.Frame(None)
 sizer     = wx.BoxSizer(wx.VERTICAL)
-
-atc       = autotextctrl.AutoTextCtrl(frame)
 
 tagpanel1 = texttag.TextTagPanel(frame,
                                  style=(texttag.TTP_ALLOW_NEW_TAGS |
@@ -56,18 +54,22 @@ tagpanel1 = texttag.TextTagPanel(frame,
 tagpanel2 = texttag.TextTagPanel(frame,
                                  style=(texttag.TTP_ALLOW_NEW_TAGS |
                                         texttag.TTP_NO_DUPLICATES))
-tagpanel3 = texttag.TextTagPanel(frame, style=texttag.TTP_NO_DUPLICATES)
+tagpanel3 = texttag.TextTagPanel(frame,
+                                 style=texttag.TTP_NO_DUPLICATES)
+atc       = autotextctrl.AutoTextCtrl(frame)
+tc        = wx.TextCtrl(frame)
 
 tagpanel1.SetOptions(  options)
 tagpanel2.SetOptions(  options)
 tagpanel3.SetOptions(  options)
 atc      .AutoComplete(options)
-
+tc       .AutoComplete(options)
 
 sizer.Add(tagpanel1, flag=wx.EXPAND)
 sizer.Add(tagpanel2, flag=wx.EXPAND)
 sizer.Add(tagpanel3, flag=wx.EXPAND)
 sizer.Add(atc,       flag=wx.EXPAND)
+sizer.Add(tc,        flag=wx.EXPAND)
 
 frame.SetSizer(sizer)
 frame.SetSize((600, 400))
