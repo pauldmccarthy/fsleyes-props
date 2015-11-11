@@ -41,7 +41,11 @@ options = ['Signal',
            'gooey',
            'Gabbo',
            'gummy',
-           'Great']
+           'Great',
+           'great',
+           'Great',
+           'GrEAT',
+           'GREAT']
 
 app       = wx.App()
 frame     = wx.Frame(None)
@@ -56,7 +60,8 @@ tagpanel2 = texttag.TextTagPanel(frame,
                                  style=(texttag.TTP_ALLOW_NEW_TAGS |
                                         texttag.TTP_NO_DUPLICATES))
 tagpanel3 = texttag.TextTagPanel(frame,
-                                 style=texttag.TTP_NO_DUPLICATES)
+                                 style=(texttag.TTP_NO_DUPLICATES |
+                                        texttag.TTP_CASE_SENSITIVE))
 atc       = autotextctrl.AutoTextCtrl(frame)
 tc        = wx.TextCtrl(frame)
 
