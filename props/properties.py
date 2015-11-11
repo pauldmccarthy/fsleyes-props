@@ -759,6 +759,22 @@ class HasProperties(object):
         """
         self.getPropVal(propName).disableNotification(bound)
 
+
+    def getNotificationState(self, propName):
+        """Returns the notification state of the given property.
+
+        See the :meth:`.PropertyValue.getNotificationState` method.
+        """
+        return self.getPropVal(propName).getNotificationState()
+
+    
+    def setNotificationState(self, propName, value):
+        """Sets the notification state of the given property.
+
+        See the :meth:`.PropertyValue.setNotificationState` method.
+        """ 
+        self.getPropVal(propName).setNotificationState(value)
+
         
     def enableAllNotification(self):
         """Enables notification of listeners on all properties."""
