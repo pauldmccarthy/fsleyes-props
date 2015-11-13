@@ -214,7 +214,6 @@ class SyncableHasProperties(props.HasProperties):
             self._children = []
             self._parent   = None
 
-
         # Otherwise, this instance is a 'child'
         # instance - set up a binding between
         # this instance and its parent for every
@@ -436,10 +435,26 @@ class SyncableHasProperties(props.HasProperties):
  
         
     def isSyncedToParent(self, propName):
-        """Returns true if the specified property is synced to the parent of
-        this ``SyncableHasProperties`` instance, ``False`` otherwise.
+        """Returns ``True`` if the specified property is synced to the parent
+        of this ``SyncableHasProperties`` instance, ``False`` otherwise.
         """
         return getattr(self, self._saltSyncPropertyName(propName))
+
+
+    def anySyncedToParent(self):
+        """Returns ``True`` if any properties are synced to the parent
+        of this ``SyncableHasProperties`` instance, ``False`` otherwise.
+        """
+        propNames = self.getAllProperties()[0]
+        return any([self.isSyncedToParent(p) for p in propNames])
+
+
+    def allSyncedToParent(self):
+        """Returns ``True`` if all properties are synced to the parent
+        of this ``SyncableHasProperties`` instance, ``False`` otherwise.
+        """
+        propNames = self.getAllProperties()[0]
+        return all([self.isSyncedToParent(p) for p in propNames]) 
 
     
     def canBeSyncedToParent(self, propName):

@@ -11,8 +11,13 @@
    :maxdepth: 1
               
    props
+   props.properties
    props.properties_types
+   props.properties_value
+   props.bindable
+   props.syncable
    props.build
+   props.build_parts
    props.widgets
    props.cli
    pwidgets
