@@ -424,8 +424,8 @@ class SyncableHasProperties(props.HasProperties):
             if propName not in self._nounbind:
                 syncPropName = self._saltSyncPropertyName(propName)
                 lName        = self._saltSyncListenerName(propName)
-                self.removeListener(syncPropName, lName)
                 self.unsyncFromParent(propName)
+                self.removeListener(syncPropName, lName)
 
         for c in list(parent._children):
             if c() is self:
