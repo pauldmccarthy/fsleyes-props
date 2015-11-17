@@ -119,9 +119,10 @@ import wx
 
 import widgets
 
-import build_parts       as parts
-import                      syncable
-import pwidgets.notebook as nb
+import build_parts           as parts
+import                          syncable
+import pwidgets.notebook     as nb
+import pwidgets.bitmaptoggle as bmptoggle
 
 
 log = logging.getLogger(__name__)
@@ -423,6 +424,55 @@ def _createButton(parent, viewItem, hasProps, propGui):
         
     button.Bind(wx.EVT_BUTTON, lambda e: viewItem.callback(hasProps, button))
     return button
+
+
+def _createToggle(parent, viewItem, hasProps, propGui):
+    """Creates a widget for the given :class:`.Toggle` object. If no icons
+    have been set, a ``wx.CheckBox`` is used. If one icon has been set, a
+    ``wx.ToggleButton`` is used. Otherwise,if two icons have been set, a
+    :class:`.BitmapToggleButton` is used.
+    """
+
+    widget = None
+    icon   = viewItem.icon
+
+    # If no icons are set, use a CheckBox
+    if icon is None:
+        widget = wx.CheckBox(parent)
+        event  = wx.EVT_CHECKBOX
+
+    # If one icon has been set, use a wx.ToggleButton
+    elif isinstance(icon, basestring):
+
+        # See widgets_boolean._Boolean for
+        # some comments regarding this code
+        bmp = wx.EmptyBitmap(1, 1)
+        bmp.LoadFile(icon, wx.BITMAP_TYPE_PNG)
+
+        if wx.Platform == '__WXMAC__':
+            widget = wx.ToggleButton(parent, style=wx.BU_EXACTFIT)
+        else:
+            widget = wx.ToggleButton(parent,
+                                     style=wx.BU_EXACTFIT | wx.BU_NOTEXT)
+
+        widget.SetBitmap(bmp)
+        widget.SetBitmapMargins(0, 0)
+
+        event = wx.EVT_TOGGLEBUTTON
+
+    # If two icons have been set, use a BitmapToggleButton
+    elif len(icon) == 2:
+        trueBmp  = wx.EmptyBitmap(1, 1)
+        falseBmp = wx.EmptyBitmap(1, 1)
+
+        trueBmp .LoadFile(icon[0], wx.BITMAP_TYPE_PNG)
+        falseBmp.LoadFile(icon[1], wx.BITMAP_TYPE_PNG)
+
+        widget = bmptoggle.BitmapToggleButton(parent, trueBmp, falseBmp)
+        event  = bmptoggle.EVT_BITMAP_TOGGLE_EVENT
+
+    widget.Bind(event, lambda e: viewItem.callback(hasProps, widget))
+    return widget
 
 
 def _createWidget(parent, viewItem, hasProps, propGui):

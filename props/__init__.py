@@ -228,6 +228,7 @@ The following classes are provided for you to create GUI specifications:
 
    ~props.build_parts.ViewItem
    ~props.build_parts.Button
+   ~props.build_parts.Toggle
    ~props.build_parts.Label
    ~props.build_parts.Widget
    ~props.build_parts.Group
@@ -298,6 +299,7 @@ from cli import (
 from build_parts import (
     ViewItem, 
     Button,
+    Toggle,
     Label,
     Widget, 
     Group, 

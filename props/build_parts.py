@@ -222,10 +222,12 @@ class Button(ViewItem):
         specified ``text``. The ``icon`` should be a string containing the
         name of the image file.
 
-        :arg key:
-        :arg text:
-        :arg callback:
-        :arg icon:
+        :arg key:      Passed to :meth:`ViewItem.__init__`.
+        :arg text:     Text to show on the button (if ``icons`` are not used).
+        :arg callback: Function to call when the button is clicked.
+        :arg icon:     The name of an icon image to show on the button.
+
+        All other arguments are passed through to :meth:`ViewItem.__init__`.
         """
         self.callback = callback
         self.icon     = icon
@@ -235,6 +237,36 @@ class Button(ViewItem):
     def __str__( self): return '{}({})'.format(self.__class__.__name__,
                                                self.text)
     def __repr__(self): return self.__str__()
+
+
+class Toggle(ViewItem):
+    """Represents a *toggle* widget of some sort (e.g. a check box, or a
+    toggle button) which, when clicked, calls a specified callback function.
+    """
+    def __init__(self,
+                 key=None,
+                 callback=None,
+                 icon=None,
+                 **kwargs):
+        """Create a ``Toggle``.
+
+        :arg key:      Passed to :meth:`ViewItem.__init__`.
+        :arg callback: Function to call when the toggle widget is clicked.
+                       Must accept two arguments - the :class:`.HasProperties`
+                       instance, and the toggle widget.
+        :arg icon:     The name of an image file, or a list of two image
+                       file names.
+
+        All other arguments are passed through to :meth:`ViewItem.__init__`.
+        """
+        
+        self.callback = callback
+        self.icon     = icon
+        ViewItem.__init__(self, key, **kwargs)
+
+        
+    def __str__( self): return '{}()'.format(self.__class__.__name__)
+    def __repr__(self): return self.__str__() 
     
 
 class Label(ViewItem):
