@@ -214,7 +214,9 @@ def _propBind(hasProps,
             id(guiObj),
             value)) 
 
+        propVal.disableListener(listenerName)
         propVal.set(value)
+        propVal.enableListener(listenerName)
 
     def _attUpdate(ctx, att, *a):
         val = propVal.getAttribute(att)

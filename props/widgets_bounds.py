@@ -154,19 +154,31 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     lowName    = 'BoundBind_{}_{}'.format(id(sliderPanel), id(lowProp))
     highName   = 'BoundBind_{}_{}'.format(id(sliderPanel), id(highProp))
 
+    # Called when the low PV changes
     def lowGuiUpdate(value, *a):
         if sliderPanel.GetLow() == value: return
         sliderPanel.SetLow(value)
-        
+
+    # Called when the high PV changes
     def highGuiUpdate(value, *a):
         if sliderPanel.GetHigh() == value: return
         sliderPanel.SetHigh(value)
 
-    def propUpdate(ev):
-        lowProp .set(ev.low)
-        highProp.set(ev.high)
+    # Called on a rangeslider.EVT_LOW_RANGE event
+    def lowPropUpdate(ev):
+        lowProp.disableListener(lowName)
+        lowProp.set(ev.low)
+        lowProp.enableListener(lowName)
         ev.Skip()
 
+    # Called on a rangeslider.EVT_HIGH_RANGE event
+    def highPropUpdate(ev):
+        highProp.disableListener(highName)
+        highProp.set(ev.high)
+        highProp.enableListener(highName)
+        ev.Skip()
+
+    # Called when any bounds property attributes change
     def updateSliderRange(ctx, att, *a):
 
         if att not in ('minval', 'maxval'):
@@ -178,12 +190,17 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         if minval is not None: sliderPanel.SetMin(minval)
         if maxval is not None: sliderPanel.SetMax(maxval) 
 
+    # Called on rangeslider.EVT_RANGE_LIMIT events
     def updatePropRange(ev):
-        propVal.setMin(axis, ev.min)
-        propVal.setMax(axis, ev.max)
+        lowProp .disableAttributeListener(lowName)
+        highProp.disableAttributeListener(highName)
+        propVal.setLimits(axis, ev.min, ev.max)
+        lowProp .enableAttributeListener(lowName)
+        highProp.enableAttributeListener(highName)
         ev.Skip()
 
-    sliderPanel.Bind(rangeslider.EVT_RANGE, propUpdate)
+    sliderPanel.Bind(rangeslider.EVT_LOW_RANGE,  lowPropUpdate)
+    sliderPanel.Bind(rangeslider.EVT_HIGH_RANGE, highPropUpdate)
 
     lowProp .addListener(lowName,  lowGuiUpdate,  weak=False)
     highProp.addListener(highName, highGuiUpdate, weak=False)
