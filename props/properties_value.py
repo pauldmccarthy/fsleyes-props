@@ -485,6 +485,22 @@ class PropertyValue(object):
                                                   immediate)
 
         
+    def disableAttributeListener(self, name):
+        """Disables the attribute listener with the specified ``name``. """
+        name = self.__saltListenerName(name)
+        log.debug('Disabling attribute listener on {}: {}'.format(self._name,
+                                                                  name))
+        self._attributeListeners[name].enabled = False
+
+    
+    def enableAttributeListener(self, name):
+        """Enables the attribute listener with the specified ``name``. """
+        name = self.__saltListenerName(name)
+        log.debug('Enabling attribute listener on {}: {}'.format(self._name,
+                                                                 name)) 
+        self._attributeListeners[name].enabled = True
+
+        
     def removeAttributeListener(self, name):
         """Removes the attribute listener of the given name."""
         log.debug('Removing attribute listener on {}.{}: {}'.format(
@@ -1287,10 +1303,20 @@ class PropertyValueList(PropertyValue):
                 self._context().__class__.__name__,
                 self._name,
                 id(self._context())))
+
+            # The PV items will inevitably call
+            # _listPVChanged, which will trigger
+            # list-level notification - we just
+            # performed list-level notification
+            # above, so we want this suppressed.
+            notifState = self.getNotificationState()
+            self.disableNotification()
         
             for idx in indices:
                 if changedVals[idx]:
                     propVals[idx].notify()
+
+            self.setNotificationState(notifState)
 
         
     def __delitem__(self, key):
