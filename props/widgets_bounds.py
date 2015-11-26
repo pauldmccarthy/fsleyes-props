@@ -178,6 +178,14 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         highProp.enableListener(highName)
         ev.Skip()
 
+    # Called on a rangeslider.EVT_RANGE event
+    def propUpdate(ev):
+        lowProp .disableListener(lowName)
+        highProp.disableListener(highName)
+        propVal.setRange(axis, ev.low, ev.high)
+        lowProp .enableListener(lowName) 
+        highProp.enableListener(highName) 
+
     # Called when any bounds property attributes change
     def updateSliderRange(ctx, att, *a):
 
@@ -199,6 +207,7 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         highProp.enableAttributeListener(highName)
         ev.Skip()
 
+    sliderPanel.Bind(rangeslider.EVT_RANGE,      propUpdate)
     sliderPanel.Bind(rangeslider.EVT_LOW_RANGE,  lowPropUpdate)
     sliderPanel.Bind(rangeslider.EVT_HIGH_RANGE, highPropUpdate)
 
