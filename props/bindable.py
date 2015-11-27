@@ -23,6 +23,11 @@ the :class:`.HasProperties` class.
     isBound
 
 
+These functions use the :func:`bindPropVals` function, which directly binds
+two :class:`.PropertyValue` objects together, and is available for advanced
+usage.
+
+
 :class:`.PropertyValue` instances use the following methods for
 synchronisation of attribute and values, notification of their listeners, and
 access to other ``PropertyValue`` instances to which they are bound:
@@ -293,11 +298,11 @@ def _bindProps(self,
         
         myPropVal.allowInvalid(allow)
         
-    _bindPropVals(myPropVal,
-                  otherPropVal,
-                  bindval=bindval,
-                  bindatt=bindatt,
-                  unbind=unbind)
+    bindPropVals(myPropVal,
+                 otherPropVal,
+                 bindval=bindval,
+                 bindatt=bindatt,
+                 unbind=unbind)
 
 
 def _bindListProps(self,
@@ -361,11 +366,11 @@ def _bindListProps(self,
         # Bind attributes between PV item pairs,
         # but not value - value change of items
         # in a list is handled at the list level
-        _bindPropVals(myItem,
-                      otherItem,
-                      bindval=False,
-                      bindatt=bindatt,
-                      unbind=unbind)
+        bindPropVals(myItem,
+                     otherItem,
+                     bindval=False,
+                     bindatt=bindatt,
+                     unbind=unbind)
         propValMap[myItem] = otherItem
         
         atts = otherItem.getAttributes()
@@ -410,7 +415,7 @@ def _bindListProps(self,
     atts = otherPropVal.getAttributes()
     myPropVal.setAttributes(atts)
     
-    _bindPropVals(myPropVal, otherPropVal, unbind=unbind)
+    bindPropVals(myPropVal, otherPropVal, unbind=unbind)
 
     # Manually notify list-level listeners
     #
@@ -431,11 +436,11 @@ def _bindListProps(self,
     syncAndNotify(myPropVal)
 
 
-def _bindPropVals(myPropVal,
-                  otherPropVal,
-                  bindval=True,
-                  bindatt=True,
-                  unbind=False):
+def bindPropVals(myPropVal,
+                 otherPropVal,
+                 bindval=True,
+                 bindatt=True,
+                 unbind=False):
     """Binds two :class:`.PropertyValue` instances together such that when the
     value of one changes, the other is changed.
 
@@ -547,7 +552,7 @@ def _syncPropValLists(masterList, slaveList):
 
                 # Bind the attributes of
                 # the two new PV objects
-                _bindPropVals(mpv, spv, bindval=False)
+                bindPropVals(mpv, spv, bindval=False)
 
     # one or more items have been
     # removed from the master list

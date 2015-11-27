@@ -322,8 +322,8 @@ class PropertyValue(object):
                                             True,
                                             False)
 
-        if parent is not None: self._parent = weakref.ref(parent)
-        else:                  self._parent = None
+        if parent is not None: self.__parent = weakref.ref(parent)
+        else:                  self.__parent = None
 
         if not allowInvalid and validateFunc is not None:
             validateFunc(context, self._attributes, value)
@@ -377,6 +377,15 @@ class PropertyValue(object):
         salt = 'PropertyValue_{}_'.format(self._name)
         
         return name[len(salt):]
+
+
+    def getParent(self):
+        """If this ``PropertyValue`` is an item in a :class:`PropertyValueList`,
+        this method returns a reference to the owning ``PropertyValueList``.
+        Otherwise, this method returns ``None``.
+        """
+        if self.__parent is not None: return self.__parent()
+        else:                         return None
 
     
     def allowInvalid(self, allow=None):
@@ -867,8 +876,8 @@ class PropertyValue(object):
         # tell the list that this PV has
         # changed, so that it can notify its own
         # list-level listeners of the change
-        if self._parent is not None and self._parent() is not None:
-            self._parent()._listPVChanged(self)
+        if self.__parent is not None and self.__parent() is not None:
+            self.__parent()._listPVChanged(self)
 
 
     def revalidate(self):
