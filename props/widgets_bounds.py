@@ -151,6 +151,7 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     lowProp    = propVal.getPropertyValueList()[axis * 2]
     highProp   = propVal.getPropertyValueList()[axis * 2 + 1]
 
+    boundName  = 'BoundBind_{}_{}'.format(id(sliderPanel), id(propVal))
     lowName    = 'BoundBind_{}_{}'.format(id(sliderPanel), id(lowProp))
     highName   = 'BoundBind_{}_{}'.format(id(sliderPanel), id(highProp))
 
@@ -186,7 +187,8 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         lowProp .enableListener(lowName) 
         highProp.enableListener(highName) 
 
-    # Called when any bounds property attributes change
+    # Called when any attributes of the
+    # individual bounds property values change
     def updateSliderRange(ctx, att, *a):
 
         if att not in ('minval', 'maxval'):
@@ -196,7 +198,13 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         maxval = propVal.getMax(axis)
 
         if minval is not None: sliderPanel.SetMin(minval)
-        if maxval is not None: sliderPanel.SetMax(maxval) 
+        if maxval is not None: sliderPanel.SetMax(maxval)
+
+    # Called when any attributes of the
+    # bounds property value changes
+    def updateCentering(ctx, att, val, *a):
+        if att == 'dimCentres':
+            sliderPanel.CentreAt(val[axis])
 
     # Called on rangeslider.EVT_RANGE_LIMIT events
     def updatePropRange(ev):
@@ -214,8 +222,9 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     lowProp .addListener(lowName,  lowGuiUpdate,  weak=False)
     highProp.addListener(highName, highGuiUpdate, weak=False)
 
-    lowProp .addAttributeListener(lowName,  updateSliderRange, weak=False)
-    highProp.addAttributeListener(highName, updateSliderRange, weak=False)
+    lowProp .addAttributeListener(lowName,   updateSliderRange, weak=False)
+    highProp.addAttributeListener(highName,  updateSliderRange, weak=False)
+    propVal .addAttributeListener(boundName, updateCentering,   weak=False)
 
     if editLimits:
         sliderPanel.Bind(rangeslider.EVT_RANGE_LIMIT, updatePropRange)
