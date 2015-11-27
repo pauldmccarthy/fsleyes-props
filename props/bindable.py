@@ -814,25 +814,34 @@ def _callAllListeners(propVals, att, name=None, value=None):
     try:
         for i, pv in enumerate(propVals):
 
-            listeners, args = pv.prepareListeners(att, name, value)
+            cListeners, cArgs = pv.prepareListeners(att, name, value)
 
-            for l in listeners:
+            # If a bound PV is an item in a PV list,
+            # then the listeners on the owning PV list
+            # need to be called as well. We skip
+            # the first PV in the propVals list, as it
+            # is the source of the change.
+            if (i > 0) and (not att) and (pv.getParent() is not None):
+                pListeners, pArgs = pv.getParent().prepareListeners(False)
+            else:
+                pListeners = []
+                pArgs      = None
+                
+            for listeners, args in [(cListeners, cArgs), (pListeners, pArgs)]:
 
-                func = l.function
+                for l in listeners:
+                    func = l.function
 
-                if isinstance(func, properties_value.WeakFunctionRef):
-                    func = func.function()
+                    if isinstance(func, properties_value.WeakFunctionRef):
+                        func = func.function()
 
-                # TODO Do I need to disable notification
-                # on parents of PV list items during the
-                # item notification, like I am doing below
-                # in the old code?
+                    # Call the listener function directly
+                    if l.immediate:
+                        func(*args)
 
-                if l.immediate:
-                    func(*args)
-
-                else:
-                    queued.append((func, l.makeQueueName(), args))
+                    # Or add it to the queue
+                    else:
+                        queued.append((func, l.makeQueueName(), args))
 
     # Make sure the queue is freed
     finally:

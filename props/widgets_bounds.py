@@ -234,6 +234,7 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         highProp.removeListener(         highName)
         lowProp .removeAttributeListener(lowName)
         highProp.removeAttributeListener(highName)
+        propVal .removeAttributeListener(boundName)
         ev.Skip()
         
     sliderPanel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
