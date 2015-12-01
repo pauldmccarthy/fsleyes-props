@@ -23,9 +23,15 @@ the :class:`.HasProperties` class.
     isBound
 
 
-These functions use the :func:`bindPropVals` function, which directly binds
-two :class:`.PropertyValue` objects together, and is available for advanced
-usage.
+These functions use the following functions, which work directly with
+:class:`.PropertyValue` instances, and are available for advanced usage:
+
+
+ .. autosummary::
+    :nosignatures:
+
+    bindPropVals
+    propValsAreBound
 
 
 :class:`.PropertyValue` instances use the following methods for
@@ -235,11 +241,7 @@ def isBound(self, propName, other, otherPropName=None):
     myPropVal    = myProp   .getPropVal(self)
     otherPropVal = otherProp.getPropVal(other)
 
-    myBoundPropVals    = myPropVal   .__dict__.get('boundPropVals', {})
-    otherBoundPropVals = otherPropVal.__dict__.get('boundPropVals', {})
-
-    return (otherPropVal in myBoundPropVals and
-            myPropVal    in otherBoundPropVals)
+    return propValsAreBound(myPropVal, otherPropVal)
 
 
 def syncAndNotifyAtts(self, name, value):
@@ -435,7 +437,18 @@ def _bindListProps(self,
         
     syncAndNotify(myPropVal)
 
+    
+def propValsAreBound(pv1, pv2):
+    """Returns ``True`` if the given :class:`.PropertyValue` instances are
+    bound to each other, ``False`` otherwise.
+    """
+    
+    pv1BoundPropVals = pv1.__dict__.get('boundPropVals', {})
+    pv2BoundPropVals = pv2.__dict__.get('boundPropVals', {})
 
+    return (pv2 in pv1BoundPropVals and pv1 in pv2BoundPropVals)
+
+                     
 def bindPropVals(myPropVal,
                  otherPropVal,
                  bindval=True,

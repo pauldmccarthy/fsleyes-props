@@ -522,6 +522,8 @@ def applyArguments(hasProps,
         argName = longArgs.get(propName, propName)
         argVal  = getattr(arguments, argName, None)
 
+        # An argVal of None means that no value
+        # was passed in for this property
         if argVal is None: continue
 
         argVal = xform(argVal)

@@ -266,7 +266,8 @@ from properties import (
     DisabledError)
 
 from bindable import (
-    bindPropVals)
+    bindPropVals,
+    propValsAreBound)
 
 from properties_types import (
     Object,
