@@ -1196,19 +1196,24 @@ class Bounds(List):
                  ndims=1,
                  real=True, 
                  minDistance=None,
+                 clamped=True,
                  **kwargs):
         """Create a ``Bounds`` property.
         
-        :param int ndims:         Number of dimensions. This is (currently) 
-                                  not a property constraint, hence it cannot 
-                                  be changed.
+        :arg ndims:        Number of dimensions. This is (currently) 
+                           not a property constraint, hence it cannot 
+                           be changed.
 
-        :param bool real:         If ``True``, the point values are stored as
-                                  :class:`Real` values; otherwise, they are
-                                  stored as :class:`Int` values.
+        :arg real:         If ``True`` (the default), the bound values are
+                           stored as :class:`Real` values; otherwise, they
+                           are stored as :class:`Int` values.
         
-        :param float minDistance: Minimum distance to be maintained between the
-                                  low/high values for each dimension.
+        :arg minDistance:  Minimum distance to be maintained between the
+                           low/high values for each dimension.
+
+        :arg clamped:      If ``True`` (the default), the bound values are
+                           clamped to their limits. See the :class:`Number`
+                           class.
         """
 
         default = kwargs.get('default', None)
@@ -1235,8 +1240,8 @@ class Bounds(List):
         self._real   = real
         self._ndims  = ndims
 
-        if real: listType = Real(clamped=True)
-        else:    listType = Int( clamped=True)
+        if real: listType = Real(clamped=clamped)
+        else:    listType = Int( clamped=clamped)
 
         List.__init__(self,
                       listType=listType,
