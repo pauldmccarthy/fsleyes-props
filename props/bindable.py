@@ -456,7 +456,9 @@ def bindPropVals(myPropVal,
                  bindatt=True,
                  unbind=False):
     """Binds two :class:`.PropertyValue` instances together such that when the
-    value of one changes, the other is changed.
+    value of one changes, the other is changed. Note that the values are not
+    immediately synchronised - they will become synchronised on the next change
+    to either ``PropertyValue``.
 
     See :func:`bindProps` for details on the parameters.
     """
