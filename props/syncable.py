@@ -237,10 +237,10 @@ class SyncableHasProperties(props.HasProperties):
             for pn in propNames:
 
                 if isinstance(state, dict): pState = state.get(pn, True)
+                else:                       pState = state
                 
-                elif not self.canBeSyncedToParent(pn):     pState = False
+                if   not self.canBeSyncedToParent(    pn): pState = False
                 elif not self.canBeUnsyncedFromParent(pn): pState = True
-                else:                                      pState = state
                 
                 self._initSyncProperty(pn, pState)
 
