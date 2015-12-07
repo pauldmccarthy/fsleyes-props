@@ -446,7 +446,8 @@ def propValsAreBound(pv1, pv2):
     pv1BoundPropVals = pv1.__dict__.get('boundPropVals', {})
     pv2BoundPropVals = pv2.__dict__.get('boundPropVals', {})
 
-    return (pv2 in pv1BoundPropVals and pv1 in pv2BoundPropVals)
+    return (id(pv2) in pv1BoundPropVals and
+            id(pv1) in pv2BoundPropVals)
 
                      
 def bindPropVals(myPropVal,
