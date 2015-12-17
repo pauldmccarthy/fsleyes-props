@@ -207,7 +207,7 @@ class PropertyBase(object):
 
 
     def isEnabled(self, instance):
-        """Returns ``True``if this property is enabled for the given
+        """Returns ``True`` if this property is enabled for the given
         :class:`HasProperties` instance, ``False`` otherwise.
 
         See the :meth:`disable` method for more details.
@@ -804,7 +804,7 @@ class HasProperties(object):
         """Returns the enabled state of the given property - see
         :meth:`PropertyBase.isEnabled`.
         """
-        return self.getProp(propName).isEnabled()
+        return self.getProp(propName).isEnabled(self)
 
 
     def notify(self, propName):
