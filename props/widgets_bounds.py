@@ -151,17 +151,21 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     lowProp    = propVal.getPropertyValueList()[axis * 2]
     highProp   = propVal.getPropertyValueList()[axis * 2 + 1]
 
-    boundName  = 'BoundBind_{}_{}'.format(id(sliderPanel), id(propVal))
-    lowName    = 'BoundBind_{}_{}'.format(id(sliderPanel), id(lowProp))
-    highName   = 'BoundBind_{}_{}'.format(id(sliderPanel), id(highProp))
+    boundName   = 'BoundBind_{}_{}'.format(id(sliderPanel), id(propVal))
+    lowName     = 'BoundBind_{}_{}'.format(id(sliderPanel), id(lowProp))
+    highName    = 'BoundBind_{}_{}'.format(id(sliderPanel), id(highProp))
+    lowAttName  = 'BoundBindAtt_{}_{}'.format(id(sliderPanel), id(lowProp))
+    highAttName = 'BoundBindAtt_{}_{}'.format(id(sliderPanel), id(highProp)) 
 
     # Called when the low PV changes
-    def lowGuiUpdate(value, *a):
+    def lowGuiUpdate(*a):
+        value = lowProp.get()
         if sliderPanel.GetLow() == value: return
         sliderPanel.SetLow(value)
 
     # Called when the high PV changes
-    def highGuiUpdate(value, *a):
+    def highGuiUpdate(*a):
+        value = highProp.get()
         if sliderPanel.GetHigh() == value: return
         sliderPanel.SetHigh(value)
 
@@ -193,7 +197,7 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
 
         if att not in ('minval', 'maxval'):
             return
-        
+
         minval = propVal.getMin(axis)
         maxval = propVal.getMax(axis)
 
@@ -222,19 +226,22 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     lowProp .addListener(lowName,  lowGuiUpdate,  weak=False)
     highProp.addListener(highName, highGuiUpdate, weak=False)
 
-    lowProp .addAttributeListener(lowName,   updateSliderRange, weak=False)
-    highProp.addAttributeListener(highName,  updateSliderRange, weak=False)
-    propVal .addAttributeListener(boundName, updateCentering,   weak=False)
+    lowProp .addAttributeListener(lowAttName,  updateSliderRange, weak=False)
+    highProp.addAttributeListener(highAttName, updateSliderRange, weak=False)
+    propVal .addAttributeListener(boundName,   updateCentering,   weak=False)
 
     if editLimits:
         sliderPanel.Bind(rangeslider.EVT_RANGE_LIMIT, updatePropRange)
 
     def onDestroy(ev):
+        ev.Skip() 
+        if ev.GetEventObject() is not sliderPanel:
+            return
+
         lowProp .removeListener(         lowName)
         highProp.removeListener(         highName)
-        lowProp .removeAttributeListener(lowName)
-        highProp.removeAttributeListener(highName)
+        lowProp .removeAttributeListener(lowAttName)
+        highProp.removeAttributeListener(highAttName)
         propVal .removeAttributeListener(boundName)
-        ev.Skip()
         
     sliderPanel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
