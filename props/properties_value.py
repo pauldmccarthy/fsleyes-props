@@ -515,8 +515,18 @@ class PropertyValue(object):
         log.debug('Removing attribute listener on {}.{}: {}'.format(
             self._context().__class__.__name__, self._name, name))
         
-        name = self.__saltListenerName(name)
-        self._attributeListeners.pop(name, None)
+        name     = self.__saltListenerName(name)
+        listener = self._attributeListeners.pop(name, None)
+
+        if listener is not None:
+            
+            cb = listener.function
+
+            if isinstance(cb, WeakFunctionRef):
+                cb = cb.function()
+
+            if cb is not None:
+                PropertyValue.queue.dequeue(listener.makeQueueName())
 
 
     def getAttributes(self):

@@ -188,6 +188,7 @@ def _Choice(parent,
     widgetSet(propVal.get())
 
     def onDestroy(ev):
+        log.debug('Removing attribute listener {}'.format(listenerName))
         propVal.removeAttributeListener(listenerName)
 
     widgets._propBind(hasProps,
@@ -195,8 +196,8 @@ def _Choice(parent,
                       propVal,
                       widget,
                       event,
-                      widgetGet,
-                      widgetSet,
+                      widgetGet=widgetGet,
+                      widgetSet=widgetSet,
                       widgetDestroy=onDestroy)
     
     return widget
