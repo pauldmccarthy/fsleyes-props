@@ -246,7 +246,7 @@ def _propBind(hasProps,
                       hasProps.__class__.__name__,
                       propVal._name))
         propVal.removeListener(         listenerName)
-        propVal.removeAttributeListener(listenerName)
+        propVal.removeAttributeListener(listenerAttName)
 
         if widgetDestroy is not None:
             widgetDestroy(ev)
@@ -261,10 +261,11 @@ def _propUnbind(hasProps, propObj, propVal, guiObj, evType):
     """
     if not isinstance(evType, Iterable): evType = [evType]
 
-    listenerName = 'WidgetBind_{}'.format(id(guiObj))
+    listenerName    = 'WidgetBind_{}'   .format(id(guiObj))
+    listenerAttName = 'WidgetBindAtt_{}'.format(id(guiObj)) 
 
     propVal.removeListener(         listenerName)
-    propVal.removeAttributeListener(listenerName)
+    propVal.removeAttributeListener(listenerAttName)
 
     for ev in evType: guiObj.Unbind(ev)
 
