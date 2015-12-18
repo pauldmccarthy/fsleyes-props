@@ -157,7 +157,8 @@ def _propBind(hasProps,
 
     if not isinstance(evType, Iterable): evType = [evType]
 
-    listenerName = 'WidgetBind_{}'.format(id(guiObj))
+    listenerName    = 'WidgetBind_{}'   .format(id(guiObj))
+    listenerAttName = 'WidgetBindAtt_{}'.format(id(guiObj))
 
     if widgetGet is None:
         widgetGet = guiObj.GetValue
@@ -228,8 +229,8 @@ def _propBind(hasProps,
 
     # set up the callback functions
     for ev in evType: guiObj.Bind(ev, _propUpdate)
-    propVal.addListener(         listenerName, _guiUpdate, weak=False)
-    propVal.addAttributeListener(listenerName, _attUpdate, weak=False)
+    propVal.addListener(         listenerName,    _guiUpdate, weak=False)
+    propVal.addAttributeListener(listenerAttName, _attUpdate, weak=False)
 
     def onDestroy(ev):
         ev.Skip()
