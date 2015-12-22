@@ -166,7 +166,7 @@ class Listener(object):
                         via the :attr:`PropertyValue.queue`.
         """
 
-        self.propVal   = propVal
+        self.propVal   = weakref.ref(propVal)
         self.name      = name
         self.function  = function
         self.enabled   = enabled
@@ -178,8 +178,8 @@ class Listener(object):
         is used as its name when passed to the :class:`.CallQueue`.
         """
 
-        ctxName = self.propVal._context().__class__.__name__
-        pvName  = self.propVal._name
+        ctxName = self.propVal()._context().__class__.__name__
+        pvName  = self.propVal()._name
 
         return '{} ({}.{})'.format(self.name, ctxName, pvName)
  
