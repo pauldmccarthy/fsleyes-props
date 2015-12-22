@@ -624,19 +624,23 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
     # Initialise the combobox options
     cmapsChanged()
 
+    # Make sure the combobox options are updated
+    # when the property options change
+    lName = 'ColourMap_ComboBox_{}'.format(id(cbox))
+    propVal.addAttributeListener(lName, cmapsChanged, weak=False)
+
+    def onDestroy(ev):
+        propVal.removeAttributeListener(lName)
+        
     # Bind the combobox to the property
     _propBind(hasProps,
               propObj,
               propVal,
               cbox,
-              wx.EVT_COMBOBOX,
-              widgetGet,
-              widgetSet)
-
-    # Make sure the combobox options are updated
-    # when the property options change
-    propVal.addAttributeListener(
-        'ColourMap_ComboBox_{}'.format(id(cbox)), cmapsChanged, weak=False)
+              evType=wx.EVT_COMBOBOX,
+              widgetGet=widgetGet,
+              widgetSet=widgetSet,
+              widgetDestroy=onDestroy)
 
     # Set the initial combobox selection
     currentVal = propVal.get()
