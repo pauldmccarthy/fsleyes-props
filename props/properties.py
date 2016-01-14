@@ -23,6 +23,7 @@ import weakref
 import logging
 
 import bindable
+import serialise
 
 
 log = logging.getLogger(__name__)
@@ -261,7 +262,7 @@ class PropertyBase(object):
         if value == oldVal: return
 
         log.debug('Changing {} constraint on {}: {} = {}'.format(
-            self.getLabel(instance),
+            ''        if instance is None else self.getLabel(instance),
             'default' if instance is None else 'instance',
             constraint,
             value))
@@ -742,6 +743,22 @@ class HasProperties(object):
         See the :meth:`.PropertyValue.getLast` method.
         """
         return self.getPropVal(propName).getLast()
+
+
+    def serialise(self, propName):
+        """Returns a string containing the value of the named property,
+        serialsied via the :mod:`.serialise` module.
+        """
+        return serialise.serialise(self, propName)
+
+    
+    def deserialise(self, propName, value):
+        """Deserialises the given value (assumed to have been serialised
+        via the :mod:`.serialise` module), and sets the named property
+        to the deserialised value.
+        """
+        value = serialise.deserialise(self, propName, value)
+        setattr(self, propName, value)
 
 
     def enableNotification(self, propName, bound=False):

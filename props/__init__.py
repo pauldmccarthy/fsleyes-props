@@ -221,6 +221,17 @@ generation and parsing:
    ~props.cli.generateArguments
 
 
+The following functions are provided for serialisation/deserialisation of
+property values to/from strings (equivalent methods are also available on
+:class:`.HasProperties` instances):
+
+.. autosummary::
+   :nosignatures:
+
+   ~props.seriallise.serialise
+   ~props.seriallise.deserialise
+
+
 The following classes are provided for you to create GUI specifications:
 
 .. autosummary::
@@ -292,6 +303,10 @@ from cli import (
     applyArguments,
     addParserArguments,
     generateArguments)
+
+from serialise import (
+    serialise,
+    deserialise)
 
 from build_parts import (
     ViewItem, 
