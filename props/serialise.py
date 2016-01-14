@@ -45,16 +45,21 @@ def serialise(hasProps, propName):
     """
 
     propObj  = hasProps.getProp(propName)
-    propVal  = getattr(hasProps, propName)
+    val      = getattr(hasProps, propName)
     propType = type(propObj).__name__
     sfunc    = getattr(sys.modules[__name__],
                        '_serialise_{}'.format(propType),
                        None)
 
     if sfunc is None:
-        sfunc = str
+        sfunc = lambda s, *a: str(s)
 
-    return sfunc(propVal)
+    sval = sfunc(val, hasProps, propObj)
+
+    log.debug('Serialised {}.{}: {} -> "{}"'.format(
+        type(hasProps).__name__, propName, val, sval))
+
+    return sval
 
 
 def deserialise(hasProps, propName, string):
@@ -70,16 +75,30 @@ def deserialise(hasProps, propName, string):
                        None)
 
     if dfunc is None:
-        dfunc = lambda s: s
+        dfunc = lambda s, *a: s
 
-    return dfunc(string) 
+    dval = dfunc(string, hasProps, propObj)
+
+    log.debug('Deserialised {}.{}: "{}" -> {}'.format(
+        type(hasProps).__name__, propName, string, dval)) 
+
+    return dval
 
 
-def _serialise_Boolean(value):
+# The type specific conversions are performed by the
+# functions below. They must accept the following
+# arguments:
+# 
+#   - The value to be serialised/deserialised
+#   - The HasProperties instance
+#   - The PropertyBase instance
+
+
+def _serialise_Boolean(value, *a):
     return str(value)
 
 
-def _deserialise_Boolean(value):
+def _deserialise_Boolean(value, *a):
         
     # Special case - a string containig 'false'
     # (case insensitive) evaluates to False.
@@ -90,10 +109,31 @@ def _deserialise_Boolean(value):
 
     # For anything else, we
     # rely on default conversion.
-    return bool(value) 
+    return bool(value)
 
 
-def _serialise_Colour(value):
+def _serialise_Choice(value, *a):
+    return str(value)
+
+
+def _deserialise_Choice(value, hasProps, propObj):
+    
+    choices = propObj.getChoices(hasProps)
+
+    # This is a bit hacky - Choice properties can store
+    # any type, so we can't figure out prcecisely how
+    # to serialise/deserialise those types. So we check
+    # to see if all the choices are numeric and, if not,
+    # fall back to using str for deserialisation.
+    if   all([isinstance(c,  float) for c in choices]): cType = float
+    elif any([isinstance(c,  float) for c in choices]): cType = float
+    elif all([isinstance(c,  int)   for c in choices]): cType = int
+    else:                                               cType = str
+
+    return cType(value)
+
+
+def _serialise_Colour(value, *a):
 
     # Colour values should be in the range [0, 1]
     r, g, b, a = [int(v * 255) for v in value]
@@ -102,7 +142,7 @@ def _serialise_Colour(value):
     return hexstr
 
 
-def _deserialise_Colour(value):
+def _deserialise_Colour(value, *a):
 
     r = value[1:3]
     g = value[3:5]
@@ -115,30 +155,30 @@ def _deserialise_Colour(value):
     return [r, g, b, a]
 
 
-def _serialise_ColourMap(value):
+def _serialise_ColourMap(value, *a):
     return value.name
 
 
-def _deserialise_ColourMap(value):
+def _deserialise_ColourMap(value, *a):
     import matplotlib.cm as mplcm
     return mplcm.get_cmap(value)
 
 
-def _serialise_Bounds(value):
+def _serialise_Bounds(value, *a):
     value = map(str, value)
     return DELIMITER.join(value)
 
 
-def _deserialise_Bounds(value):
+def _deserialise_Bounds(value, *a):
     value = value.split(DELIMITER)
     return map(float, value)
 
 
-def _serialise_Point(value):
+def _serialise_Point(value, *a):
     value = map(str, value)
     return DELIMITER.join(value) 
 
 
-def _deserialise_Point(value):
+def _deserialise_Point(value, *a):
     value = map(str, value)
-    return DELIMITER.join(value)      
+    return DELIMITER.join(value)
