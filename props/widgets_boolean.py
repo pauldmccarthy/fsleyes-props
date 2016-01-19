@@ -23,20 +23,20 @@ def _Boolean(parent,
              propObj,
              propVal,
              icon=None,
-             toggle=False,
+             toggle=True,
              style=None,
              **kwargs):
     """Creates and returns a ``wx.CheckBox``, allowing the user to set the
     given :class:`.Boolean` property value.
 
     If the ``icon`` argument is provided, it should be a string containing the
-    name of an image file, or a list of two image file names.  In the former
-    case, a ``wx.ToggleButton`` is used instead of a ``CheckBox``.
+    name of an image file, or a list of two image file names.  In this case,
+    case, a `:class:`.BitmapToggleButton` is used instead of a ``CheckBox``.
 
-    If two icon images are provided, and the ``toggle`` argument is ``True``,
-    a :class:`.BitmapToggleButton` is used. If ``toggle=False``, a
-    :class:`.BitmapRadioBox` is used instead.  In the latter case, the
-    ``style`` argument is passed through to the
+    If two icon images are provided, and the ``toggle`` argument is ``True``
+    (the default), a :class:`.BitmapToggleButton` is used. If
+    ``toggle=False``, a :class:`.BitmapRadioBox` is used instead.  In the
+    latter case, the ``style`` argument is passed through to the
     :meth:`.BitmapRadioBox.__init__` method.
 
     See the :func:`.widgets._String` documentation for details on the other
@@ -50,40 +50,38 @@ def _Boolean(parent,
         widget = wx.CheckBox(parent)
         event  = wx.EVT_CHECKBOX
         
-    elif isinstance(icon, basestring):
-
-        # Load the bitmap using this two-stage
-        # approach, because under OSX, any other
-        # way will not load the retina '@2x'
-        # icon version (if it is present).
-        bmp = wx.EmptyBitmap(1, 1)
-        bmp.LoadFile(icon, wx.BITMAP_TYPE_PNG)
-
-        # Gaargh. Under OSX the BU_NOTEXT style
-        # causes a segmentation fault - wtf??
-        # I have to live with the button bitmap
-        # being slightly off centre (a gap is
-        # left to display the empty label)
-        if wx.Platform == '__WXMAC__':
-            widget = wx.ToggleButton(parent, style=wx.BU_EXACTFIT)
-        else:
-            widget = wx.ToggleButton(parent,
-                                     style=wx.BU_EXACTFIT | wx.BU_NOTEXT)
-        event  = wx.EVT_TOGGLEBUTTON
-        
-        widget.SetBitmap(bmp)
-        widget.SetBitmapMargins(0, 0)
-
     else:
-        trueBmp  = wx.EmptyBitmap(1, 1)
-        falseBmp = wx.EmptyBitmap(1, 1)
 
-        trueBmp .LoadFile(icon[0], wx.BITMAP_TYPE_PNG)
-        falseBmp.LoadFile(icon[1], wx.BITMAP_TYPE_PNG)
+
+        if isinstance(icon, basestring):
+            icon = [icon]
+
+        for i in range(len(icon)):
+
+            # Load the bitmap using this two-stage
+            # approach, because under OSX, any other
+            # way will not load the retina '@2x'
+            # icon version (if it is present).
+            bmp  = wx.EmptyBitmap(1, 1)
+            bmp .LoadFile(icon[i], wx.BITMAP_TYPE_PNG)
+            
+            icon[i] = bmp
+
+        if len(icon) == 1:
+            icon = icon + [None]
+
+        trueBmp  = icon[0]
+        falseBmp = icon[1]
 
         if toggle:
-            widget = bmptoggle.BitmapToggleButton(parent, trueBmp, falseBmp)
-            event  = bmptoggle.EVT_BITMAP_TOGGLE_EVENT
+            style  = wx.BU_EXACTFIT | wx.ALIGN_CENTRE | wx.BU_NOTEXT
+            widget = bmptoggle.BitmapToggleButton(
+                parent,
+                trueBmp=trueBmp,
+                falseBmp=falseBmp,
+                style=style)
+            event  = bmptoggle.EVT_BITMAP_TOGGLE
+            
         else:
             widget = bmpradio.BitmapRadioBox(parent, style)
             event  = bmpradio.EVT_BITMAP_RADIO_EVENT

@@ -58,7 +58,11 @@ def _Choice(parent,
     :arg icons:   If provided, a :class:`.BitmapRadioBox` is used instead of a
                   ``wx.Choice`` widget. The ``icons`` should be a dictionary
                   of ``{ choice : imageFile}`` mappings, containing an icon
-                  files to be used for each choice.
+                  files to be used for each choice. The ``icons`` dictionary
+                  may alternately contain ``{ choice : (selectedImageFile,
+                  unselectedImageFile) }`` mappings, which specifies separate
+                  icons to be used when the corresponding choice is selected
+                  or not selected.
 
     :arg style:   Passed through to the :meth:`.BitmapRadioBox.__init__` 
                   method. Not used if no ``icons`` were provided.
@@ -158,21 +162,37 @@ def _Choice(parent,
             widget.Clear()
             
             # If using a BitmapRadio widget, we can
-            # show all choices, but disable  the
+            # show all choices, but disable the
             # buttons for disabled choices
             for i, choice in enumerate(choices[0]):
 
+                choiceIcons = icons[choice]
+
+                if not isinstance(choiceIcons, (tuple, list)):
+                    choiceIcons = [choiceIcons]
+                else:
+                    choiceIcons = list(choiceIcons)
+
                 # Load the image file for each choice
                 # if they have not already been loaded
-                if isinstance(icons[choice], basestring):
-                    bmp = wx.EmptyBitmap(1, 1)
-                    bmp.LoadFile(icons[choice], type=wx.BITMAP_TYPE_PNG)
+                for i, ci in enumerate(choiceIcons):
+                    if isinstance(ci, basestring):
+                        bmp  = wx.EmptyBitmap(1, 1)
+                        bmp.LoadFile(ci, type=wx.BITMAP_TYPE_PNG)
+                        choiceIcons[i] = bmp
 
-                    # Replace the icon file
-                    # name with the bitmap
-                    icons[choice] = bmp
+                # Only one bitmap specified - add
+                # a placeholder for the unselected
+                # bitmap
+                if len(choiceIcons) == 1:
+                    choiceIcons = choiceIcons + [None]
 
-                widget.AddChoice(icons[choice])
+                # Replace the mapping in the
+                # icon dict with the bitmaps
+                icons[choice]    = choiceIcons
+                selBmp, deselBmp = choiceIcons
+
+                widget.AddChoice(selBmp, deselBmp)
                 if not propObj.choiceEnabled(choice, hasProps):
                     widget.Disable(i)
 
