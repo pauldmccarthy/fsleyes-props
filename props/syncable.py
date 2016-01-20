@@ -153,23 +153,30 @@ class SyncableHasProperties(props.HasProperties):
         parent must be an instance of the same class to which this instance's
         properties should be bound.
         
-        :arg parent:   Another ``SyncableHasProperties`` instance, which has 
-                       the same type as this instance.
+        :arg parent:    Another ``SyncableHasProperties`` instance, which has 
+                        the same type as this instance.
         
-        :arg nobind:   A sequence of property names which should not be bound
-                       with the parent.
+        :arg nobind:    A sequence of property names which should not be bound
+                        with the parent.
         
-        :arg nounbind: A sequence of property names which cannot be unbound
-                       from the parent.
+        :arg nounbind:  A sequence of property names which cannot be unbound
+                        from the parent.
 
-        :arg state:    Initial synchronised state. Can be either ``True`` or
-                       ``False``, in which case all properties will initially
-                       be either synced or unsynced. Or can be a dictionary
-                       of ``{propName : boolean}`` mappings, defining the sync
-                       state for each property.
+        :arg state:     Initial synchronised state. Can be either ``True`` or
+                        ``False``, in which case all properties will initially
+                        be either synced or unsynced. Or can be a dictionary
+                        of ``{propName : boolean}`` mappings, defining the sync
+                        state for each property.
 
-        :arg kwargs:   Other arguments are passed to the
-                       :meth:`.HasProperties.__init__` method.
+        :arg direction: Initial binding direction. Not applicable if this
+                        instance does not have a parent. If ``True``, when a
+                        property is bound to the parent, this instance will
+                        inherit the parent's value. Otherwise, when a property
+                        is bound, the parent will inherit this instance's
+                        value. 
+
+        :arg kwargs:    Other arguments are passed to the
+                        :meth:`.HasProperties.__init__` method.
         """
 
         parent   = kwargs.pop('parent',   None)
@@ -221,6 +228,21 @@ class SyncableHasProperties(props.HasProperties):
         else:
 
             self._parent = weakref.ref(parent)
+            
+            # This dictionary contains
+            #
+            # { propName : boolean }
+            #
+            # mappings, indicating the binding
+            # direction that should be used
+            # when a property is synchronised
+            # to the parent. A value of True
+            # implies a parent -> child  binding
+            # direction (i.e. the child will
+            # inherit the value of the parent),
+            # and a value of False implies a
+            # child -> parent binding direction.
+            self._bindDirections = {}
 
             if not isinstance(parent, self.__class__):
                 raise TypeError('parent is of a different type '
@@ -235,6 +257,8 @@ class SyncableHasProperties(props.HasProperties):
                 self.__class__.__name__, id(self), id(parent)))
 
             for pn in propNames:
+
+                self._bindDirections[pn] = True
 
                 if isinstance(state, dict): pState = state.get(pn, True)
                 else:                       pState = state
@@ -290,6 +314,7 @@ class SyncableHasProperties(props.HasProperties):
         bindPropName  = self._saltSyncPropertyName(propName)
         bindPropObj   = self.getProp(bindPropName)
         bindPropVal   = bindPropObj.getPropVal(self)
+        direction     = self._bindDirections[propName]
 
         if initState and not self.canBeSyncedToParent(propName):
             raise ValueError('Invalid initial state for '
@@ -310,7 +335,9 @@ class SyncableHasProperties(props.HasProperties):
             bindPropVal.addListener(lName, self._syncPropChanged)
 
         if initState:
-            self.bindProps(propName, self._parent()) 
+            if direction: slave, master = self, self._parent()
+            else:         slave, master = self._parent(), self
+            slave.bindProps(propName, master) 
 
         
     def _syncPropChanged(self, value, valid, ctx, bindPropName):
@@ -322,6 +349,7 @@ class SyncableHasProperties(props.HasProperties):
 
         propName    = self._unsaltSyncPropertyName(bindPropName)
         bindPropVal = getattr(self, bindPropName)
+        direction   = self._bindDirections[propName]
 
         if bindPropVal and (propName in self._nobind):
             raise RuntimeError('{} cannot be bound to '
@@ -333,8 +361,34 @@ class SyncableHasProperties(props.HasProperties):
 
         log.debug('Sync property changed for {} - '
                   'changing binding state'.format(propName))
+
+        if direction: slave, master = self, self._parent()
+        else:         slave, master = self._parent(), self
         
-        self.bindProps(propName, self._parent(), unbind=(not bindPropVal)) 
+        slave.bindProps(propName, master, unbind=(not bindPropVal))
+
+
+    def getBindingDirection(self, propName):
+        """Returns the current binding direction for the given property. See
+        the :meth:`setBindingDirection` method.
+        """
+        return self._bindDirections[propName]
+
+    
+    def setBindingDirection(self, direction, propName=None):
+        """Set the current binding direction for the named property. If the
+        direction is ``True``, when this property is bound, this instance
+        will inherit the parent's value. Otherwise, when this property
+        is bound, the parent will inherit the value from this instance.
+
+        If a property is not specified, the binding direction of all
+        properties will be changed.
+        """
+        if propName is None: propNames = self._bindDirections.keys()
+        else:                propNames = [propName]
+
+        for pn in propNames:
+            self._bindDirections[pn] = direction
 
         
     def syncToParent(self, propName):
