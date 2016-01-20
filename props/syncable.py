@@ -179,10 +179,11 @@ class SyncableHasProperties(props.HasProperties):
                         :meth:`.HasProperties.__init__` method.
         """
 
-        parent   = kwargs.pop('parent',   None)
-        nobind   = kwargs.pop('nobind',   [])
-        nounbind = kwargs.pop('nounbind', [])
-        state    = kwargs.pop('state',    True)
+        parent    = kwargs.pop('parent',    None)
+        nobind    = kwargs.pop('nobind',    [])
+        nounbind  = kwargs.pop('nounbind',  [])
+        state     = kwargs.pop('state',     True)
+        direction = kwargs.pop('direction', True)
         
         props.HasProperties.__init__(self, **kwargs)
         
@@ -258,7 +259,7 @@ class SyncableHasProperties(props.HasProperties):
 
             for pn in propNames:
 
-                self._bindDirections[pn] = True
+                self._bindDirections[pn] = direction
 
                 if isinstance(state, dict): pState = state.get(pn, True)
                 else:                       pState = state
