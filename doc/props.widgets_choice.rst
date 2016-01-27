@@ -1,3 +1,5 @@
+:orphan:
+   
 props.widgets_choice module
 ===========================
 

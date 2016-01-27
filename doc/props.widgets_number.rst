@@ -1,3 +1,5 @@
+:orphan:
+   
 props.widgets_number module
 ===========================
 

@@ -1,9 +1,9 @@
 :orphan:
    
-props.callqueue module
+props.serialise module
 ======================
 
-.. automodule:: props.callqueue
+.. automodule:: props.serialise
     :members:
     :undoc-members:
     :show-inheritance:

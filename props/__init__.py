@@ -228,8 +228,8 @@ property values to/from strings (equivalent methods are also available on
 .. autosummary::
    :nosignatures:
 
-   ~props.seriallise.serialise
-   ~props.seriallise.deserialise
+   ~props.serialise.serialise
+   ~props.serialise.deserialise
 
 
 The following classes are provided for you to create GUI specifications:

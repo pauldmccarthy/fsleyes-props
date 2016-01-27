@@ -56,8 +56,8 @@ root directory:
 ```sh
 sphinx-apidoc -o doc -f -P -e -T . setup.py
 cd doc
-make clean; PYTHONPATH=.. make html
+rm -r html; PYTHONPATH=.. sphinx-build . html
 ```
 
 The generated documentation can then be viewed by opening
-``doc/_build/index.html`` in a web browser.
+``doc/html/index.html`` in a web browser.
