@@ -7,6 +7,13 @@ to implement an event programming framework. It also includes the ability for
 automatic CLI generation and, optionally, automatic GUI generation (if 
 [wxPython](http://www.wxpython.org) is present).
 
+
+Developer documentation is available at:
+
+
+http://fsl.fmrib.ox.ac.uk/~paulmc/props/index.html
+
+
 Example usage:
 ```python
 >>> import props
