@@ -11,7 +11,7 @@ automatic CLI generation and, optionally, automatic GUI generation (if
 Developer documentation is available at:
 
 
-http://fsl.fmrib.ox.ac.uk/~paulmc/props/index.html
+http://users.fmrib.ox.ac.uk/~paulmc/props/index.html
 
 
 Example usage:
