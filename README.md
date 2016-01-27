@@ -8,10 +8,32 @@ automatic CLI generation and, optionally, automatic GUI generation (if
 [wxPython](http://www.wxpython.org) is present).
 
 
-Developer documentation is available at http://users.fmrib.ox.ac.uk/~paulmc/props/index.html
+Documentation
+-------------
 
 
-Example usage:
+Developer documentation is available at
+http://users.fmrib.ox.ac.uk/~paulmc/props/index.html
+
+
+``props`` is documented using [sphinx](http://http://sphinx-doc.org/). The
+documentation can be built by running the following command from the
+``props/doc`` directory:
+
+
+```sh
+rm -r html; PYTHONPATH=.. sphinx-build . html
+```
+
+
+The generated documentation can then be viewed by opening
+``doc/html/index.html`` in a web browser.
+
+
+Example usage
+-------------
+
+
 ```python
 >>> import props
 
@@ -52,14 +74,3 @@ Example usage:
 # Remove a previously added listener
 >>> myPropObj.removeListener('myListener')
 ```
-
-``props`` is documented using [sphinx](http://http://sphinx-doc.org/). The
-documentation can be built by running the following command from the
-``props/doc`` directory:
-
-```sh
-rm -r html; PYTHONPATH=.. sphinx-build . html
-```
-
-The generated documentation can then be viewed by opening
-``doc/html/index.html`` in a web browser.
