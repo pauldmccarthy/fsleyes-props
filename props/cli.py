@@ -706,6 +706,11 @@ def generateArguments(hasProps,
         if useShortArgs: argKey =  '-{}'.format(shortArgs[propName])
         else:            argKey = '--{}'.format(longArgs[ propName])
 
+        # TODO I should be using the (new)
+        #      serialise module for this.
+        #      This would incorporate the
+        #      TODO below.
+
         # TODO This logic could somehow be stored
         #      as default transform functions for 
         #      the respective types

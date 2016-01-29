@@ -539,9 +539,17 @@ def _makeColourMapBitmap(cmap):
     return bitmap
 
 
-def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
+def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
     """Creates and returns a combobox, allowing the user to change the value
     of the given :class:`.ColourMap` property value.
+
+    :arg labels: A dictionary containing ``{name : label}`` mappings,
+                 defining a display name/label for each colour map. If
+                 not provided, the colour map ``name`` attribute is used
+                 as the display name.
+
+                 Can alternately be a function which accepts a colour map
+                 identifier name, and returns its display name.
 
     See also the :func:`_makeColourMapBitmap` function.
     """
@@ -598,7 +606,17 @@ def _ColourMap(parent, hasProps, propObj, propVal, **kwargs):
         # map, and add it to the combobox
         for cmap in cmapObjs[0]:
 
-            name = cmap.name
+            # Labels can either be None
+            if labels is None:
+                name = cmap.name
+
+            # Or a function
+            elif hasattr(labels, '__call__'):
+                name = labels(cmap.name)
+
+            # Or a dictionary
+            else:
+                name = labels.get(cmap.name, cmap.name)
             
             bitmap = _makeColourMapBitmap(cmap)
             cbox.Append(name, bitmap)
