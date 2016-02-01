@@ -129,7 +129,7 @@ log = logging.getLogger(__name__)
 class Bidict(object):
     """A bare-bones bi-directional dictionary, used for binding
     :class:`.PropertyValueList` instances - see the :func:`_bindListProps` and
-    :func:`_boundsListChanged` functions.
+    :func:`_syncPropValLists` functions.
     """
 
     def __init__(self):
@@ -321,8 +321,26 @@ def _bindListProps(self,
     myPropVal    = myProp   .getPropVal(self)
     otherPropVal = otherProp.getPropVal(other)
 
-    # TODO You're almost certainly not handling
-    # unbind=True properly in this code
+    # The unbinding case is easy
+    if unbind:
+        myPropValList    = myPropVal   .getPropertyValueList()
+        otherPropValList = otherPropVal.getPropertyValueList()
+
+        myPropVal   ._listPropValMaps.pop(id(otherPropVal))
+        otherPropVal._listPropValMaps.pop(id(myPropVal))
+
+        for myItem, otherItem in zip(myPropValList, otherPropValList):
+            bindPropVals(myItem,
+                         otherItem,
+                         bindval=False,
+                         bindatt=bindatt,
+                         unbind=True)
+
+        bindPropVals(myPropVal, otherPropVal, unbind=True)
+        return
+
+    # Binding two lists is a
+    # bit more complicated ...
 
     # Inhibit list-level notification due to item
     # changes during the initial sync - we'll
@@ -333,12 +351,11 @@ def _bindListProps(self,
     
     # Force the two lists to have
     # the same number of elements
-    if not unbind:
-        if len(myPropVal) > len(otherPropVal):
-            del myPropVal[len(otherPropVal):]
+    if len(myPropVal) > len(otherPropVal):
+        del myPropVal[len(otherPropVal):]
     
-        elif len(myPropVal) < len(otherPropVal):
-            myPropVal.extend(otherPropVal[len(myPropVal):])
+    elif len(myPropVal) < len(otherPropVal):
+        myPropVal.extend(otherPropVal[len(myPropVal):])
 
     # Create a mapping between the
     # PropertyValue pairs across
@@ -368,11 +385,7 @@ def _bindListProps(self,
         # Bind attributes between PV item pairs,
         # but not value - value change of items
         # in a list is handled at the list level
-        bindPropVals(myItem,
-                     otherItem,
-                     bindval=False,
-                     bindatt=bindatt,
-                     unbind=unbind)
+        bindPropVals(myItem, otherItem, bindval=False, bindatt=bindatt)
         propValMap[myItem] = otherItem
         
         atts = otherItem.getAttributes()
@@ -417,7 +430,7 @@ def _bindListProps(self,
     atts = otherPropVal.getAttributes()
     myPropVal.setAttributes(atts)
     
-    bindPropVals(myPropVal, otherPropVal, unbind=unbind)
+    bindPropVals(myPropVal, otherPropVal)
 
     # Manually notify list-level listeners
     #
