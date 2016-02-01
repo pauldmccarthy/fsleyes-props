@@ -429,6 +429,14 @@ class ListPropertyBase(PropertyBase):
         PropertyBase.__init__(self, **kwargs)
         self._listType = listType
 
+
+    def getListType(self):
+        """Returns a reference to the ``PropertyBase`` instance which defines
+        the value types allowsed in this ``ListPropertyBase``. This may be
+        ``None``.
+        """
+        return self._listType
+
         
     def _makePropVal(self, instance):
         """Creates and returns a :class:`.PropertyValueList` object to be

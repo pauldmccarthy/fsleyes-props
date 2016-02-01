@@ -62,10 +62,11 @@ def _Bounds(parent,
     parameters.
     """
 
-    ndims = propObj._ndims
-    real  = propObj._real
-    panel = wx.Panel(parent)
-    sizer = wx.BoxSizer(wx.VERTICAL)
+    ndims   = propObj._ndims
+    real    = propObj._real
+    clamped = propObj.getListType().getConstraint(None, 'clamped')
+    panel   = wx.Panel(parent)
+    sizer   = wx.BoxSizer(wx.VERTICAL)
 
     if labels is None:
         labels = [None] * 2 * ndims
@@ -87,10 +88,11 @@ def _Bounds(parent,
 
             style = 0
 
-            if mousewheel: style |= rangeslider.RSSP_MOUSEWHEEL
-            if not real:   style |= rangeslider.RSSP_INTEGER
-            if showLimits: style |= rangeslider.RSSP_SHOW_LIMITS
-            if editLimits: style |= rangeslider.RSSP_EDIT_LIMITS
+            if mousewheel:  style |= rangeslider.RSSP_MOUSEWHEEL
+            if not real:    style |= rangeslider.RSSP_INTEGER
+            if showLimits:  style |= rangeslider.RSSP_SHOW_LIMITS
+            if editLimits:  style |= rangeslider.RSSP_EDIT_LIMITS
+            if not clamped: style |= rangeslider.RSSP_NO_LIMIT
 
             slider = rangeslider.RangeSliderSpinPanel(
                 panel,
@@ -107,9 +109,10 @@ def _Bounds(parent,
 
             style = 0
 
-            if mousewheel: style |= rangeslider.RP_MOUSEWHEEL
-            if slider:     style |= rangeslider.RP_SLIDER
-            if not real:   style |= rangeslider.RP_INTEGER
+            if mousewheel:  style |= rangeslider.RP_MOUSEWHEEL
+            if slider:      style |= rangeslider.RP_SLIDER
+            if not real:    style |= rangeslider.RP_INTEGER
+            if not clamped: style |= rangeslider.RP_NO_LIMIT
 
             slider = rangeslider.RangePanel(
                 panel,
