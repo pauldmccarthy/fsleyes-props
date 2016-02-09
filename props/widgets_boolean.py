@@ -29,29 +29,35 @@ def _Boolean(parent,
     """Creates and returns a ``wx.CheckBox``, allowing the user to set the
     given :class:`.Boolean` property value.
 
-    If the ``icon`` argument is provided, it should be a string containing the
-    name of an image file, or a list of two image file names.  In this case,
-    case, a `:class:`.BitmapToggleButton` is used instead of a ``CheckBox``.
+    :arg icon:   If the ``icon`` argument is provided, it should be a string
+                 containing the name of an image file, or a list of two image
+                 file names.  In this case, case, a
+                 `:class:`.BitmapToggleButton` is used instead of a
+                 ``CheckBox``.
 
-    If two icon images are provided, and the ``toggle`` argument is ``True``
-    (the default), a :class:`.BitmapToggleButton` is used. If
-    ``toggle=False``, a :class:`.BitmapRadioBox` is used instead.  In the
-    latter case, the ``style`` argument is passed through to the
-    :meth:`.BitmapRadioBox.__init__` method.
+                 .. note:: If ``toggle`` is ``False``, ``icons`` may
+                           alternately be a sequence of four icons, with the
+                           order ``[selectedTrueIcon, unselectedTrueIcon,
+                           selectedFalseIcon, unselectedFalseIcon]``.
+
+    :arg toggle: If two icon images are provided, and the ``toggle`` argument
+                 is ``True`` (the default), a :class:`.BitmapToggleButton` is
+                 used. If ``toggle=False``, a :class:`.BitmapRadioBox` is used
+                 instead.  In the latter case, the ``style`` argument is
+                 passed through to the :meth:`.BitmapRadioBox.__init__`
+                 method.
+
+    :arg style:  If ``toggle`` is ``False``, this value is passed through to 
+                 the :meth:`BitmapRadioBox.__init__` method.
 
     See the :func:`.widgets._String` documentation for details on the other
     parameters.
     """
 
-    widgetGet = None
-    widgetSet = None
-
     if icon is None:
-        widget = wx.CheckBox(parent)
-        event  = wx.EVT_CHECKBOX
+        widget, event, wget, wset = _booleanCheckBox(parent)
         
     else:
-
 
         if isinstance(icon, basestring):
             icon = [icon]
@@ -66,41 +72,70 @@ def _Boolean(parent,
             bmp .LoadFile(icon[i], wx.BITMAP_TYPE_PNG)
             
             icon[i] = bmp
-
-        if len(icon) == 1:
-            icon = icon + [None]
-
-        trueBmp  = icon[0]
-        falseBmp = icon[1]
-
+            
         if toggle:
-            style  = wx.BU_EXACTFIT | wx.ALIGN_CENTRE | wx.BU_NOTEXT
-            widget = bmptoggle.BitmapToggleButton(
-                parent,
-                trueBmp=trueBmp,
-                falseBmp=falseBmp,
-                style=style)
-            event  = bmptoggle.EVT_BITMAP_TOGGLE
-            
+            widget, event, wget, wset = _booleanToggle(parent, icon)
         else:
-            widget = bmpradio.BitmapRadioBox(parent, style)
-            event  = bmpradio.EVT_BITMAP_RADIO_EVENT
+            widget, event, wget, wset = _booleanRadio( parent, icon, style)
 
-            widget.AddChoice(trueBmp)
-            widget.AddChoice(falseBmp)
-
-            def widgetGet():
-                return widget.GetSelection() == 0
-
-            def widgetSet(val):
-                if val: widget.SetSelection(0)
-                else:   widget.SetSelection(1)
-            
     widgets._propBind(hasProps,
                       propObj,
                       propVal,
                       widget,
                       event,
-                      widgetGet=widgetGet,
-                      widgetSet=widgetSet)
+                      widgetGet=wget,
+                      widgetSet=wset)
     return widget
+
+
+def _booleanCheckBox(parent):
+    """Create a ``wx.CheckBox`` to link to the :class:`.Boolean` property. """
+    widget = wx.CheckBox(parent)
+    event  = wx.EVT_CHECKBOX
+    
+    return widget, event, None, None
+
+
+def _booleanToggle(parent, icons):
+    """Create a :class:`.BitmapToggleButton` to link to the :class:`.Boolean`
+    property.
+    """ 
+    if len(icons) == 1:
+        icons = icons + [None]
+
+    trueBmp  = icons[0]
+    falseBmp = icons[1]
+
+    style  = wx.BU_EXACTFIT | wx.ALIGN_CENTRE | wx.BU_NOTEXT
+    widget = bmptoggle.BitmapToggleButton(
+        parent,
+        trueBmp=trueBmp,
+        falseBmp=falseBmp,
+        style=style)
+    event  = bmptoggle.EVT_BITMAP_TOGGLE    
+
+    return widget, event, None, None
+
+
+def _booleanRadio(parent, icons, style):
+    """Create a :class:`.BitmapRadioBox` to link to the :class:`.Boolean`
+    property.
+    """
+    
+    widget = bmpradio.BitmapRadioBox(parent, style)
+    event  = bmpradio.EVT_BITMAP_RADIO_EVENT
+
+    if len(icons) == 2:
+        icons = [icons[0], None, icons[1], None]
+
+    widget.AddChoice(icons[0], unselectedBmp=icons[1])
+    widget.AddChoice(icons[2], unselectedBmp=icons[3])
+
+    def wget():
+        return widget.GetSelection() == 0
+
+    def wset(val):
+        if val: widget.SetSelection(0)
+        else:   widget.SetSelection(1)
+
+    return widget, event, wget, wset
