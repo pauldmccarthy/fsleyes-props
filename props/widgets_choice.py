@@ -132,7 +132,7 @@ def _Choice(parent,
         # or a function which, given a
         # choice, returns a label for it
         else:
-            curLabels = map(labels, choices[0])
+            curLabels = [labels(c) for c in choices[0]]
 
         # If we're using a wx.Choice widget, remove
         # any disabled choices from the list.
@@ -155,7 +155,7 @@ def _Choice(parent,
                       curLabels))
 
         if icons is None:
-            widget.Set(curLabels)
+            widget.Set(list(curLabels))
         else:
 
             widget.Clear()
@@ -197,7 +197,8 @@ def _Choice(parent,
 
         # Make sure the widget
         # selection is up to date
-        widget.SetSelection(choices[0].index(propVal.get()))
+        if len(choices[0]) > 0:
+            widget.SetSelection(choices[0].index(propVal.get()))
 
     listenerName = 'WidgetChoiceUpdate_{}'.format(id(widget))
     propVal.addAttributeListener(listenerName, choicesChanged, weak=False)

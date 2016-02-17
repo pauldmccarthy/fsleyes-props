@@ -115,6 +115,8 @@ import logging
 import weakref
 import copy
 import sys
+
+import six
 import wx
 
 from . import                   widgets
@@ -342,7 +344,7 @@ def _configureEventCallback(
 
         # Each dependency is either the name of
         # a property on the hasProps instance..
-        if isinstance(dep, basestring):
+        if isinstance(dep, six.string_types):
             target   = hasProps
             propName = dep
 

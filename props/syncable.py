@@ -60,6 +60,8 @@ method (and de-registered via the :meth:`removeSyncChangeListener` method).
 import weakref
 import logging
 
+import six
+
 from . import properties       as props
 from . import properties_types as types
 
@@ -102,15 +104,13 @@ class SyncablePropertyOwner(props.PropertyOwner):
         return newCls 
 
     
-class SyncableHasProperties(props.HasProperties):
+class SyncableHasProperties(six.with_metaclass(SyncablePropertyOwner,
+                                               props.HasProperties)):
     """An extension to the ``HasProperties`` class which supports parent-child
     relationships between instances.
     """
 
     
-    __metaclass__ = SyncablePropertyOwner
-
-
     @classmethod
     def _saltSyncPropertyName(cls, propName):
         """Adds a prefix to the given property name, to be used as the

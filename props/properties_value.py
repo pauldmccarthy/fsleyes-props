@@ -34,6 +34,8 @@ import weakref
 
 from collections import OrderedDict
 
+import six
+
 from . import callqueue
 from . import bindable
 
@@ -56,18 +58,21 @@ class WeakFunctionRef(object):
         """
 
         # Bound method
-        if isinstance(func, types.MethodType) and func.im_self is not None:
+        boundMeth = six.get_method_function(func)
+        boundSelf = six.get_method_self(    func)
+        
+        if isinstance(func, types.MethodType) and boundSelf is not None:
 
             # We can't take a weakref of the method
             # object, so we have to weakref the object
             # and the unbound class function. The
             # function method will search for and
             # return the bound method, though.
-            self.obj  = weakref.ref(func.im_self)
-            self.func = weakref.ref(func.im_func)
+            self.obj  = weakref.ref(boundSelf)
+            self.func = weakref.ref(boundMeth)
 
-            self.objType  = type(func.im_self).__name__
-            self.funcName =      func.im_func .__name__
+            self.objType  = type(boundSelf).__name__
+            self.funcName =      boundMeth .__name__
 
         # Unbound/class method or function
         else:
@@ -121,7 +126,7 @@ class WeakFunctionRef(object):
             att = getattr(obj, name)
 
             if isinstance(att, types.MethodType) and \
-               att.im_func is func:
+               six.get_method_function(att) is func:
                 return att
 
         return None

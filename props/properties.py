@@ -22,6 +22,8 @@ application code.
 import weakref
 import logging
 
+import six
+
 from . import properties_value
 from . import bindable
 from . import serialise
@@ -496,10 +498,10 @@ class PropertyOwner(type):
         # Return *all* attributes of the new class,
         # including those of its super classes
         def allAttrs(cls):
-            atts = cls.__dict__.items()
+            atts = list(cls.__dict__.items())
             if hasattr(cls, '__bases__'):
                 for base in cls.__bases__:
-                    atts += allAttrs(base)
+                    atts += list(allAttrs(base))
             return atts
         
         for n, v in allAttrs(newCls):
@@ -509,12 +511,11 @@ class PropertyOwner(type):
         return newCls
 
 
-class HasProperties(object):
+class HasProperties(six.with_metaclass(PropertyOwner, object)):
     """Base class for classes which contain ``PropertyBase`` instances.  All
     classes which contain ``PropertyBase`` objects must subclass this
     class.
     """
-    __metaclass__ = PropertyOwner
 
     
     def __new__(cls, *args, **kwargs):
@@ -701,12 +702,12 @@ class HasProperties(object):
         # latter property need to be notified of this change in validity.
 
         log.debug('Revalidating all instance properties '
-                  '(due to {} change)'.format(self.getLabel(ctx)))
+                  '(due to {} change)'.format(name))
         
         propNames, props = self.getAllProperties()
         for propName, prop in zip(propNames, props):
             if propName is not name:
-                prop.revalidate(ctx)
+                prop.revalidate(self)
 
         
     @classmethod

@@ -35,6 +35,8 @@ import os.path as op
 
 import collections
 
+import six
+
 import numpy as np
 
 from . import properties        as props
@@ -284,7 +286,7 @@ class String(props.PropertyBase):
 
         if value is None: return
 
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise ValueError('Must be a string')
 
         minlen = attributes['minlen']

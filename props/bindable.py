@@ -710,7 +710,7 @@ def buildBPVList(self, key, node=None, bpvSet=None):
         bpvSet = set()
     
     bpvs = node.__dict__.get(key, {}).values()
-    bpvs = filter(lambda b: b is not self and id(b) not in bpvSet, bpvs)
+    bpvs = [b for b in bpvs if b is not self and id(b) not in bpvSet]
         
     for b in bpvs:
         bpvSet.add(id(b))
