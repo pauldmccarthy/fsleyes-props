@@ -13,9 +13,8 @@ import logging
 
 import wx
 
-import widgets
-
 import pwidgets.bitmapradio as bmpradio
+from . import                  widgets
 
 
 log = logging.getLogger(__name__)

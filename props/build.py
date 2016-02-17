@@ -117,10 +117,9 @@ import copy
 import sys
 import wx
 
-import widgets
-
-import build_parts           as parts
-import                          syncable
+from . import                   widgets
+from . import                   syncable
+from . import build_parts    as parts
 import pwidgets.notebook     as nb
 import pwidgets.bitmaptoggle as bmptoggle
 

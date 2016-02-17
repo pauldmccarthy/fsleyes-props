@@ -12,8 +12,7 @@ the :mod:`widgets` module namespace. It is separated purely to keep the
 
 import wx
 
-import widgets
-
+from . import                   widgets
 import pwidgets.bitmapradio  as bmpradio
 import pwidgets.bitmaptoggle as bmptoggle
 

@@ -12,11 +12,10 @@
 
 import wx
 
-import widgets
-
 import pwidgets.elistbox as elistbox
 
-import props
+from . import properties_types as ptypes
+from . import                     widgets
 
 
 def _pasteDataDialog(parent, hasProps, propObj):
@@ -95,15 +94,7 @@ def _editListDialog(parent, hasProps, propObj):
     # listObj is a properties_values.PropertyValueList object
     listObj  = getattr(hasProps, propObj.getLabel(hasProps))
     listType = propObj._listType
-
-    # Get a reference to a function in the widgets module,
-    # which can make individual widgets for each list item
-    makeFunc = getattr(
-        widgets, '_{}'.format(listType.__class__.__name__), None)
-
-    if makeFunc is None:
-        raise TypeError(
-            'Unknown property type: {}'.format(propObj.__class__.__name__))
+    propName = propObj.getLabel(hasProps)
 
     # min/max values for a spin box which allows the
     # user to select the number of items in the list
@@ -139,7 +130,7 @@ def _editListDialog(parent, hasProps, propObj):
     # Make a widget for every element in the list
     propVals = listObj.getPropertyValueList()
     for propVal in propVals:
-        widget  = makeFunc(entryPanel, hasProps, listType, propVal)
+        widget  = widgets.makeWidget(entryPanel, hasProps, propName)
         listWidgets.append(widget)
 
     frameSizer = wx.BoxSizer(wx.VERTICAL)
@@ -170,10 +161,9 @@ def _editListDialog(parent, hasProps, propObj):
 
             # add a new element to the list
             listObj.append(default)
-            propVal = listObj.getPropertyValueList()[-1]
 
             # add a widget
-            widg = makeFunc(entryPanel, hasProps, listType, propVal)
+            widg = widgets.makeWidget(entryPanel, hasProps, propName)
             listWidgets.append(widg)
             entryPanelSizer.Add(widg, flag=wx.EXPAND)
  
@@ -239,9 +229,9 @@ def _listDialogWidget(parent, hasProps, propObj, propVal):
 
 def _listEmbedWidget(parent, hasProps, propObj, propVal):
 
-    if not isinstance(propObj._listType, (props.String,
-                                          props.Int,
-                                          props.Real)):
+    if not isinstance(propObj._listType, (ptypes.String,
+                                          ptypes.Int,
+                                          ptypes.Real)):
         raise RuntimeError('Unsupported property '
                            'type: {}'.format(propObj.__class__))
     

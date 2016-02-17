@@ -99,8 +99,12 @@ import os.path as op
 
 from collections import Iterable
 
+import six
+
 import wx
-import wx.combo
+
+try:                from wx.combo import BitmapComboBox
+except ImportError: from wx.adv   import BitmapComboBox
 
 import pwidgets.colourbutton as colourbtn
 
@@ -447,6 +451,7 @@ def _Real(parent, hasProps, propObj, propVal, **kwargs):
 
     See the :func:`_String` documentation for details on the parameters.
     """
+    from props.widgets_number import _Number
     return _Number(parent, hasProps, propObj, propVal, **kwargs)
 
 
@@ -456,7 +461,8 @@ def _Int(parent, hasProps, propObj, propVal, **kwargs):
     function for more details.
 
     See the :func:`_String` documentation for details on the parameters.
-    """ 
+    """
+    from props.widgets_number import _Number
     return _Number(parent, hasProps, propObj, propVal, **kwargs)
 
 
@@ -468,6 +474,7 @@ def _Percentage(parent, hasProps, propObj, propVal, **kwargs):
     See the :func:`_String` documentation for details on the parameters.
     """ 
     # TODO Add '%' signs to Scale labels.
+    from props.widgets_number import _Number
     return _Number(parent, hasProps, propObj, propVal, **kwargs) 
         
 
@@ -556,8 +563,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
     cmapObjs = [map(mplcm.get_cmap, cmapKeys[0])]
 
     # create the combobox
-    cbox = wx.combo.BitmapComboBox(
-        parent, style=wx.CB_READONLY | wx.CB_DROPDOWN)
+    cbox = BitmapComboBox(parent, style=wx.CB_READONLY | wx.CB_DROPDOWN)
 
     # OwnerDrawnComboBoxes seem to absorb mouse
     # events and, under OSX/cocoa at least, this
@@ -568,10 +574,16 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
     cbox.Bind(wx.EVT_MOUSEWHEEL, wheel)
     
     def widgetGet():
-        return cmapObjs[0][cbox.GetSelection()]
+        sel = cbox.GetSelection()
+        if sel == -1:
+            sel = 0
+        return cmapObjs[0][sel]
 
     def widgetSet(value):
-        cbox.SetSelection(cmapObjs[0].index(value))
+        if value is not None:
+            cbox.SetSelection(cmapObjs[0].index(value))
+        else:
+            cbox.SetSelection(0)
 
     # Called when the list of available 
     # colour maps changes - updates the 
@@ -669,7 +681,7 @@ def _LinkBox(parent, hasProps, propObj, propVal, **kwargs):
     propName = propObj.getLabel(hasProps)
     value    = hasProps.isSyncedToParent(propName)
     linkBox  = wx.ToggleButton(parent,
-                               label=u'\u21cb',
+                               label=six.u('\u21cb'),
                                style=wx.BU_EXACTFIT)
     linkBox.SetValue(value)
 
