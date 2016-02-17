@@ -291,7 +291,7 @@ class SyncableHasProperties(six.with_metaclass(SyncablePropertyOwner,
             return None
 
         children = [c() for c in self._children]
-        children = filter(lambda c: c is not None, children)
+        children = [c for c in children if c is not None]
 
         return children
                 

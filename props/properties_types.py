@@ -771,7 +771,7 @@ class Colour(props.PropertyBase):
         if pv is not None: currentVal = pv.get()
         else:              currentVal = self._defaultConstraints['default']
 
-        value = map(float, value)
+        value = [float(v) for v in value]
 
         if len(value) == 3:
             value = value + [currentVal[3]]
@@ -1467,7 +1467,7 @@ class Point(List):
         if default is None: default = [0] * ndims
 
         if real:
-            default = map(float, default)
+            default = [float(v) for v in default]
 
         if ndims < 1 or ndims > 4:
             raise ValueError('Only points of one to four '

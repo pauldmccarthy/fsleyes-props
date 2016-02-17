@@ -524,7 +524,7 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         they are initialised.
         """
         
-        instance  = super(HasProperties, cls).__new__(cls, *args, **kwargs)
+        instance  = super(HasProperties, cls).__new__(cls)
         propNames = dir(instance.__class__)
 
         # By default, when a property changes,

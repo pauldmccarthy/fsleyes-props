@@ -617,7 +617,7 @@ def _syncPropValLists(masterList, slaveList):
     else:
         
         mpvs     = masterList.getPropertyValueList()
-        mpvids   = map(id, mpvs)
+        mpvids   = [id(m) for m in mpvs]
         newOrder = []
 
         # loop through the PV objects in the slave list,
@@ -630,7 +630,7 @@ def _syncPropValLists(masterList, slaveList):
 
         # If the master list order has been
         # changed, re-order the slave list
-        if newOrder != range(len(slaveList)):
+        if newOrder != list(range(len(slaveList))):
             slaveList.reorder(newOrder)
 
         # The list order hasn't changed, so

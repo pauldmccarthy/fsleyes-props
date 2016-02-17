@@ -117,7 +117,7 @@ class WeakFunctionRef(object):
         # these if the object has base classes which have
         # private methods of the same name.
         attNames = dir(obj)
-        attNames = filter(lambda n: n.endswith(methName), attNames)
+        attNames = [a for a in attNames if a.endswith(methName)]
 
         # Find the attribute with the correct name, which
         # is a method, and has the correct function.
@@ -1067,7 +1067,7 @@ class PropertyValueList(PropertyValue):
         self._itemAttributes   = itemAttributes
             
         # The list of PropertyValue objects.
-        if values is not None: values = map(self.__newItem, values)
+        if values is not None: values = [self.__newItem(v) for v in values]
         else:                  values = []
 
         PropertyValue.set(self, values)
@@ -1081,7 +1081,9 @@ class PropertyValueList(PropertyValue):
         if other is None:
             return False
         
-        if len(self) != len(other): return False
+        if len(self) != len(other):
+            return False
+        
         return all([self._itemEqualityFunc(ai, bi)
                     for ai, bi
                     in zip(self[:], other[:])])
@@ -1111,10 +1113,10 @@ class PropertyValueList(PropertyValue):
         """
 
         if self._itemCastFunc is not None:
-            newValues = map(lambda v: self._itemCastFunc(
+            newValues = [self._itemCastFunc(
                 self._context(),
                 self._itemAttributes,
-                v), newValues)
+                v) for v in newValues]
 
         self[:] = newValues
 
@@ -1252,12 +1254,14 @@ class PropertyValueList(PropertyValue):
     def reorder(self, idxs):
         """Reorders the list according to the given sequence of indices."""
 
-        if sorted(idxs) != range(len(self)):
+        idxs = list(idxs)
+
+        if list(sorted(idxs)) != list(range(len(self))):
             raise ValueError('Indices ({}) must '
                              'cover the list range '
                              '([0..{}])'.format(idxs, len(self) - 1))
 
-        if idxs == range(len(self)):
+        if idxs == list(range(len(self))):
             return
 
         propVals = self.getPropertyValueList()
@@ -1270,7 +1274,7 @@ class PropertyValueList(PropertyValue):
         """Sets the value(s) of the list at the specified index/slice."""
 
         if isinstance(key, slice):
-            indices = range(*key.indices(len(self)))
+            indices = list(range(*key.indices(len(self))))
             if len(indices) != len(self) and \
                len(indices) != len(values):
                 raise IndexError(

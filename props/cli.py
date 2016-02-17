@@ -393,8 +393,8 @@ def _ColourMap(
             cmapKeys   = mplcm.cmap_d.keys()
             cmapNames  = [cm.name for cm in mplcm.cmap_d.values()]
             
-            lCmapNames = map(lambda s: s.lower(), cmapNames)
-            lCmapKeys  = map(lambda s: s.lower(), cmapKeys)
+            lCmapNames = [s.lower() for s in cmapNames]
+            lCmapKeys  = [s.lower() for s in cmapKeys]
 
             cmapName = cmapName.lower()
             
@@ -445,7 +445,7 @@ def _getShortArgs(propCls, propNames, exclude=''):
                 # throw an error if that entry
                 # has already been used, or
                 # should be excluded
-                if propCls._shortArgs[propName] in shortArgs.values() or \
+                if propCls._shortArgs[propName] in list(shortArgs.values()) or\
                    propCls._shortArgs[propName] in exclude:
                     raise RuntimeError(
                         'Duplicate or excluded short argument for property '
@@ -462,11 +462,11 @@ def _getShortArgs(propCls, propNames, exclude=''):
         # work, in the alphabet
         for c in propName + letters:
             
-            if (c not in shortArgs.values()) and (c not in exclude):
+            if (c not in list(shortArgs.values())) and (c not in exclude):
                 shortArgs[propName] = c
                 break
 
-    if any([name not in shortArgs for name in propNames]):
+    if any([name not in list(shortArgs) for name in propNames]):
         raise RuntimeError('Could not generate default short arguments '
                            'for HasProperties object {} - please provide '
                            'custom short arguments via a _shortArgs '
@@ -730,4 +730,4 @@ def generateArguments(hasProps,
         if argKey is not None: args.append(argKey)
         if values is not None: args.extend(values)
 
-    return map(str, args)
+    return [str(a) for a in args]

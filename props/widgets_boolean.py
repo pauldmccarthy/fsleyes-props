@@ -12,6 +12,8 @@ the :mod:`widgets` module namespace. It is separated purely to keep the
 
 import wx
 
+import six
+
 from . import                   widgets
 import pwidgets.bitmapradio  as bmpradio
 import pwidgets.bitmaptoggle as bmptoggle
@@ -58,7 +60,7 @@ def _Boolean(parent,
         
     else:
 
-        if isinstance(icon, basestring):
+        if isinstance(icon, six.string_types):
             icon = [icon]
 
         for i in range(len(icon)):

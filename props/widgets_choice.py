@@ -13,6 +13,8 @@ import logging
 
 import wx
 
+import six
+
 import pwidgets.bitmapradio as bmpradio
 from . import                  widgets
 
@@ -175,7 +177,7 @@ def _Choice(parent,
                 # Load the image file for each choice
                 # if they have not already been loaded
                 for i, ci in enumerate(choiceIcons):
-                    if isinstance(ci, basestring):
+                    if isinstance(ci, six.string_types):
                         bmp  = wx.EmptyBitmap(1, 1)
                         bmp.LoadFile(ci, type=wx.BITMAP_TYPE_PNG)
                         choiceIcons[i] = bmp
