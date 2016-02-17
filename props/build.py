@@ -444,7 +444,7 @@ def _createToggle(parent, viewItem, hasProps, propGui):
     # Otherwise, use a BitmapToggleButton
     else:
 
-        if isinstance(icon, basestring):
+        if isinstance(icon, six.string_types):
             icon = [icon]
 
         for i in range(len(icon)):
