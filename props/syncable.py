@@ -60,8 +60,8 @@ method (and de-registered via the :meth:`removeSyncChangeListener` method).
 import weakref
 import logging
 
-import properties       as props
-import properties_types as types
+from . import properties       as props
+from . import properties_types as types
 
 
 log = logging.getLogger(__name__)

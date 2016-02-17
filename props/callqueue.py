@@ -10,7 +10,9 @@ callback functions.
 """
 
 import logging
-import Queue
+
+try:                import queue
+except ImportError: import Queue as queue
 
 
 log = logging.getLogger(__name__)
@@ -89,7 +91,7 @@ class CallQueue(object):
         # The queued dict contains mappings of
         # {name : [List of Call instances]}
         # 
-        self.__queue          = Queue.Queue()
+        self.__queue          = queue.Queue()
         self.__queued         = {}
         self.__skipDuplicates = skipDuplicates
         self.__calling        = False
@@ -212,7 +214,7 @@ class CallQueue(object):
                         call.name, e), exc_info=True)
                     traceback.print_stack()
                     
-            except Queue.Empty:
+            except queue.Empty:
                 break
             
         self.__calling = False

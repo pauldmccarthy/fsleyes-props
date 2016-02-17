@@ -193,7 +193,7 @@ import logging
 import sys
 import argparse
 
-import properties as props
+from . import properties as props
 
 
 log = logging.getLogger(__name__)

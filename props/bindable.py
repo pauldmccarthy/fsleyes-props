@@ -119,9 +119,6 @@ still work.
 import logging
 import weakref
 
-import properties
-import properties_value
-
 
 log = logging.getLogger(__name__)
 
@@ -186,6 +183,8 @@ def bindProps(self,
     :arg unbind:        If ``True``, the properties are unbound.
                         See the :meth:`unbindProps` method.
     """
+
+    from . import properties
 
     if otherPropName is None: otherPropName = propName
 
@@ -264,6 +263,8 @@ def syncAndNotify(self):
     registered listeners of the value change. This method is called by the
     :meth:`.PropertyValue.notify` method.
     """
+
+    from . import properties_value
 
     bpvs    = _sync(self)
     allBpvs = []
@@ -741,6 +742,8 @@ def _sync(self, atts=False, attName=None, attValue=None):
     :arg attValue: If ``att=True``, the value of the attribute to synchronise.
     """
 
+    from . import properties_value
+
     # This PV is already being synced 
     # to some other PV - don't sync back
     if getattr(self, '_syncing', False):
@@ -832,6 +835,8 @@ def _callAllListeners(propVals, att, name=None, value=None):
     :arg name:  If ``att == True``, the attribute name.
     :arg value: If ``att == True``, the attribute value.
     """
+
+    from . import properties_value
 
     queued = []
     q      = properties_value.PropertyValue.queue

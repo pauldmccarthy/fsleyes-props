@@ -272,18 +272,19 @@ import logging
 log = logging.getLogger(__name__)
 
 
-from properties import (
+from .properties import (
+    PropertyOwner,
     HasProperties,
     DisabledError)
 
-from properties_value import (
+from .properties_value import (
     WeakFunctionRef)
 
-from bindable import (
+from .bindable import (
     bindPropVals,
     propValsAreBound)
 
-from properties_types import (
+from .properties_types import (
     Object,
     Boolean,
     Int,
@@ -299,19 +300,20 @@ from properties_types import (
     Point,
     Array)
 
-from syncable import (
+from .syncable import (
+    SyncablePropertyOwner,
     SyncableHasProperties)
 
-from cli import (
+from .cli import (
     applyArguments,
     addParserArguments,
     generateArguments)
 
-from serialise import (
+from .serialise import (
     serialise,
     deserialise)
 
-from build_parts import (
+from .build_parts import (
     ViewItem, 
     Button,
     Toggle,
@@ -330,7 +332,30 @@ def initGUI():
 
     mod = sys.modules[__name__]
 
-    from widgets import (
+    from . import widgets
+
+    # These properties belong in the
+    # widgets module, but are complex
+    # enough to get their own modules.
+    # We monkey patch the widgets
+    # module here (rather than widgets
+    # itself) to avoid circular
+    # dependency problems    
+    from .widgets_list    import _List
+    from .widgets_bounds  import _Bounds
+    from .widgets_point   import _Point
+    from .widgets_choice  import _Choice
+    from .widgets_boolean import _Boolean
+    from .widgets_number  import _Number
+
+    widgets._List    = _List
+    widgets._Bounds  = _Bounds
+    widgets._Point   = _Point
+    widgets._Choice  = _Choice
+    widgets._Boolean = _Boolean
+    widgets._Number  = _Number
+
+    from .widgets import (
         makeWidget,
         makeListWidgets,
         makeSyncWidget,
@@ -338,7 +363,7 @@ def initGUI():
         unbindWidget,
         bindListWidgets)
 
-    from build import (
+    from .build import (
         buildGUI,
         buildDialog)
 

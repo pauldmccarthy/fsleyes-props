@@ -22,8 +22,9 @@ application code.
 import weakref
 import logging
 
-import bindable
-import serialise
+from . import properties_value
+from . import bindable
+from . import serialise
 
 
 log = logging.getLogger(__name__)
@@ -299,14 +300,14 @@ class PropertyBase(object):
         ``HasProperties`` instance.  
         """
         default = self._defaultConstraints.get('default', None)
-        return PropertyValue(instance,
-                             name=self.getLabel(instance),
-                             value=default,
-                             castFunc=self.cast,
-                             validateFunc=self.validate,
-                             equalityFunc=self._equalityFunc,
-                             allowInvalid=self._allowInvalid,
-                             **self._defaultConstraints)
+        return properties_value.PropertyValue(instance,
+                                              name=self.getLabel(instance),
+                                              value=default,
+                                              castFunc=self.cast,
+                                              validateFunc=self.validate,
+                                              equalityFunc=self._equalityFunc,
+                                              allowInvalid=self._allowInvalid,
+                                              **self._defaultConstraints)
 
     
     def validate(self, instance, attributes, value):
@@ -458,7 +459,7 @@ class ListPropertyBase(PropertyBase):
 
         default = self._defaultConstraints.get('default', None)
         
-        return PropertyValueList(
+        return properties_value.PropertyValueList(
             instance,
             name=self.getLabel(instance), 
             values=default,
@@ -700,12 +701,12 @@ class HasProperties(object):
         # latter property need to be notified of this change in validity.
 
         log.debug('Revalidating all instance properties '
-                  '(due to {} change)'.format(self.getLabel(instance)))
+                  '(due to {} change)'.format(self.getLabel(ctx)))
         
         propNames, props = self.getAllProperties()
         for propName, prop in zip(propNames, props):
             if propName is not name:
-                prop.revalidate(instance)
+                prop.revalidate(ctx)
 
         
     @classmethod
@@ -971,7 +972,3 @@ class HasProperties(object):
             lines.append(fmtStr.format(propName, propVal))
             
         return '\n'.join(lines)
-
-
-from properties_value import *
-from properties_types import *

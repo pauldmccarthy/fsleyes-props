@@ -37,8 +37,8 @@ import collections
 
 import numpy as np
 
-import properties        as props
-import properties_value  as propvals
+from . import properties        as props
+from . import properties_value  as propvals
 
 
 class Object(props.PropertyBase):

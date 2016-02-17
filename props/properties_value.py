@@ -34,8 +34,8 @@ import weakref
 
 from collections import OrderedDict
 
-import callqueue
-import bindable
+from . import callqueue
+from . import bindable
 
 
 log = logging.getLogger(__name__)

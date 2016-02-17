@@ -104,15 +104,6 @@ import wx.combo
 
 import pwidgets.colourbutton as colourbtn
 
-# These properties are complex
-# enough to get their own modules.
-from widgets_list    import _List
-from widgets_bounds  import _Bounds
-from widgets_point   import _Point
-from widgets_choice  import _Choice
-from widgets_boolean import _Boolean
-from widgets_number  import _Number
-
 
 log = logging.getLogger(__name__)
 

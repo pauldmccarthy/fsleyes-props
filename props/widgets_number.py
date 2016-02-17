@@ -15,8 +15,8 @@ import sys
 import wx
 
 
-import properties as props
-import widgets
+from . import properties_types as ptypes
+from . import                     widgets
 
 import pwidgets.floatslider as floatslider
 import pwidgets.floatspin   as floatspin
@@ -98,13 +98,13 @@ def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel):
 
     def getMinVal(val):
         if val is not None: return val
-        if   isinstance(propObj, props.Int):  return -2 ** 31 + 1
-        elif isinstance(propObj, props.Real): return -sys.float_info.max
+        if   isinstance(propObj, ptypes.Int):  return -2 ** 31 + 1
+        elif isinstance(propObj, ptypes.Real): return -sys.float_info.max
         
     def getMaxVal(val):
         if val is not None: return val
-        if   isinstance(propObj, props.Int):  return 2 ** 31 - 1
-        elif isinstance(propObj, props.Real): return sys.float_info.max 
+        if   isinstance(propObj, ptypes.Int):  return 2 ** 31 - 1
+        elif isinstance(propObj, ptypes.Real): return sys.float_info.max 
 
     value   = propVal.get()
     minval  = propVal.getAttribute('minval')
@@ -118,11 +118,11 @@ def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel):
     if mousewheel: style = floatspin.FSC_MOUSEWHEEL
     else:          style = 0
 
-    if   isinstance(propObj, props.Int):
+    if   isinstance(propObj, ptypes.Int):
         increment  = 1
         style     |= floatspin.FSC_INTEGER
 
-    elif isinstance(propObj, props.Real):
+    elif isinstance(propObj, ptypes.Real):
 
         if isRange: increment = (maxval - minval) / 100.0
         else:       increment = 0.5
@@ -189,8 +189,8 @@ def _makeSlider(parent,
     minval = propVal.getAttribute('minval')
     maxval = propVal.getAttribute('maxval')
 
-    if   isinstance(propObj, props.Int):  real = False
-    elif isinstance(propObj, props.Real): real = True
+    if   isinstance(propObj, ptypes.Int):  real = False
+    elif isinstance(propObj, ptypes.Real): real = True
 
     if not showSpin:
 
