@@ -5,6 +5,8 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
+from __future__ import print_function
+
 import logging
 logging.basicConfig(
     format='%(levelname)8.8s '
@@ -104,7 +106,7 @@ def anychar(ev):
     ev.Skip()
     key = ev.GetKeyCode()
     focused = wx.Window.FindFocus()
-    print 'Character {} on window {}'.format(key, focused)
+    print('Character {} on window {}'.format(key, focused))
     
 
 frame.Bind(wx.EVT_CHAR_HOOK, anychar)

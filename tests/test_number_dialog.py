@@ -5,6 +5,9 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
+
+from __future__ import print_function
+
 import wx
 import pwidgets.numberdialog as numdlg
 
@@ -32,9 +35,9 @@ if __name__ == '__main__':
             maxValue=100)
 
         if dlg.ShowModal() != wx.ID_OK:
-            print 'Not ok'
+            print('Not ok')
         else:
-            print 'Number entered: {}'.format(dlg.GetValue())
+            print('Number entered: {}'.format(dlg.GetValue()))
 
 
     button.Bind(wx.EVT_BUTTON, _showDlg)

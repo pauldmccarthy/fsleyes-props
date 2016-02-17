@@ -5,6 +5,8 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
+from __future__ import print_function
+
 
 import logging
 logging.basicConfig(
@@ -59,7 +61,7 @@ frame.Show()
 
 def lbAdd(ev):
 
-    print 'Listbox add    - choice value before: {}'.format(bag.mob)
+    print('Listbox add    - choice value before: {}'.format(bag.mob))
     
     n   = str(np.random.randint(1, 1000))
     lbl = 'New choice {}'.format(n)
@@ -67,47 +69,47 @@ def lbAdd(ev):
     cprop.addChoice(n, alternate=[lbl], instance=bag)
     listbox.Append(lbl, n)
 
-    print '                 choice value after:  {}'.format(bag.mob)
+    print('                 choice value after:  {}'.format(bag.mob))
 
     
 def lbRemove(ev):
-    print 'Listbox remove - choice value before: {}'.format(bag.mob)
+    print('Listbox remove - choice value before: {}'.format(bag.mob))
 
-    choice = cprop.getChoices()[ev.idx]
+    choice = cprop.getChoices(bag)[ev.idx]
     cprop.removeChoice(choice, instance=bag)
-    print '                 choice value after:  {}'.format(bag.mob)
+    print('                 choice value after:  {}'.format(bag.mob))
 
 
 def lbMove(ev):
-    print 'Listbox move   - choice value before: {}'.format(bag.mob)
+    print('Listbox move   - choice value before: {}'.format(bag.mob))
     labels     = listbox.GetLabels()
     choices    = listbox.GetData()
     alternates = [[lbl] for choice, lbl in zip(choices, labels)]
     cprop.setChoices(choices,
                      alternates=alternates,
                      instance=bag)
-    print '                 choice value after:  {}'.format(bag.mob)
+    print('                 choice value after:  {}'.format(bag.mob))
 
 
 def lbEdit(ev):
 
-    print 'Listbox edit   - choice value before: {}'.format(bag.mob)
+    print('Listbox edit   - choice value before: {}'.format(bag.mob))
     choice   = ev.data
     newLabel = ev.label
     newAlt   = [newLabel]
     cprop.updateChoice(choice, newAlt=newAlt, instance=bag)
-    print '                 choice value after:  {}'.format(bag.mob)
+    print('                 choice value after:  {}'.format(bag.mob))
 
 
 def lbSelect(ev):
-    print 'Listbox select - choice value before: {}'.format(bag.mob)
+    print('Listbox select - choice value before: {}'.format(bag.mob))
     if np.random.random(1) >= 0.5: val = ev.data
     else:                          val = ev.label
 
-    print 'Setting value to {}'.format(val)
+    print('Setting value to {}'.format(val))
     bag.mob = val
 
-    print '                 choice value after:  {}'.format(bag.mob)
+    print('                 choice value after:  {}'.format(bag.mob))
 
 
 

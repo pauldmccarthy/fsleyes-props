@@ -24,7 +24,7 @@ logging.basicConfig(
     level=logging.DEBUG)
 
 
-items   = map(str, range(5))
+items   = list(map(str, range(5)))
 tips    = ['--{}--'.format(i) for i in items]
 
 app     = wx.App()

@@ -5,6 +5,8 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
+from __future__ import print_function
+
 import wx
 import pwidgets.floatslider as fltsld
 
@@ -47,19 +49,19 @@ if __name__ == '__main__':
 
 
     def _range(ev):
-        print 'Range: {} {}'.format(ev.low, ev.high)
+        print('Range: {} {}'.format(ev.low, ev.high))
 
     def _limit(ev):
-        print 'Limit: {} {}'.format(ev.min, ev.max)
+        print('Limit: {} {}'.format(ev.min, ev.max))
         centreSlider.SetRange(ev.min, ev.max)
 
 
     def _centreToggle(ev):
         if centreCheck.GetValue():
-            print 'Centering range at {}'.format(centreSlider.GetValue())
+            print('Centering range at {}'.format(centreSlider.GetValue()))
             slider.CentreAt(centreSlider.GetValue())
         else:
-            print 'De-centering range'
+            print('De-centering range')
             slider.CentreAt(None)
 
     def _centreSlider(ev):
