@@ -420,6 +420,12 @@ def _createButton(parent, viewItem, hasProps, propGui):
 
         button = wx.Button(parent, style=style)
         button.SetBitmap(bitmap=bmp)
+
+        # Under wxPython-Phoenix, setting
+        # label to "" will result in the
+        # button being labelled "Button".
+        if six.PY3:
+            button.SetLabel(" ")
     else:
         button = wx.Button(parent, label=btnText)
         

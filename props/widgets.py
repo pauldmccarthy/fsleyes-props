@@ -493,7 +493,7 @@ def _Colour(parent, hasProps, propObj, propVal, size=(16, 16), **kwargs):
         return [v / 255.0 for v in vals]
     
     def widgetSet(vals):
-        colour = map(int, [v * 255.0 for v in vals[:3]])
+        colour = [int(v * 255.0) for v in vals[:3]]
         colourButton.SetValue(colour)
 
     _propBind(hasProps,
