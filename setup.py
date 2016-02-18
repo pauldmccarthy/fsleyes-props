@@ -31,11 +31,12 @@ setup(
         'Intended Audience :: Developers',
         'License :: Free for non-commercial use',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
         'Topic :: Software Development :: Libraries :: Python Modules'],
 
     packages=find_packages(exclude=('doc')),
 
     install_requires=[
-        'matplotlib>=1.3.1',
-        'numpy>=1.8.1']
+        'matplotlib>=1.3',
+        'numpy>=1.8']
 )
