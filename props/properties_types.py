@@ -880,11 +880,11 @@ class ColourMap(props.PropertyBase):
             import matplotlib.cm as mplcm
 
             # Case insensitive match
-            cmapKeys   = mplcm.cmap_d.keys()
+            cmapKeys   = list(mplcm.cmap_d.keys())
             cmapNames  = [cm.name for cm in mplcm.cmap_d.values()]
             
-            lCmapNames = map(lambda s: s.lower(), cmapNames)
-            lCmapKeys  = map(lambda s: s.lower(), cmapKeys)
+            lCmapNames = [s.lower() for s in cmapNames]
+            lCmapKeys  = [s.lower() for s in cmapKeys]
 
             value = value.lower()
             

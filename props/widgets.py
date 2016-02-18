@@ -559,8 +559,8 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
     # list of available colour maps change. I'm 
     # storing each of them in a list, so the inner
     # functions will have access to updated versions.
-    cmapKeys = [propObj.getColourMaps(hasProps)]
-    cmapObjs = [map(mplcm.get_cmap, cmapKeys[0])]
+    cmapKeys = [list(propObj.getColourMaps(hasProps))]
+    cmapObjs = [list(map(mplcm.get_cmap, cmapKeys[0]))]
 
     # create the combobox
     cbox = BitmapComboBox(parent, style=wx.CB_READONLY | wx.CB_DROPDOWN)
@@ -591,8 +591,8 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
     def cmapsChanged(*a):
 
         selected    = cbox.GetSelection()
-        cmapKeys[0] = propObj.getColourMaps(hasProps)
-        cmapObjs[0] = map(mplcm.get_cmap, cmapKeys[0])
+        cmapKeys[0] = list(propObj.getColourMaps(hasProps))
+        cmapObjs[0] = list(map(mplcm.get_cmap, cmapKeys[0]))
 
         cbox.Clear()
 
