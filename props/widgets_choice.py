@@ -178,9 +178,7 @@ def _Choice(parent,
                 # if they have not already been loaded
                 for i, ci in enumerate(choiceIcons):
                     if isinstance(ci, six.string_types):
-                        bmp  = wx.EmptyBitmap(1, 1)
-                        bmp.LoadFile(ci, type=wx.BITMAP_TYPE_PNG)
-                        choiceIcons[i] = bmp
+                        choiceIcons[i] = wx.Bitmap(ci, type=wx.BITMAP_TYPE_PNG)
 
                 # Only one bitmap specified - add
                 # a placeholder for the unselected

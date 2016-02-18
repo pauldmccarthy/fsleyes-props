@@ -409,8 +409,7 @@ def _createButton(parent, viewItem, hasProps, propGui):
 
     if viewItem.icon is not None:
 
-        bmp = wx.EmptyBitmap(1, 1)
-        bmp.LoadFile(viewItem.icon, wx.BITMAP_TYPE_PNG)
+        bmp = wx.Bitmap(viewItem.icon, wx.BITMAP_TYPE_PNG)
 
         # BU_NOTEXT causes segfault under OSX
         if wx.Platform == '__WXMAC__':
@@ -424,7 +423,7 @@ def _createButton(parent, viewItem, hasProps, propGui):
         # Under wxPython-Phoenix, setting
         # label to "" will result in the
         # button being labelled "Button".
-        if six.PY3:
+        if not six.PY2:
             button.SetLabel(" ")
     else:
         button = wx.Button(parent, label=btnText)
@@ -455,10 +454,7 @@ def _createToggle(parent, viewItem, hasProps, propGui):
 
         for i in range(len(icon)):
 
-            bmp  = wx.EmptyBitmap(1, 1)
-            bmp .LoadFile(icon[i], wx.BITMAP_TYPE_PNG)
-            
-            icon[i] = bmp
+            icon[i] = wx.Bitmap(icon[i], wx.BITMAP_TYPE_PNG)
 
         if len(icon) == 1:
             icon = icon + [None]
@@ -788,7 +784,7 @@ def _create(parent, viewItem, hasProps, propGui):
         # also do so recursively to any children
         def setToolTip(obj):
             
-            obj.SetToolTipString(viewItem.tooltip)
+            obj.SetToolTip(wx.ToolTip(viewItem.tooltip))
 
             children = obj.GetChildren()
             if len(children) > 0:

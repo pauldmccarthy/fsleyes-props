@@ -533,7 +533,9 @@ def _makeColourMapBitmap(cmap):
 
     # make a wx Bitmap from the colour data
     colours = colours.ravel(order='C')
-    bitmap  = wx.BitmapFromBuffer(width, height, colours) 
+
+    if six.PY2: bitmap = wx.BitmapFromBuffer( width, height, colours)
+    else:       bitmap = wx.Bitmap.FromBuffer(width, height, colours)
     return bitmap
 
 

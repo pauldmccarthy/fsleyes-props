@@ -64,15 +64,7 @@ def _Boolean(parent,
             icon = [icon]
 
         for i in range(len(icon)):
-
-            # Load the bitmap using this two-stage
-            # approach, because under OSX, any other
-            # way will not load the retina '@2x'
-            # icon version (if it is present).
-            bmp  = wx.EmptyBitmap(1, 1)
-            bmp .LoadFile(icon[i], wx.BITMAP_TYPE_PNG)
-            
-            icon[i] = bmp
+            icon[i] = wx.Bitmap(icon[i], wx.BITMAP_TYPE_PNG)
             
         if toggle:
             widget, event, wget, wset = _booleanToggle(parent, icon)
