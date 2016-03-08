@@ -8,12 +8,13 @@
 from setuptools import setup
 from setuptools import find_packages
 
+import props
 
 setup(
 
     name='props',
 
-    version='0.0',
+    version=props.__version__,
 
     description='Python descriptor framework',
 

@@ -265,6 +265,10 @@ will be made available in the ``props`` package namespace:
    ~props.build.buildDialog
 """
 
+
+__version__ = '0.9a'
+
+
 import sys
 import logging
 
