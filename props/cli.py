@@ -193,7 +193,8 @@ import logging
 import sys
 import argparse
 
-from . import properties as props
+from . import properties       as props
+from . import properties_types as ptypes
 
 
 log = logging.getLogger(__name__)
@@ -714,13 +715,13 @@ def generateArguments(hasProps,
         # TODO This logic could somehow be stored
         #      as default transform functions for 
         #      the respective types
-        if isinstance(propObj, (props.Bounds, props.Point, props.Colour)):
+        if isinstance(propObj, (ptypes.Bounds, ptypes.Point, ptypes.Colour)):
             values = ['{}'.format(v) for v in propVal]
             
-        elif isinstance(propObj, props.ColourMap):
+        elif isinstance(propObj, ptypes.ColourMap):
             values = [propVal.name]
             
-        elif isinstance(propObj, props.Boolean):
+        elif isinstance(propObj, ptypes.Boolean):
             values = None
             if not propVal: argKey = None
         else:
