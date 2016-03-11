@@ -875,7 +875,7 @@ class ColourMap(props.PropertyBase):
         ``Colormap.name`` attribute. The match is case-insensitive.
         """
 
-        if isinstance(value, str):
+        if isinstance(value, six.string_types):
 
             import matplotlib.cm as mplcm
 
