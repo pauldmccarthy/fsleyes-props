@@ -182,5 +182,5 @@ def _serialise_Point(value, *a):
 
 
 def _deserialise_Point(value, *a):
-    value = map(str, value)
-    return DELIMITER.join(value)
+    value = value.split(DELIMITER)
+    return map(float, value) 
