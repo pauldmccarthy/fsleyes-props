@@ -313,9 +313,18 @@ class Choice(props.PropertyBase):
 
     A set of alternate values can be provided for each choice - these
     alternates will be accepted when assigning to a ``Choice`` property.
+
+    .. note:: If you create a ``Choice`` property with non-string choice and
+              alternate values, you may run into problems when using
+              :mod:`.serialise` and/or :mod:`.cli` functionality, unless you
+              set ``allowStr`` to ``True``.
     """
 
-    def __init__(self, choices=None, alternates=None, **kwargs):
+    def __init__(self,
+                 choices=None,
+                 alternates=None,
+                 allowStr=False,
+                 **kwargs):
         """Create a ``Choice`` property.
         
         :arg choices:    List of values, the possible values that this property
@@ -327,6 +336,11 @@ class Choice(props.PropertyBase):
                          ``{choice : [alternates]}`` mappings. All alternate
                          values must be unique - different choices cannot have
                          equivalent alternate values.
+
+        :arg allowStr:   If ``True``, string versions of any non-string choice
+                         values will be accepted - ``str`` versions of each
+                         choice are added as alternate values for that choice.
+                         Defaults to ``False``.
         """
 
         if choices is None:
@@ -337,6 +351,8 @@ class Choice(props.PropertyBase):
         # 
         #   - As a dict of { choice    : [alternate] } mappings
         #   - As a dict of { alternate : choice      } mappings
+        #
+        # We generate the first dict here
         if alternates is None:
             alternates = {c : [] for c in choices}
 
@@ -345,6 +361,15 @@ class Choice(props.PropertyBase):
 
         elif isinstance(alternates, (list, tuple)):
             alternates = {c : list(a) for (c, a) in zip(choices, alternates)}
+
+        # Add stringified versions of all
+        # choices if allowStr is True
+        if allowStr:
+            for c in choices:
+                strc = str(c)
+                alts = alternates[c]
+                if strc not in alts:
+                    alts.append(strc)
 
         # Generate the second alternates dict
         altLists   = alternates
