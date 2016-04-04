@@ -46,7 +46,9 @@ if log.getEffectiveLevel() == logging.DEBUG:
     log.debug('Monkey-patching props.properties_value.queue instance')
     
     import props
-    import Queue
+
+    try:    import queue
+    except: import Queue as queue
 
     # The problem that I am addressing here is the
     # fact that, when a property value listener is
@@ -133,7 +135,7 @@ if log.getEffectiveLevel() == logging.DEBUG:
             
     # Patch the CallQueue instance with 
     # our push/pop implementations
-    theQ._causes          = Queue.Queue()
+    theQ._causes          = queue.Queue()
     theQ._realPush        = theQ._CallQueue__push
     theQ._realPop         = theQ._CallQueue__pop
     theQ._CallQueue__push = tracePush
