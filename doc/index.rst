@@ -1,25 +1,11 @@
-.. props documentation master file, created by
-   sphinx-quickstart on Sat Jun 28 16:22:39 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 ``props``
 =========
 
 .. toctree::
    :hidden:   
-   :maxdepth: 1
               
    props
-   props.properties
-   props.properties_types
-   props.properties_value
-   props.bindable
-   props.syncable
-   props.build
-   props.build_parts
-   props.widgets
-   props.cli
    pwidgets
 
    
