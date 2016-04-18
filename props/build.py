@@ -426,7 +426,7 @@ def _createButton(parent, viewItem, hasProps, propGui):
         if not six.PY2:
             button.SetLabel(" ")
     else:
-        button = wx.Button(parent, label=btnText)
+        button = wx.Button(parent, label=btnText, style=wx.BU_EXACTFIT)
         
     button.Bind(wx.EVT_BUTTON, lambda e: viewItem.callback(hasProps, button))
     return button
