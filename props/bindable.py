@@ -869,6 +869,11 @@ def _callAllListeners(propVals, att, name=None, value=None):
                     if isinstance(func, properties_value.WeakFunctionRef):
                         func = func.function()
 
+                    # The listener may have been removed/disabled
+                    # due to another immediate listener
+                    if not l.enabled:
+                        continue
+
                     # Call the listener function directly
                     if l.immediate:
                         func(*args)

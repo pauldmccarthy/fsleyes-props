@@ -786,6 +786,13 @@ class PropertyValue(object):
         listener = self._changeListeners.pop(name, None)
 
         if listener is not None:
+
+            # The bindable._allAllListeners does
+            # funky things to the call queue,
+            # so we mark this listener as disabled
+            # just in case bindable tries to call
+            # a removed listener.
+            listener.enabled = False
             
             cb = listener.function
 
