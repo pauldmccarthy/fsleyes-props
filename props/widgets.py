@@ -212,7 +212,19 @@ def _propBind(hasProps,
 
         propVal.disableListener(listenerName)
         propVal.set(value)
-        propVal.enableListener(listenerName)
+
+        # Re-enable the property listener
+        # bound to this widget only if the
+        # widget has not been destroyed.
+        # 
+        # This is to prevent a (somewhat
+        # harmless) scenario whereby setting
+        # the property value results in the
+        # deletion of the widget to which it
+        # is bound.
+        if guiObj:
+            propVal.enableListener(listenerName)
+        
 
     def _attUpdate(ctx, att, *a):
         val = propVal.getAttribute(att)
