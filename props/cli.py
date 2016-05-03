@@ -238,7 +238,8 @@ def _Choice(parser,
     parameters.
 
     Only works with ``Choice`` properties with string options (unless
-    the ``choices`` argument is provided).
+    the ``choices`` argument is provided). See the ``allowStr`` parameter
+    for :class:`.Choice` instances.
 
     :arg choices: If not ``None``, assumed to be list of possible
                   choices for the property. If ``None``, the possible
@@ -270,7 +271,18 @@ def _Choice(parser,
     if default is None:
         default = propObj.getConstraint(None, 'default')
 
-    choices = set(choices)
+    # Make sure that only unique choices are
+    # set as options. We could just convert to
+    # a set, but this would not preserve ordering,
+    # so we'll uniquify the list the hard way.
+    choices = [str(c) for c in choices]
+    unique  = []
+
+    for c in choices:
+        if c not in unique:
+            unique.append(c)
+
+    choices = unique
 
     parser.add_argument(shortArg,
                         longArg,
