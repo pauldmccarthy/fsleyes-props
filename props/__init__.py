@@ -266,7 +266,7 @@ will be made available in the ``props`` package namespace:
 """
 
 
-__version__ = '0.9a'
+__version__ = '0.9b'
 
 
 import sys
