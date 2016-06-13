@@ -473,6 +473,23 @@ class ListPropertyBase(PropertyBase):
             listAttributes=self._defaultConstraints,
             itemAttributes=itemAttributes)
 
+
+    def enableItem(self, instance, index):
+        """Enables the item at the given ``index``.  See :meth:`disableItem`.
+        """
+        self.getPropValList(instance)[index].setAttribute('enabled', True)
+
+    
+    def disableItem(self, instance, index):
+        """Disables the item at the given ``index``.  See
+        :meth:`PropertyBase.disable`.
+
+        .. note:: ``ListPropertyBase`` items cannot actually be disabled
+                  at this point in time - all this method does is set the
+                  ``'enabled'`` attribute of the item to ``False``.
+        """ 
+        self.getPropValList(instance)[index].setAttribute('enabled', False)
+
         
     def getPropValList(self, instance):
         """Returns the list of ``PropertyValue`` objects which represent the
@@ -817,14 +834,30 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
             self.disableNotification(propName) 
 
 
-    def enableProperty(self, propName):
-        """Enables the given property - see :meth:`PropertyBase.enable`."""
-        self.getProp(propName).enable(self)
+    def enableProperty(self, propName, index=None):
+        """Enables the given property.
+
+        If an ``index`` is provided, it is assumed that the property is a
+        list property (a :class:`ListPropertyBase`).
+
+        See :meth:`PropertyBase.enable` and
+        :meth:`ListPropertyBase.enableItem`.
+        """
+        if index is not None: self.getProp(propName).enableItem(self, index)
+        else:                 self.getProp(propName).enable(    self)
 
         
-    def disableProperty(self, propName):
-        """Disables the given property - see :meth:`PropertyBase.disable`."""
-        self.getProp(propName).disable(self)
+    def disableProperty(self, propName, index=None):
+        """Disables the given property - see :meth:`PropertyBase.disable`.
+
+        If an ``index`` is provided, it is assumed that the property is a
+        list property (a :class:`ListPropertyBase`).
+
+        See :meth:`PropertyBase.disable` and
+        :meth:`ListPropertyBase.disableItem`.
+        """
+        if index is not None: self.getProp(propName).disableItem(self, index)
+        else:                 self.getProp(propName).disable(    self) 
 
 
     def propertyIsEnabled(self, propName):
