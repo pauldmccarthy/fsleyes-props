@@ -845,6 +845,17 @@ def _callAllListeners(propVals, att, name=None, value=None):
     # are triggered by immediate listener calls
     q.hold()
 
+    # Get the function from a
+    # properties_value.Listener
+    # instance.
+    def getFunc(listener):
+        func = l.function
+
+        if isinstance(func, properties_value.WeakFunctionRef):
+            func = func.function()
+            
+        return func
+
     try:
         for i, pv in enumerate(propVals):
 
@@ -864,10 +875,6 @@ def _callAllListeners(propVals, att, name=None, value=None):
             for listeners, args in [(cListeners, cArgs), (pListeners, pArgs)]:
 
                 for l in listeners:
-                    func = l.function
-
-                    if isinstance(func, properties_value.WeakFunctionRef):
-                        func = func.function()
 
                     # The listener may have been removed/disabled
                     # due to another immediate listener
@@ -876,15 +883,23 @@ def _callAllListeners(propVals, att, name=None, value=None):
 
                     # Call the listener function directly
                     if l.immediate:
-                        func(*args)
+                        getFunc(l)(*args)
 
                     # Or add it to the queue
                     else:
-                        queued.append((func, l.makeQueueName(), args))
+                        queued.append((l, args))
 
     # Make sure the queue is freed
     finally:
         q.release()
+
+    # Some listeners may have been disabled/removed
+    # as the result of the execution of another
+    # listener, so we only want to re-queue the ones
+    # that are still active.
+    queued = [(getFunc(l), l.makeQueueName(), a)
+              for l, a in queued
+              if l.enabled]
 
     # Append any held functions on to the
     # end of the call list, so they are
