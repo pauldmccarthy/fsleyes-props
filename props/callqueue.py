@@ -126,6 +126,13 @@ class CallQueue(object):
 
             self.__debug(call, 'Dequeueing function', 'from queue')
             call.execute = False
+
+        # Check the held queue as well
+        for call in self.__held:
+            if call.name == name:
+                self.__debug(call, 'Dequeueing held function', 'from queue')
+                call.execute = False
+            
         
 
     def call(self, func, name, args):
@@ -180,7 +187,7 @@ class CallQueue(object):
         
         held = self.__held
         self.__held = []
-        return held
+        return [(c.func, c.name, c.args) for c in held if c.execute]
 
         
     def __call(self):
@@ -235,7 +242,7 @@ class CallQueue(object):
 
         if self.__holding > 0:
             self.__debug(call, 'Holding function')
-            self.__held.append((call.func, call.name, call.args))
+            self.__held.append(call)
             return False
 
         # Skip this function if there are already
