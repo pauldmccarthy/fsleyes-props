@@ -34,7 +34,6 @@ date = datetime.date.today()
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
-    'sphinx.ext.viewcode',
     'sphinx.ext.mathjax',
 #     'sphinxcontrib.restbuilder',
 ]
@@ -356,7 +355,7 @@ epub_exclude_files = ['search.html']
 autoclass_content = 'both'
 
 # Document private members
-autodoc_default_flags = ['private-members']
+autodoc_default_flags = []
 
 # Documentation for python modules is in the same order
 # as the source code.
