@@ -81,7 +81,11 @@ Dependencies
 
 `props` depends upon the following libraries:
 
-| [numpy](http://www.numpy.org/)                 | 1.11.0  |
-| [matplotlib](http://matplotlib.org/)           | 1.5.1   |
-| [six](https://pythonhosted.org/six/)           | 1.10.0  |
-| [Sphinx](http://www.sphinx-doc.org/en/stable/) | 1.4.1   | 
+| Library                                                       | Version |
+| ------------------------------------------------------------- | ------- |
+| [matplotlib](http://matplotlib.org/)                          | 1.5.1   |
+| [numpy](http://www.numpy.org/)                                | 1.11.0  |
+| [six](https://pythonhosted.org/six/)                          | 1.10.0  |
+| [Sphinx](http://www.sphinx-doc.org/en/stable/)                | 1.4.1   |
+| [Sphinx RTD theme](https://github.com/snide/sphinx_rtd_theme) | 0.1.9   |
+| [wxPython](http://wxpython.org/)                              | 3.0.2.0 |
