@@ -74,3 +74,16 @@ Example usage
 # Remove a previously added listener
 >>> myPropObj.removeListener('myListener')
 ```
+
+
+Dependencies
+------------
+
+`props` depends upon the following libraries:
+
+| [numpy](http://www.numpy.org/)                 | 1.11.0  |
+| [scipy](http://www.scipy.org/)                 | 0.17.0  |
+| [matplotlib](http://matplotlib.org/)           | 1.5.1   |
+| [nibabel](http://nipy.org/nibabel/)            | 2.0.2   |
+| [six](https://pythonhosted.org/six/)           | 1.10.0  |
+| [Sphinx](http://www.sphinx-doc.org/en/stable/) | 1.4.1   | 
