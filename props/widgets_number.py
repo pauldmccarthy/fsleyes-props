@@ -35,6 +35,7 @@ def _Number(
         showLimits=True,
         editLimits=True,
         mousewheel=False,
+        increment=None,
         **kwargs):
     """Creates and returns a widget allowing the user to edit the given
     :class:`.Number` property value.
@@ -62,6 +63,10 @@ def _Number(
     :arg mousewheel: If ``True``, mouse wheel events on the spin/slider
                      control(s) will change the value.
 
+    :arg increment:  If ``spin=True``, the increment/step size to be used when
+                     increasing/decreasing the value. If not provided, a
+                     suitable increment is calculated.
+
     See the :func:`.widgets._String` documentation for details on the
     parameters.
     """
@@ -74,7 +79,12 @@ def _Number(
     isRange = (minval is not None) and (maxval is not None)
 
     if (not isRange) or (not slider):
-        return _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel)
+        return _makeSpinBox(parent,
+                            hasProps,
+                            propObj,
+                            propVal,
+                            mousewheel,
+                            increment)
     
     else:
         return _makeSlider(parent,
@@ -87,7 +97,7 @@ def _Number(
                            mousewheel)
 
 
-def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel):
+def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel, increment):
     """Used by the :func:`_Number` function.
 
     Creates a :class:`.FloatSpinCtrl` and binds it to the given
@@ -96,6 +106,10 @@ def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel):
     See :func:`_Number` for details on the parameters.
     """
 
+    if not isinstance(propObj, (ptypes.Int, ptypes.Real)):
+        raise TypeError('Unrecognised property type: {}'.format(
+            propObj.__class__.__name__))
+    
     def getMinVal(val):
         if val is not None: return val
         if   isinstance(propObj, ptypes.Int):  return -2 ** 31 + 1
@@ -110,28 +124,22 @@ def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel):
     minval  = propVal.getAttribute('minval')
     maxval  = propVal.getAttribute('maxval')
     isRange = (minval is not None) and (maxval is not None)
-
-    minval    = getMinVal(minval)
-    maxval    = getMaxVal(maxval)
-    increment = 0
+    minval  = getMinVal(minval)
+    maxval  = getMaxVal(maxval)
 
     if mousewheel: style = floatspin.FSC_MOUSEWHEEL
     else:          style = 0
 
-    if   isinstance(propObj, ptypes.Int):
-        increment  = 1
+    if isinstance(propObj, ptypes.Int):
         style     |= floatspin.FSC_INTEGER
 
-    elif isinstance(propObj, ptypes.Real):
+    if increment is None:
+        if isinstance(propObj, ptypes.Int):
+            increment = 1
 
-        if isRange: increment = (maxval - minval) / 100.0
-        else:       increment = 0.5
-
-        increment = increment
-                
-    else:
-        raise TypeError('Unrecognised property type: {}'.format(
-            propObj.__class__.__name__))
+        elif isinstance(propObj, ptypes.Real):
+            if isRange: increment = (maxval - minval) / 100.0
+            else:       increment = 0.5
 
     spin = floatspin.FloatSpinCtrl(
         parent,
