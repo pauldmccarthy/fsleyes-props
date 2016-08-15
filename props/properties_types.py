@@ -389,6 +389,7 @@ class Choice(props.PropertyBase):
         kwargs['alternates']    = dict(alternates)
         kwargs['altLists']      = dict(altLists)
         kwargs['choiceEnabled'] = enabled
+        kwargs['allowStr']      = allowStr
         kwargs['default']       = kwargs.get('default',      default)
         kwargs['allowInvalid']  = kwargs.get('allowInvalid', False)
 
@@ -468,7 +469,16 @@ class Choice(props.PropertyBase):
         elif isinstance(alternates, (list, tuple)):
             alternates = {c : a for (c, a) in zip(choices, alternates)}
         elif isinstance(alternates, dict):
-            alternates = dict(alternates) 
+            alternates = dict(alternates)
+
+        # Add stringified versions of all
+        # choices if allowStr is True
+        if self.getConstraint(instance, 'allowStr'):
+            for c in choices:
+                strc = str(c)
+                alts = alternates[c]
+                if strc not in alts:
+                    alts.append(strc) 
 
         if len(choices) != len(alternates):
             raise ValueError('Alternates are required for every choice')
@@ -480,9 +490,15 @@ class Choice(props.PropertyBase):
         """Adds a new choice to the list of possible choices."""
 
         if alternate is None: alternate = []
+        else:                 alternate = list(alternate)
 
         choices  = list(self.getConstraint(instance, 'choices'))
         altLists = dict(self.getConstraint(instance, 'altLists'))
+
+        if self.getConstraint(instance, 'allowStr'):
+            strc = str(choice)
+            if strc not in alternate:
+                alternate.append(strc) 
 
         choices.append(choice)
         altLists[choice] = list(alternate)
