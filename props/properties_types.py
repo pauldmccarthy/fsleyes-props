@@ -395,6 +395,14 @@ class Choice(props.PropertyBase):
 
         props.PropertyBase.__init__(self, **kwargs)
 
+
+    def setDefault(self, default, instance=None):
+        """Sets the default choice value. """
+        if default not in self.getChoices(instance):
+            raise ValueError('{} is not a choice'.format(default))
+
+        self.setConstraint(instance, 'default', default)
+
         
     def enableChoice(self, choice, instance=None):
         """Enables the given choice. """
