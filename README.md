@@ -13,7 +13,8 @@ Documentation
 
 
 Developer documentation is available at
-http://users.fmrib.ox.ac.uk/~paulmc/props/index.html
+http://users.fmrib.ox.ac.uk/~paulmc/props/index.html. Dependencies are listed
+in [requirements.txt](requirements.txt).
 
 
 ``props`` is documented using [sphinx](http://http://sphinx-doc.org/). The
@@ -74,18 +75,3 @@ Example usage
 # Remove a previously added listener
 >>> myPropObj.removeListener('myListener')
 ```
-
-
-Dependencies
-------------
-
-`props` depends upon the following libraries:
-
-| Library                                                       | Version |
-| ------------------------------------------------------------- | ------- |
-| [matplotlib](http://matplotlib.org/)                          | 1.5.1   |
-| [numpy](http://www.numpy.org/)                                | 1.11.0  |
-| [six](https://pythonhosted.org/six/)                          | 1.10.0  |
-| [Sphinx](http://www.sphinx-doc.org/en/stable/)                | 1.4.1   |
-| [Sphinx RTD theme](https://github.com/snide/sphinx_rtd_theme) | 0.1.9   |
-| [wxPython](http://wxpython.org/)                              | 3.0.2.0 |

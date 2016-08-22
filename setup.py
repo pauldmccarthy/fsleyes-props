@@ -5,10 +5,16 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
+import os.path as op
+
 from setuptools import setup
 from setuptools import find_packages
 
 import props
+
+basedir = op.dirname(__file__)
+
+install_requires = open(op.join(basedir, 'requirements.txt', 'rt')).readlines()
 
 setup(
 
@@ -37,7 +43,5 @@ setup(
 
     packages=find_packages(exclude=('doc')),
 
-    install_requires=[
-        'matplotlib>=1.3',
-        'numpy>=1.8']
+    install_requires=install_requires
 )
