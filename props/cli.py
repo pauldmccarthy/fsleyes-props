@@ -353,12 +353,16 @@ def _Bounds(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """ 
     ndims = getattr(propCls, propName)._ndims
     real  = getattr(propCls, propName)._real
+
+    metavar = tuple(['LO', 'HI'] * ndims)
+
     if real: bType = float
     else:    bType = int
+
     parser.add_argument(shortArg,
                         longArg,
                         help=propHelp,
-                        metavar='N',
+                        metavar=metavar,
                         type=bType,
                         nargs=2 * ndims)
 
@@ -380,17 +384,30 @@ def _Point(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
                         nargs=ndims)
 
 
-def _Colour(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
+def _Colour(parser,
+            propObj,
+            propCls,
+            propName,
+            propHelp,
+            shortArg,
+            longArg,
+            alpha=True):
     """Adds an argument to the given parser for the given :class:`.Colour`
     property. See the :func:`_String` documentation for details on the
     parameters.
     """
+    if alpha:
+        metavar = ('R', 'G', 'B', 'A')
+        nargs   = 4
+    else:
+        metavar = ('R', 'G', 'B')
+        nargs   = 3
     parser.add_argument(shortArg,
                         longArg,
                         help=propHelp,
-                        metavar=('R', 'G', 'B', 'A'),
+                        metavar=metavar,
                         type=float,
-                        nargs=4) 
+                        nargs=nargs)
 
     
 def _ColourMap(parser,
