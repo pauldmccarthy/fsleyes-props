@@ -65,17 +65,9 @@ def _Bounds(parent,
     ndims   = propObj._ndims
     real    = propObj._real
     clamped = propObj.getListType().getConstraint(None, 'clamped')
-    panel   = wx.Panel(parent, style=wx.WANTS_CHARS)
-    sizer   = wx.BoxSizer(wx.VERTICAL)
 
     if labels is None:
         labels = [None] * 2 * ndims
-    
-    panel.SetSizer(sizer)
-
-    # We implement tab-based keyboard 
-    # navigation on the spin controls
-    navOrder = []
 
     for i in range(ndims):
         minDistance = propObj.getConstraint(hasProps, 'minDistance')
@@ -99,7 +91,7 @@ def _Bounds(parent,
             if not clamped: style |= rangeslider.RSSP_NO_LIMIT
 
             slider = rangeslider.RangeSliderSpinPanel(
-                panel,
+                parent,
                 minValue=minval,
                 maxValue=maxval,
                 lowValue=loval,
@@ -108,9 +100,6 @@ def _Bounds(parent,
                 highLabel=labels[i * 2 + 1],
                 minDistance=minDistance,
                 style=style)
-
-            navOrder.append(slider.lowSpin)
-            navOrder.append(slider.highSpin)
             
         elif slider or spin:
 
@@ -122,7 +111,7 @@ def _Bounds(parent,
             if not clamped: style |= rangeslider.RP_NO_LIMIT
 
             slider = rangeslider.RangePanel(
-                panel,
+                parent,
                 minValue=minval,
                 maxValue=maxval,
                 lowValue=loval,
@@ -132,57 +121,12 @@ def _Bounds(parent,
                 minDistance=minDistance,
                 style=style)
 
-            if spin:
-                navOrder.append(slider.lowWidget)
-                navOrder.append(slider.highWidget)
-
         else:
             raise ValueError('One of slider or spin must be True')
 
-        sizer.Add(slider, flag=wx.EXPAND)
-
         _boundBind(hasProps, propObj, slider, propVal, i, editLimits)
 
-        if len(navOrder) > 0:
-            def onCharHook(ev):
-
-                key = ev.GetKeyCode()
-
-                if key != wx.WXK_TAB:
-                    ev.Skip()
-                    return
-
-                # Get the widget that has focus
-                try:
-                    focusIdx = navOrder.index(wx.Window.FindFocus())
-
-                # Some other widget that we 
-                # don't care about has focus.
-                except:
-                    ev.Skip()
-                    return
-
-                if ev.ShiftDown(): offset = -1
-                else:              offset =  1
-
-                # Get the next widget in
-                # the tab traversal order
-                nextIdx = (focusIdx + offset) % len(navOrder)
-
-                # Search for the next enabled widget
-                while not navOrder[nextIdx].IsEnabled():
-
-                    if nextIdx == focusIdx:
-                        break
-
-                    nextIdx = (nextIdx + offset) % len(navOrder)
-
-                navOrder[nextIdx].SetFocus()
-
-            panel.Bind(wx.EVT_CHAR_HOOK, onCharHook)
-
-    panel.Layout()
-    return panel
+    return slider
 
 
 def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
