@@ -20,7 +20,7 @@ import contextlib
 
 
 @contextlib.contextmanager
-def suppress(hasProps, propName):
+def suppress(hasProps, propName, notify=False):
     """Suppress notification for the given property on the given
     :class:`.HasProperties` instance.
 
@@ -30,11 +30,16 @@ def suppress(hasProps, propName):
 
 
     :arg hasProps: ``HasProperties`` instance.
+    
     :arg propName: Property to suppress notifications for.
+    
+    :arg notify:   If ``True``, a notification will be triggered
+                   on ``propName`` via :meth:`.HasProperties.notify`,
+                   exit. Defaults to ``False``.
 
-    
+
     This function is intended to be used as follows::
-    
+
         with suppress(hasProps1, 'prop1'):
             # Do stuff which might cause unwanted
             # property value notifications to occur
@@ -49,6 +54,9 @@ def suppress(hasProps, propName):
     finally:
         hasProps.setNotificationState(propName, state)
 
+    if notify:
+        hasProps.notify(propName)
+
 
 @contextlib.contextmanager
 def suppressAll(hasProps):
@@ -57,11 +65,13 @@ def suppressAll(hasProps):
 
     :arg hasProps: The ``HasProperties`` instance to suppress.
 
+
     This function is intended to be used as follows::
 
         with suppressAll(hasProps):
             # Do stuff which might cause unwanted 
             # property value notifications to occur
+
 
     .. note:: After this function has completed. notification
               will be enabled for all properties of ``hasProps``.
