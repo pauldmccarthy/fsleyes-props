@@ -13,6 +13,7 @@ props package
    props.properties_types
    props.properties_value
    props.serialise
+   props.suppress
    props.syncable
    props.trace
    props.widgets
