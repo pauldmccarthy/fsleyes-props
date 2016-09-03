@@ -187,6 +187,10 @@ API overview
 ------------
 
 
+Property types
+^^^^^^^^^^^^^^
+
+
 The following classes are provided as building-blocks for your application
 code:
 
@@ -207,7 +211,11 @@ code:
    ~props.properties_types.Colour
    ~props.properties_types.ColourMap
    ~props.properties_types.Bounds
-   ~props.properties_types.Point 
+   ~props.properties_types.Point
+
+
+Command line and string serialisation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 The following functions are provided to manage command-line argument
@@ -230,6 +238,10 @@ property values to/from strings (equivalent methods are also available on
 
    ~props.serialise.serialise
    ~props.serialise.deserialise
+
+
+GUI specification/generation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 The following classes are provided for you to create GUI specifications:
@@ -263,6 +275,13 @@ will be made available in the ``props`` package namespace:
    ~props.widgets.bindListWidgets
    ~props.build.buildGUI
    ~props.build.buildDialog
+
+
+Miscellaneous
+^^^^^^^^^^^^^
+
+The :func:`.suppress` module provides some context managers allowing
+notification of properties to be suppressed in a ``with`` statement.
 """
 
 
@@ -327,6 +346,10 @@ from .build_parts import (
     NotebookGroup,
     HGroup, 
     VGroup)
+
+from .suppress import (
+    suppress,
+    suppressAll)
 
 
 def initGUI():
