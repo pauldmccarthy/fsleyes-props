@@ -305,7 +305,8 @@ from .properties_value import (
 
 from .bindable import (
     bindPropVals,
-    propValsAreBound)
+    propValsAreBound,
+    Bidict)
 
 from .properties_types import (
     Object,
