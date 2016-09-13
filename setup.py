@@ -14,7 +14,7 @@ import props
 
 basedir = op.dirname(__file__)
 
-install_requires = open(op.join(basedir, 'requirements.txt', 'rt')).readlines()
+install_requires = open(op.join(basedir, 'requirements.txt'), 'rt').readlines()
 
 setup(
 
