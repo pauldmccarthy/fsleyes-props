@@ -599,7 +599,7 @@ class Choice(props.PropertyBase):
                 propVal.notifyAttributeListeners('choices', choices)
 
             if propVal.get() != oldChoice:
-                propVal.notify()
+                propVal.propNotify()
 
         
     def validate(self, instance, attributes, value):
@@ -1641,7 +1641,7 @@ class ArrayProxy(propvals.PropertyValue):
         self.set(array)
         
         self.setNotificationState(notifState)
-        self.notify()
+        self.propNotify()
 
         
 class Array(props.PropertyBase):

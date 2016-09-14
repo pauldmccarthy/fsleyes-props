@@ -261,7 +261,7 @@ def syncAndNotify(self):
     """Synchronises the value contained in all bound :class:`.PropertyValue`
     instances with the value contained in this instance, and notifies all
     registered listeners of the value change. This method is called by the
-    :meth:`.PropertyValue.notify` method.
+    :meth:`.PropertyValue.propNotify` method.
     """
 
     from . import properties_value

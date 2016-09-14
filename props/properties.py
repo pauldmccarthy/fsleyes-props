@@ -867,13 +867,13 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         return self.getProp(propName).isEnabled(self)
 
 
-    def notify(self, propName):
+    def propNotify(self, propName):
         """Force notification of listeners on the given property. This will
         have no effect if notification for the property is disabled.
 
-        See the :meth:`.PropertyValue.notify` method.
+        See the :meth:`.PropertyValue.propNotify` method.
         """
-        self.getPropVal(propName).notify()
+        self.getPropVal(propName).propNotify()
 
 
     def getConstraint(self, propName, constraint):

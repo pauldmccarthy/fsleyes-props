@@ -857,9 +857,9 @@ class PropertyValue(object):
 
         The property is validated and, if the property value or its validity
         has changed, any registered listeners are called through the
-        :meth:`notify` method.  If ``allowInvalid`` was set to ``False``, and
-        the new value is not valid, a :exc:`ValueError` is raised, and
-        listeners are not notified.
+        :meth:`propNotify` method.  If ``allowInvalid`` was set to
+        ``False``, and the new value is not valid, a :exc:`ValueError` is
+        raised, and listeners are not notified.
         """
 
         # cast the value if necessary.
@@ -912,10 +912,10 @@ class PropertyValue(object):
             'valid' if valid else 'invalid - {}'.format(validStr)))
         
         # Notify any registered listeners. 
-        self.notify()
+        self.propNotify()
 
 
-    def notify(self):
+    def propNotify(self):
         """Notifies registered listeners - see the
         :func:`.bindable.syncAndNotify` function.
         """
@@ -1191,7 +1191,7 @@ class PropertyValueList(PropertyValue):
     def _listPVChanged(self, pv):
         """This function is called by list items when their value changes.
         List-level listeners are notified of the change. See the
-        :meth:`PropertyValue.notify` method.
+        :meth:`PropertyValue.propNotify` method.
         """
 
         if self.getNotificationState():
@@ -1201,7 +1201,7 @@ class PropertyValueList(PropertyValue):
                           self._name,
                           pv,
                           self[:]))
-            self.notify()
+            self.propNotify()
     
     
     def __getitem__(self, key):
@@ -1363,7 +1363,7 @@ class PropertyValueList(PropertyValue):
                 self._context().__class__.__name__,
                 self._name,
                 id(self._context()))) 
-            self.notify()
+            self.propNotify()
 
             log.debug('Notifying item-level listeners ({}.{} {})'.format(
                 self._context().__class__.__name__,
@@ -1380,7 +1380,7 @@ class PropertyValueList(PropertyValue):
         
             for idx in indices:
                 if changedVals[idx]:
-                    propVals[idx].notify()
+                    propVals[idx].propNotify()
 
             self.setNotificationState(notifState)
 

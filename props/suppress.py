@@ -34,7 +34,7 @@ def suppress(hasProps, propName, notify=False):
     :arg propName: Property to suppress notifications for.
     
     :arg notify:   If ``True``, a notification will be triggered
-                   on ``propName`` via :meth:`.HasProperties.notify`,
+                   on ``propName`` via :meth:`.HasProperties.propNotify`,
                    exit. Defaults to ``False``.
 
 
@@ -55,7 +55,7 @@ def suppress(hasProps, propName, notify=False):
         hasProps.setNotificationState(propName, state)
 
     if notify:
-        hasProps.notify(propName)
+        hasProps.propNotify(propName)
 
 
 @contextlib.contextmanager
