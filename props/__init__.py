@@ -350,7 +350,8 @@ from .build_parts import (
 
 from .suppress import (
     suppress,
-    suppressAll)
+    suppressAll,
+    skip)
 
 
 def initGUI():

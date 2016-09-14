@@ -920,6 +920,16 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         self.getPropVal(propName).disableListener(name)
 
 
+    def getListenerState(self, propName, name):
+        """See :meth:`.PropertyValue.getListenerState`. """
+        self.getPropVal(propName).getListenerState(name)
+
+
+    def setListenerState(self, propName, name, state):
+        """See :meth:`.PropertyValue.setListenerState`. """
+        self.getPropVal(propName).setListenerState(name, state) 
+
+
     def hasListener(self, propName, name):
         """Returns ``True`` if a listener is registered on the given property,
         ``False`` otherwise.

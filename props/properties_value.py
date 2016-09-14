@@ -819,6 +819,27 @@ class PropertyValue(object):
         self._changeListeners[name].enabled = False
 
 
+    def getListenerState(self, name):
+        """Returns ``True`` if the specified listener is currently enabled,
+        ``False`` otherwise.
+
+        An :exc:`AttributeError` is raised if a listener with the specified
+        ``name`` does not exist.
+        """
+
+        fullName = self.__saltListenerName(name)
+        listener = self._changeListeners.get(fullName, None)
+
+        return listener.enabled
+
+
+    def setListenerState(self, name, state):
+        """Enables/disables the specified listener. """
+
+        if state: self.enableListener(name)
+        else:     self.disableListener(name)
+
+
     def hasListener(self, name):
         """Returns ``True`` if a listener with the given name is registered,
         ``False`` otherwise.

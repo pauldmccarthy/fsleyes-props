@@ -13,6 +13,7 @@ property values.
 
    suppress
    suppressAll
+   skip
 """
 
 
@@ -86,3 +87,24 @@ def suppressAll(hasProps):
         yield
     finally:
         hasProps.enableAllNotification()
+
+
+@contextlib.contextmanager
+def skip(hasProps, propName, listenerName):
+    """Skip the listener with the specified listener name, if/when
+    changes to the specified property occur.
+
+    :arg hasProps:     A :class:`.HasProperties` instance.
+    :arg propName:     Name of a property on ``hasProps``.
+    :arg listenerName: Name of the listener to skip.
+    """
+
+    state = hasProps.getListenerState(propName, listenerName)
+
+    hasProps.disableListener(propName, listenerName)
+
+    try:
+        yield
+        
+    finally:
+        hasProps.setListenerState(propName, listenerName, state)
