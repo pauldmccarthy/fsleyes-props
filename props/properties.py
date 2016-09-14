@@ -876,18 +876,20 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         self.getPropVal(propName).propNotify()
 
 
-    def getConstraint(self, propName, constraint):
+    @classmethod
+    def getConstraint(cls, propName, constraint):
         """Convenience method, returns the value of the named constraint for
         the named property. See :meth:`PropertyBase.getConstraint`.
         """
-        return self.getProp(propName).getConstraint(self, constraint)
+        return cls.getProp(propName).getConstraint(cls, constraint)
 
-        
-    def setConstraint(self, propName, constraint, value):
+
+    @classmethod
+    def setConstraint(cls, propName, constraint, value):
         """Convenience method, sets the value of the named constraint for
         the named property. See :meth:`PropertyBase.setConstraint`.
         """ 
-        return self.getProp(propName).setConstraint(self, constraint, value)
+        return cls.getProp(propName).setConstraint(cls, constraint, value)
 
 
     def addListener(self, propName, *args, **kwargs):
