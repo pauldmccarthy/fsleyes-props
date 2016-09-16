@@ -922,7 +922,7 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
 
     def getListenerState(self, propName, name):
         """See :meth:`.PropertyValue.getListenerState`. """
-        self.getPropVal(propName).getListenerState(name)
+        return self.getPropVal(propName).getListenerState(name)
 
 
     def setListenerState(self, propName, name, state):
