@@ -187,6 +187,7 @@ API overview
 ------------
 
 
+^^^^^^^^^^^^^^
 Property types
 ^^^^^^^^^^^^^^
 
@@ -214,6 +215,7 @@ code:
    ~props.properties_types.Point
 
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Command line and string serialisation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -240,6 +242,7 @@ property values to/from strings (equivalent methods are also available on
    ~props.serialise.deserialise
 
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 GUI specification/generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -277,6 +280,7 @@ will be made available in the ``props`` package namespace:
    ~props.build.buildDialog
 
 
+^^^^^^^^^^^^^
 Miscellaneous
 ^^^^^^^^^^^^^
 
@@ -285,7 +289,7 @@ notification of properties to be suppressed in a ``with`` statement.
 """
 
 
-__version__ = '0.9.7'
+__version__ = '0.9.8'
 
 
 import sys
