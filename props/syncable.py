@@ -410,6 +410,9 @@ class SyncableHasProperties(six.with_metaclass(SyncablePropertyOwner,
 
         bindPropName = self._saltSyncPropertyName(propName)
 
+        if getattr(self, bindPropName):
+            return 
+
         with suppress.suppress(self, bindPropName):
             setattr(self, bindPropName, True)
 
@@ -432,6 +435,9 @@ class SyncableHasProperties(six.with_metaclass(SyncablePropertyOwner,
                                'parent'.format(propName))        
         
         bindPropName = self._saltSyncPropertyName(propName)
+
+        if not getattr(self, bindPropName):
+            return
 
         with suppress.suppress(self, bindPropName):
             setattr(self, bindPropName, False)
