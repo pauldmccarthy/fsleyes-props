@@ -63,6 +63,7 @@ import logging
 import six
 
 from . import properties       as props
+from . import suppress         as suppress
 from . import properties_types as types
 
 
@@ -408,7 +409,11 @@ class SyncableHasProperties(six.with_metaclass(SyncablePropertyOwner,
                                'parent'.format(propName))
 
         bindPropName = self._saltSyncPropertyName(propName)
-        setattr(self, bindPropName, True)
+
+        with suppress.suppress(self, bindPropName):
+            setattr(self, bindPropName, True)
+
+        self._syncPropChanged(None, None, None, bindPropName)
 
     
     def unsyncFromParent(self, propName):
@@ -427,7 +432,11 @@ class SyncableHasProperties(six.with_metaclass(SyncablePropertyOwner,
                                'parent'.format(propName))        
         
         bindPropName = self._saltSyncPropertyName(propName)
-        setattr(self, bindPropName, False)
+
+        with suppress.suppress(self, bindPropName):
+            setattr(self, bindPropName, False)
+
+        self._syncPropChanged(None, None, None, bindPropName)
 
 
     def syncAllToParent(self):
