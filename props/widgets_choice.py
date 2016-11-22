@@ -28,6 +28,7 @@ def _Choice(parent,
             propVal,
             labels=None,
             icons=None,
+            fixChoices=None,
             style=None,
             **kwargs):
     """Creates and returns a widget allowing the user to modify the given
@@ -38,35 +39,40 @@ def _Choice(parent,
     argument is specified, a :class:`.BitmapRadioBox` is used instead.
 
 
-    :arg labels:  A dict of ``{choice : label}`` mappings, specifying the
-                  label to be displayed for each choice. If not provided,
-                  the string representation of each choice is used. Not
-                  used if the ``icons`` argument is specified.
+    :arg labels:     A dict of ``{choice : label}`` mappings, specifying the
+                     label to be displayed for each choice. If not provided,
+                     the string representation of each choice is used. Not
+                     used if the ``icons`` argument is specified.
     
-                  .. note:: If the ``Choice`` property is dynamic (i.e.
-                            choices are going to be added/removed during
-                            program execution), you must ensure that the
-                            ``labels`` dictionary contains a value for
-                            all possible choices, not just the initial
-                            choices.
+                     .. note:: If the ``Choice`` property is dynamic (i.e.
+                               choices are going to be added/removed during
+                               program execution), you must ensure that the
+                               ``labels`` dictionary contains a value for
+                               all possible choices, not just the initial
+                               choices.
 
-                            As an alternative to passing in a ``dict``, you
-                            may also set ``labels`` to a function. In this
-                            case, the ``labels`` function must accept a single
-                            choice value as its only argument, and return a
-                            label for that choice. 
+                               As an alternative to passing in a ``dict``, you
+                               may also set ``labels`` to a function. In this
+                               case, the ``labels`` function must accept a 
+                               single choice value as its only argument, and 
+                               return a label for that choice. 
 
-    :arg icons:   If provided, a :class:`.BitmapRadioBox` is used instead of a
-                  ``wx.Choice`` widget. The ``icons`` should be a dictionary
-                  of ``{ choice : imageFile}`` mappings, containing an icon
-                  files to be used for each choice. The ``icons`` dictionary
-                  may alternately contain ``{ choice : (selectedImageFile,
-                  unselectedImageFile) }`` mappings, which specifies separate
-                  icons to be used when the corresponding choice is selected
-                  or not selected.
+    :arg icons:      If provided, a :class:`.BitmapRadioBox` is used instead 
+                     of a ``wx.Choice`` widget. The ``icons`` should be a
+                     dictionary of ``{ choice : imageFile}`` mappings,
+                     containing an icon files to be used for each choice. The
+                     ``icons`` dictionary may alternately contain ``{ choice :
+                     (selectedImageFile, unselectedImageFile) }`` mappings,
+                     which specifies separate icons to be used when the
+                     corresponding choice is selected or not selected.
 
-    :arg style:   Passed through to the :meth:`.BitmapRadioBox.__init__` 
-                  method. Not used if no ``icons`` were provided.
+    :arg fixChoices: If provided, must be a sequence of valid choice values.
+                     If provided, the widget will be limited to displaying
+                     only these choices. All other possible choice values
+                     will be ignored.
+
+    :arg style:      Passed through to the :meth:`.BitmapRadioBox.__init__` 
+                     method. Not used if no ``icons`` were provided.
 
     
     See the :func:`.widgets._String` documentation for details on the other
@@ -77,6 +83,13 @@ def _Choice(parent,
     # shared by the inner functions defined
     # below, and updated in choicesChanged
     choices = [propObj.getChoices(hasProps)]
+
+    # If fixChoices is provided, the choices
+    # are fixed (and the fixChoices variable
+    # is turned into a boolean).
+    if fixChoices is not None:
+        choices    = [list(fixChoices)]
+        fixChoices = True
 
     # If we have been given some icons, we will use
     # a BitmapRadioBox, which has a toggle button
@@ -120,7 +133,8 @@ def _Choice(parent,
         if name not in ('choices', 'choiceEnabled'):
             return
 
-        choices[0] = propObj.getChoices(hasProps)
+        if not fixChoices:
+            choices[0] = propObj.getChoices(hasProps)
         curLabels  = []
 
         if labels is None:
