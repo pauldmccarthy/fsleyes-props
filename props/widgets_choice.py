@@ -157,9 +157,9 @@ def _Choice(parent,
         # it doesn't, so our only option is to hide
         # the disabled ones.
         if icons is None:
-            for i, choice in enumerate(choices[0]):
+            for ci, choice in enumerate(choices[0]):
                 if not propObj.choiceEnabled(choice, hasProps):
-                    curLabels.pop(i)
+                    curLabels.pop(ci)
                     
         log.debug('Updating options for Widget '
                   '{} ({}) from {}.{} ({}): {}'.format(
@@ -179,7 +179,7 @@ def _Choice(parent,
             # If using a BitmapRadio widget, we can
             # show all choices, but disable the
             # buttons for disabled choices
-            for i, choice in enumerate(choices[0]):
+            for ci, choice in enumerate(choices[0]):
 
                 choiceIcons = icons[choice]
 
@@ -190,9 +190,10 @@ def _Choice(parent,
 
                 # Load the image file for each choice
                 # if they have not already been loaded
-                for i, ci in enumerate(choiceIcons):
-                    if isinstance(ci, six.string_types):
-                        choiceIcons[i] = wx.Bitmap(ci, type=wx.BITMAP_TYPE_PNG)
+                for cii, icon in enumerate(choiceIcons):
+                    if isinstance(icon, six.string_types):
+                        choiceIcons[cii] = wx.Bitmap(icon,
+                                                     type=wx.BITMAP_TYPE_PNG)
 
                 # Only one bitmap specified - add
                 # a placeholder for the unselected
@@ -207,7 +208,7 @@ def _Choice(parent,
 
                 widget.AddChoice(selBmp, deselBmp)
                 if not propObj.choiceEnabled(choice, hasProps):
-                    widget.Disable(i)
+                    widget.Disable(ci)
 
         # Make sure the widget
         # selection is up to date
