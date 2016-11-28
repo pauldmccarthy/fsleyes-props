@@ -240,6 +240,13 @@ def _makeSlider(parent,
     def updateSliderRange(*a):
         minval = propVal.getAttribute('minval')
         maxval = propVal.getAttribute('maxval')
+
+        log.debug('Updating {} range from {}.{}: {} - {}'.format(
+            type(slider).__name__,
+            type(hasProps).__name__,
+            propVal._name,
+            minval,
+            maxval)) 
         
         slider.SetRange(minval, maxval)
         # TODO check that value has changed due to the range change?
