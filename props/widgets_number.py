@@ -123,6 +123,7 @@ def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel, increment):
     value   = propVal.get()
     minval  = propVal.getAttribute('minval')
     maxval  = propVal.getAttribute('maxval')
+    limited = propVal.getAttribute('clamped')
     isRange = (minval is not None) and (maxval is not None)
     minval  = getMinVal(minval)
     maxval  = getMaxVal(maxval)
@@ -132,6 +133,9 @@ def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel, increment):
 
     if isinstance(propObj, ptypes.Int):
         style     |= floatspin.FSC_INTEGER
+
+    if not limited:
+        style |= floatspin.FSC_NO_LIMIT
 
     if increment is None:
         if isinstance(propObj, ptypes.Int):
@@ -193,9 +197,10 @@ def _makeSlider(parent,
     See :func:`_Number` for details on the parameters.
     """
 
-    value  = propVal.get()
-    minval = propVal.getAttribute('minval')
-    maxval = propVal.getAttribute('maxval')
+    value   = propVal.get()
+    minval  = propVal.getAttribute('minval')
+    maxval  = propVal.getAttribute('maxval')
+    limited = propVal.getAttribute('clamped')
 
     if   isinstance(propObj, ptypes.Int):  real = False
     elif isinstance(propObj, ptypes.Real): real = True
@@ -219,12 +224,13 @@ def _makeSlider(parent,
     else:
         evt    = floatslider.EVT_SSP_VALUE
         style  = 0
-        
-        if not real:   style |= floatslider.SSP_INTEGER
-        if showLimits: style |= floatslider.SSP_SHOW_LIMITS
-        if editLimits: style |= floatslider.SSP_EDIT_LIMITS
-        if mousewheel: style |= floatslider.SSP_MOUSEWHEEL
-        
+
+        if not real:    style |= floatslider.SSP_INTEGER
+        if not limited: style |= floatslider.SSP_NO_LIMITS
+        if showLimits:  style |= floatslider.SSP_SHOW_LIMITS
+        if editLimits:  style |= floatslider.SSP_EDIT_LIMITS
+        if mousewheel:  style |= floatslider.SSP_MOUSEWHEEL
+
         slider = floatslider.SliderSpinPanel(
             parent,
             value=value,
