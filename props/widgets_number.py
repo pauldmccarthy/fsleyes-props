@@ -36,6 +36,7 @@ def _Number(
         editLimits=True,
         mousewheel=False,
         increment=None,
+        spinWidth=None,
         **kwargs):
     """Creates and returns a widget allowing the user to edit the given
     :class:`.Number` property value.
@@ -67,6 +68,9 @@ def _Number(
                      increasing/decreasing the value. If not provided, a
                      suitable increment is calculated.
 
+    :arg spinWidth:  Desired spin control width in characters. See the
+                     :class:`.FloatSpin` class.
+
     See the :func:`.widgets._String` documentation for details on the
     parameters.
     """
@@ -84,7 +88,8 @@ def _Number(
                             propObj,
                             propVal,
                             mousewheel,
-                            increment)
+                            increment,
+                            spinWidth)
     
     else:
         return _makeSlider(parent,
@@ -94,10 +99,17 @@ def _Number(
                            spin,
                            showLimits,
                            editLimits,
-                           mousewheel)
+                           mousewheel,
+                           spinWidth)
 
 
-def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel, increment):
+def _makeSpinBox(parent,
+                 hasProps,
+                 propObj,
+                 propVal,
+                 mousewheel,
+                 increment,
+                 spinWidth):
     """Used by the :func:`_Number` function.
 
     Creates a :class:`.FloatSpinCtrl` and binds it to the given
@@ -151,7 +163,8 @@ def _makeSpinBox(parent, hasProps, propObj, propVal, mousewheel, increment):
         minValue=minval,
         maxValue=maxval,
         increment=increment,
-        style=style)
+        style=style,
+        width=spinWidth)
     
     widgets._propBind(
         hasProps, propObj, propVal, spin, floatspin.EVT_FLOATSPIN)
@@ -188,7 +201,8 @@ def _makeSlider(parent,
                 showSpin,
                 showLimits,
                 editLimits,
-                mousewheel):
+                mousewheel,
+                spinWidth):
     """Used by the :func:`_Number` function.
 
     Creates and returns a :class:`.FloatSlider` or :class:`.SliderSpinPanel`,
@@ -236,7 +250,8 @@ def _makeSlider(parent,
             value=value,
             minValue=minval,
             maxValue=maxval,
-            style=style)
+            style=style,
+            spinWidth=spinWidth)
 
     # bind the slider value to the property value
     widgets._propBind(hasProps, propObj, propVal, slider, evt)
