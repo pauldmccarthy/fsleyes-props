@@ -25,6 +25,7 @@ def _Bounds(parent,
             editLimits=True,
             mousewheel=False,
             labels=None,
+            spinWidth=None,
             **kwargs):
     """Creates and returns a panel containing sliders/spinboxes which
     allow the user to edit the low/high values along each dimension of the
@@ -56,7 +57,9 @@ def _Bounds(parent,
     :arg labels:     A list of strings of length ``2 * ndims``, where ``ndims``
                      is the number of dimensions on the ``Bounds`` property;
                      the strings are used as labels on the widget.
-
+    
+    :arg spinWidth:  Desired spin control width. See the
+                     :class:`.FloatSpinCtrl` class.
     
     See the :func:`.widgets._String` documentation for details on the other
     parameters.
@@ -99,6 +102,7 @@ def _Bounds(parent,
                 lowLabel=labels[i * 2],
                 highLabel=labels[i * 2 + 1],
                 minDistance=minDistance,
+                spinWidth=spinWidth,
                 style=style)
             
         elif slider or spin:
@@ -119,6 +123,7 @@ def _Bounds(parent,
                 lowLabel=labels[i * 2],
                 highLabel=labels[i * 2 + 1],
                 minDistance=minDistance,
+                spinWidth=spinWidth,
                 style=style)
 
         else:

@@ -69,7 +69,7 @@ def _Number(
                      suitable increment is calculated.
 
     :arg spinWidth:  Desired spin control width in characters. See the
-                     :class:`.FloatSpin` class.
+                     :class:`.FloatSpinCtrl` class.
 
     See the :func:`.widgets._String` documentation for details on the
     parameters.
