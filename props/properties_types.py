@@ -1038,6 +1038,20 @@ class BoundsValueList(propvals.PropertyValueList):
         """
         return abs(self.getHi(axis) - self.getLo(axis))
 
+    
+    def setLimit(self, axis, limit, value):
+        """Sets the value for the specified axis and limit
+        (0 == low, 1 == high).
+        """ 
+        self[axis * 2 + limit] = value
+
+        
+    def getLimit(self, axis, limit):
+        """Returns the value for the specified axis and limit
+        (0 == low, 1 == high).
+        """
+        return self[axis * 2 + limit]
+
         
     def setLo(self, axis, value):
         """Set the low value for the specified axis."""        

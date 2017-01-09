@@ -69,6 +69,10 @@ def _Bounds(parent,
     real    = propObj._real
     clamped = propObj.getListType().getConstraint(None, 'clamped')
 
+    panel = wx.Panel(parent)
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    panel.SetSizer(sizer)
+
     if labels is None:
         labels = [None] * 2 * ndims
 
@@ -94,7 +98,7 @@ def _Bounds(parent,
             if not clamped: style |= rangeslider.RSSP_NO_LIMIT
 
             slider = rangeslider.RangeSliderSpinPanel(
-                parent,
+                panel,
                 minValue=minval,
                 maxValue=maxval,
                 lowValue=loval,
@@ -115,7 +119,7 @@ def _Bounds(parent,
             if not clamped: style |= rangeslider.RP_NO_LIMIT
 
             slider = rangeslider.RangePanel(
-                parent,
+                panel,
                 minValue=minval,
                 maxValue=maxval,
                 lowValue=loval,
@@ -131,7 +135,9 @@ def _Bounds(parent,
 
         _boundBind(hasProps, propObj, slider, propVal, i, editLimits)
 
-    return slider
+        sizer.Add(slider, flag=wx.EXPAND)
+
+    return panel
 
 
 def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
