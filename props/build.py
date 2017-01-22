@@ -1047,10 +1047,15 @@ def buildDialog(parent,
         cancel = wx.Button(dialog, wx.ID_CANCEL, label='Cancel')
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.Add(ok,     flag=wx.EXPAND, proportion=1)
-        btnSizer.Add(cancel, flag=wx.EXPAND, proportion=1)
+        btnSizer.Add((10, 1), flag=wx.EXPAND, proportion=1)
+        btnSizer.Add(ok,      flag=wx.EXPAND)
+        btnSizer.Add((10, 1), flag=wx.EXPAND)
+        btnSizer.Add(cancel,  flag=wx.EXPAND)
+        btnSizer.Add((10, 1), flag=wx.EXPAND, proportion=1)
 
+        sizer.Add((1, 10),  flag=wx.EXPAND)
         sizer.Add(btnSizer, flag=wx.EXPAND)
+        sizer.Add((1, 10),  flag=wx.EXPAND)
 
     dialog.Layout()
     dialog.Fit()
