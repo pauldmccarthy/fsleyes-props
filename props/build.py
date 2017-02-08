@@ -898,16 +898,17 @@ def _finaliseCallbacks(hasProps, propGui):
     # visibleWhen/enabledWhen
     # functions, so the initial
     # GUI state is valid
-    def onShow(ev):
+    def onShow(ev=None):
 
         # We only want this function
         # to be called once, so on the
         # first call, deregister the
         # wx event listener
-        ev.Skip()
-        propGui.topLevel.Unbind(wx.EVT_PAINT)
-        
-        for _, _, _, callback in propGui.onChangeCallbacks:
+        if ev is not None:
+            ev.Skip()
+            propGui.topLevel.Unbind(wx.EVT_PAINT)
+
+        for _, n, _, callback in propGui.onChangeCallbacks:
             callback()
 
     # De-register all property
@@ -942,7 +943,15 @@ def _finaliseCallbacks(hasProps, propGui):
         propGui.guiObjects        = None
 
     propGui.topLevel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
-    propGui.topLevel.Bind(wx.EVT_PAINT,          onShow)
+
+    # If the top level GUI panel is already 
+    # visible (seems to happen on GTK), call 
+    # onShow directly. Otherwise, schedule it 
+    # to be called on the first paint.
+    if propGui.topLevel.IsShownOnScreen():
+        onShow()
+    else:
+        propGui.topLevel.Bind(wx.EVT_PAINT, onShow)
 
 
 def buildGUI(parent,
