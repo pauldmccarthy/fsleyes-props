@@ -60,8 +60,6 @@ method (and de-registered via the :meth:`removeSyncChangeListener` method).
 import weakref
 import logging
 
-import six
-
 from . import properties       as props
 from . import suppress         as suppress
 from . import properties_types as types
@@ -73,40 +71,8 @@ log = logging.getLogger(__name__)
 _SYNC_SALT_ = '_sync_'
 """Constant string added to sync-related property names and listeners."""
 
-
-class SyncablePropertyOwner(props.PropertyOwner):
-    """Metaclass for the ``SyncableHasProperties`` class. Creates a
-    :class:`.Boolean` property for every other property in the class, which
-    controls whether the corresponding property is bound to the parent or not.
-    """
-
-    def __new__(cls, name, bases, attrs):
-        """Creates a new ``SyncableHasProperties`` class.
-
-        Adds a hidden boolean property for every real property which controls
-        the parent-child binding state of that property.  The logic to control
-        this is configured in the :meth:`SyncableHasProperties.__init__`
-        method.
-        """
-
-        newAttrs = dict(attrs)
-
-        for propName, propObj in attrs.items():
-            
-            if not isinstance(propObj, props.PropertyBase): continue
-
-
-            bindProp = types.Boolean(default=True)
-            newAttrs['{}{}'.format(_SYNC_SALT_, propName)] = bindProp
-
-        newCls = super(SyncablePropertyOwner, cls).__new__(
-            cls, name, bases, newAttrs)
-
-        return newCls 
-
     
-class SyncableHasProperties(six.with_metaclass(SyncablePropertyOwner,
-                                               props.HasProperties)):
+class SyncableHasProperties(props.HasProperties):
     """An extension to the ``HasProperties`` class which supports parent-child
     relationships between instances.
     """
@@ -190,85 +156,75 @@ class SyncableHasProperties(six.with_metaclass(SyncablePropertyOwner,
         
         self._nobind   = nobind
         self._nounbind = nounbind
-
-        # Get a list of all the
-        # properties of this class,
-        # including private ones
-        attNames  = dir(type(self))
-        propNames = []
-        for attName in attNames:
-            att = getattr(type(self), attName)
-
-            if isinstance(att, props.PropertyBase):
-                propNames.append(attName)
         
         # If parent is none, then this instance
         # is a 'parent' instance, and doesn't need
-        # to worry about being bound. So we'll
-        # remove all the _bind_ properties which
-        # were created by the metaclass
+        # to worry about being bound. So we've got
+        # nothing to do.
         if parent is None:
-            for propName in propNames:
-                if propName.startswith(_SYNC_SALT_):
-                    log.debug('Clearing sync property '
-                              'from parent ({}.{}) [{}]'.format(
-                                  self.__class__.__name__,
-                                  propName,
-                                  id(self)))
-                    self.__dict__[propName] = None
 
             # This array maintains a list of
             # all the children synced to this
             # parent
             self._children = []
             self._parent   = None
+            return
 
         # Otherwise, this instance is a 'child'
-        # instance - set up a binding between
-        # this instance and its parent for every
-        # property - see _initBindProperty
-        else:
+        # instance - make sure the parent is
+        # valid (of the same type)
+        if not isinstance(parent, self.__class__):
+            raise TypeError('parent is of a different type '
+                            '({} != {})'.format(parent.__class__,
+                                                self.__class__))
+ 
 
-            self._parent = weakref.ref(parent)
+        # Set up a binding between this
+        # instance and its parent
+        self._parent = weakref.ref(parent)
+        parent._children.append(weakref.ref(self))
+
+        # This dictionary contains
+        #
+        # { propName : boolean }
+        #
+        # mappings, indicating the binding
+        # direction that should be used
+        # when a property is synchronised
+        # to the parent. A value of True
+        # implies a parent -> child  binding
+        # direction (i.e. the child will
+        # inherit the value of the parent),
+        # and a value of False implies a
+        # child -> parent binding direction.
+        self._bindDirections = {}
+
+        log.debug('Binding properties of {} ({}) to parent ({})'.format(
+            self.__class__.__name__, id(self), id(parent)))
+
+        # Get a list of all the
+        # properties of this class
+        propNames, _ = self.getAllProperties()
+
+        for pn in propNames:
+
+            # Add a boolean sync property
+            # for this regular property.
+            bindProp = types.Boolean(default=True)
             
-            # This dictionary contains
-            #
-            # { propName : boolean }
-            #
-            # mappings, indicating the binding
-            # direction that should be used
-            # when a property is synchronised
-            # to the parent. A value of True
-            # implies a parent -> child  binding
-            # direction (i.e. the child will
-            # inherit the value of the parent),
-            # and a value of False implies a
-            # child -> parent binding direction.
-            self._bindDirections = {}
+            self.addProperty(self._saltSyncPropertyName(pn), bindProp)
 
-            if not isinstance(parent, self.__class__):
-                raise TypeError('parent is of a different type '
-                                '({} != {})'.format(parent.__class__,
-                                                    self.__class__))
+            # Initialise the binding direction
+            # and initial state
+            self._bindDirections[pn] = direction
 
-            parent._children.append(weakref.ref(self))
+            if isinstance(state, dict): pState = state.get(pn, True)
+            else:                       pState = state
 
-            propNames, _ = self.getAllProperties()
+            if   not self.canBeSyncedToParent(    pn): pState = False
+            elif not self.canBeUnsyncedFromParent(pn): pState = True
 
-            log.debug('Binding properties of {} ({}) to parent ({})'.format(
-                self.__class__.__name__, id(self), id(parent)))
-
-            for pn in propNames:
-
-                self._bindDirections[pn] = direction
-
-                if isinstance(state, dict): pState = state.get(pn, True)
-                else:                       pState = state
-                
-                if   not self.canBeSyncedToParent(    pn): pState = False
-                elif not self.canBeUnsyncedFromParent(pn): pState = True
-                
-                self._initSyncProperty(pn, pState)
+            self._initSyncProperty(pn, pState)
 
                     
     def getParent(self):
@@ -483,8 +439,9 @@ class SyncableHasProperties(six.with_metaclass(SyncablePropertyOwner,
               SHP instance.
         """
 
-        if self._parent is None or self._parent() is None:
-            self._parent = None
+        # This is a parent instance -
+        # nothing to detach from
+        if self._parent is None:
             return
 
         parent    = self._parent()
@@ -494,12 +451,17 @@ class SyncableHasProperties(six.with_metaclass(SyncablePropertyOwner,
             if propName not in self._nounbind:
                 syncPropName = self._saltSyncPropertyName(propName)
                 lName        = self._saltSyncListenerName(propName)
-                self.unsyncFromParent(propName)
+
                 self.removeListener(syncPropName, lName)
 
-        for c in list(parent._children):
-            if c() is self:
-                parent._children.remove(c)
+                # The parent may have been GC'd
+                if parent is not None:
+                    self.unsyncFromParent(propName)
+
+        if parent is not None:
+            for c in list(parent._children):
+                if c() is self:
+                    parent._children.remove(c)
 
         self._parent = None
  

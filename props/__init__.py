@@ -329,8 +329,7 @@ from .properties_types import (
     Array)
 
 from .syncable import (
-    SyncablePropertyOwner,
-    SyncableHasProperties)
+    SyncableHasProperties,)
 
 from .cli import (
     applyArguments,

@@ -659,12 +659,7 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         ``HasProperties`` instance. """
         if not isinstance(propObj, PropertyBase):
             raise ValueError('propObj must be a PropertyBase instance')
-
-        if propName in self.__dict__:
-            raise RuntimeError('This {} instance already has '
-                               'an attribute ''called {}'.format(
-                                   self.__class__.__name__, propName))
-
+        
         # If this property does not exist on the class,
         # add it. This is a bit hacky, as the labels
         # for all the properties that exist in the class
@@ -677,6 +672,15 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         if not hasattr(self.__class__, propName):
             setattr(          self.__class__, propName, propObj)
             propObj._setLabel(self.__class__, propName)
+
+        # Continuing on from the above hack, if
+        # the property has already been added to
+        # the class, it will have already been
+        # added by the meta class (by a call to
+        # this method). So we don't need to add
+        # it again. Hacky.
+        if propName in self.__dict__:
+            return
 
         # Create a PropertyValue and an _InstanceData
         # object, which bind the PropertyBase object
