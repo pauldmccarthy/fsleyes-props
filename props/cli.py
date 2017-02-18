@@ -229,10 +229,7 @@ def _Choice(parser,
             propHelp,
             shortArg,
             longArg,
-            choices=None,
-            default=None,
-            useAlts=True,
-            metavar=None):
+            **kwargs):
     """Adds an argument to the given parser for the given :class:`.Choice`
     property. See the :func:`_String` documentation for details on the
     parameters.
@@ -241,10 +238,13 @@ def _Choice(parser,
     the ``choices`` argument is provided). See the ``allowStr`` parameter
     for :class:`.Choice` instances.
 
+    All of the described arguments must be speified as keyword arguments.
+
     :arg choices: If not ``None``, assumed to be list of possible
-                  choices for the property. If ``None``, the possible
+                  choices for the property. If not provided, the possible
                   choices are taken from the :meth:`.Choice.getChoices`
-                  method.
+                  method. If explicitly passed in as ``None``, the argument
+                  will be configured to accept any value.
 
     :arg default: If not ``None``, gives the default value. Otherwise,
                   the ``default`` constraint of the :class:`.Choice`
@@ -252,17 +252,23 @@ def _Choice(parser,
 
     :arg useAlts: If ``True`` (the default), alternate values for the 
                   choices are added as options (see the :class:`.Choice`
-                  class).
+                  class). n.b. This flag will have no effect if  ``choices``
+                  is explicitly set to ``None``, as desrcibed above.
 
     :arg metavar: If ``None`` (the default), the available choices for
                   this property will be shown in the help text. Otherwise,
                   this string will be shown instead.
     """
 
-    if choices is None:
+    choices = kwargs.pop('choices', 'notspecified')
+    default = kwargs.pop('default', None)
+    useAlts = kwargs.pop('useAlts', True)
+    metavar = kwargs.pop('metavar', None)
+
+    if choices == 'notspecified':
         choices = propObj.getChoices()
 
-    if useAlts:
+    if useAlts and choices is not None:
         alternates = propObj.getAlternates()
 
         for altList in alternates:
@@ -271,18 +277,21 @@ def _Choice(parser,
     if default is None:
         default = propObj.getConstraint(None, 'default')
 
-    # Make sure that only unique choices are
-    # set as options. We could just convert to
-    # a set, but this would not preserve ordering,
-    # so we'll uniquify the list the hard way.
-    choices = [str(c) for c in choices]
-    unique  = []
+    # Make sure that only unique 
+    # choices are set as options.
+    if choices is not None:
 
-    for c in choices:
-        if c not in unique:
-            unique.append(c)
+        # We could just convert to a set, but
+        # this would not preserve ordering, so
+        # we'll uniquify the list the hard way.
+        choices = [str(c) for c in choices]
+        unique  = []
 
-    choices = unique
+        for c in choices:
+            if c not in unique:
+                unique.append(c)
+
+        choices = unique
 
     parser.add_argument(shortArg,
                         longArg,
