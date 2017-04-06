@@ -5,17 +5,24 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
-import os.path as op
+import               os
+import os.path    as op
+import subprocess as sp
+import               shutil
+import               pkgutil
 
-
-from setuptools               import setup
-from setuptools               import find_packages
+from setuptools import setup
+from setuptools import find_packages
+from setuptools import Command
 
 
 basedir = op.dirname(__file__)
 
+# Dependencies are listed in requirements.txt
 install_requires = open(op.join(basedir, 'requirements.txt'), 'rt').readlines()
 
+packages = find_packages(
+    exclude=('doc', 'tests', 'dist', 'build', 'props.egg-info'))
 
 # Extract the vesrion number from props/__init__.py
 version = {}
@@ -24,17 +31,50 @@ with open(op.join(basedir, "props", "__init__.py")) as f:
         if line.startswith('__version__'):
             exec(line, version)
             break
+version = version.get('__version__')
+
+
+class doc(Command):
+    """Build the API documentation. """
+    
+    user_options = []
+    
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+
+        docdir  = op.join(basedir, 'doc')
+        destdir = op.join(docdir, 'html')
+
+        if op.exists(destdir):
+            shutil.rmtree(destdir)
+
+        env   = dict(os.environ)
+        ppath = [
+            op.join(pkgutil.get_loader('fsleyes').filename, '..'),
+            op.join(pkgutil.get_loader('fsl')    .filename, '..'),
+            op.join(pkgutil.get_loader('props')  .filename, '..')]
+        
+        env['PYTHONPATH'] = op.pathsep.join(ppath)
+
+        print('Building documentation [{}]'.format(destdir))
+
+        sp.call(['sphinx-build', docdir, destdir], env=env) 
+
 
 setup(
 
     name='props',
 
-    version=version.get('__version__'),
+    version=version,
 
     description='Python descriptor framework',
 
     url='https://git.fmrib.ox.ac.uk/paulmc/props',
-
 
     author='Paul McCarthy',
 
@@ -50,7 +90,11 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Topic :: Software Development :: Libraries :: Python Modules'],
 
-    packages=find_packages(exclude=('doc', 'tests')),
+    packages=packages,
+
+    cmdclass={
+        'doc' : doc
+    },
 
     install_requires=install_requires
 )
