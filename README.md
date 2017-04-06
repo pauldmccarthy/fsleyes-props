@@ -1,7 +1,7 @@
 Props
 =====
 
-The ``props`` package is an event programming framework, which includes the
+The `props` package is an event programming framework, which includes the
 ability for automatic CLI generation and, optionally, automatic GUI generation
 (if [wxPython](http://www.wxpython.org) is present).
 
@@ -10,20 +10,20 @@ Dependencies
 ------------
 
 
-All of the dependencies of ``props`` are listed in the
-[requirements.txt](requirements.txt) file. ``props`` can be used without
+All of the dependencies of `props` are listed in the
+[requirements.txt](requirements.txt) file. `props` can be used without
 wxPython, but GUI functionality will not be available.
 
 
 Documentation
 -------------
 
-``props`` is documented using [sphinx](http://http://sphinx-doc.org/). You can
+`props` is documented using [sphinx](http://http://sphinx-doc.org/). You can
 build the API documentation like so:
 
     python setup.py doc
 
-The HTML documentation will be generated and saved in the ``doc/html/`` directory.
+The HTML documentation will be generated and saved in the `doc/html/` directory.
 
 
 Example usage
