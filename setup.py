@@ -5,6 +5,9 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
+
+from __future__ import print_function
+
 import               os
 import os.path    as op
 import subprocess as sp
@@ -54,10 +57,7 @@ class doc(Command):
             shutil.rmtree(destdir)
 
         env   = dict(os.environ)
-        ppath = [
-            op.join(pkgutil.get_loader('fsleyes').filename, '..'),
-            op.join(pkgutil.get_loader('fsl')    .filename, '..'),
-            op.join(pkgutil.get_loader('props')  .filename, '..')]
+        ppath = [op.join(pkgutil.get_loader('props').filename, '..')]
         
         env['PYTHONPATH'] = op.pathsep.join(ppath)
 
@@ -72,7 +72,7 @@ setup(
 
     version=version,
 
-    description='Python descriptor framework',
+    description='Python event programming framework, using wxPython',
 
     url='https://git.fmrib.ox.ac.uk/paulmc/props',
 
