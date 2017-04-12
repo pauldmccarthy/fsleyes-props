@@ -29,12 +29,15 @@ packages = find_packages(
 
 # Extract the vesrion number from props/__init__.py
 version = {}
-with open(op.join(basedir, "props", "__init__.py")) as f:
+with open(op.join(basedir, "props", "__init__.py"), 'rt') as f:
     for line in f:
         if line.startswith('__version__'):
             exec(line, version)
             break
 version = version.get('__version__')
+
+with open(op.join(basedir, 'README.md'), 'rt') as f:
+    readme = f.read()
 
 
 class doc(Command):
@@ -73,6 +76,7 @@ setup(
     version=version,
 
     description='Python event programming framework, using wxPython',
+    long_description=readme,
 
     url='https://git.fmrib.ox.ac.uk/paulmc/props',
 
