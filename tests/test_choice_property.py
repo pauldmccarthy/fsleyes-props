@@ -16,14 +16,14 @@ logging.basicConfig(
            '%(funcName)-15.15s - '
            '%(message)s')
 
-logging.getLogger('props').setLevel(logging.DEBUG)
+logging.getLogger('fsleyes_props').setLevel(logging.DEBUG)
 
 
 import wx
 
 import numpy as np
 
-import props
+import fsleyes_props as props
 props.initGUI()
 import fsleyes_widgets.elistbox as elistbox
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 #
-# __init__.py - Sets up the props package namespace.
+# __init__.py - Sets up the fsleyes_props package namespace.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""``props`` is a framework for event-driven programming using python
-descriptors, similar in functionality to, and influenced by
-`Enthought Traits <http://code.enthought.com/projects/traits/>`_.
+"""``fsleyes_props`` is a framework for event-driven programming using python
+descriptors, similar in functionality to, and influenced by `Enthought Traits
+<http://code.enthought.com/projects/traits/>`_.
   
 -------------
 Example usage
@@ -14,7 +14,7 @@ Example usage
 
 ::
 
-    >>> import props
+    >>> import fsleyes_props as props
 
     >>> class PropObj(props.HasProperties):
             myProperty = props.Boolean()
@@ -58,7 +58,7 @@ Package structure
 -----------------
 
 
-To use ``props``, your first step will be to define a subclass of
+To use ``fsleyes_props``, your first step will be to define a subclass of
 :class:`.HasProperties`, which contains one or more :class:`.PropertyBase`
 class attributes (see the :mod:`.properties_types` module for the available
 types).
@@ -72,10 +72,10 @@ using the functions defined in the :mod:`.cli` module.
 
 
 All of the classes and functions referred to above are available in the
-``props`` namespace, so you only need to ``import props`` to access them. You
-will however need to call the :func:`initGUI` function if you want to use any
-of the GUI generation functionality, before they are made available at the
-``props`` namespace level.
+``fsleyes_props`` namespace, so you only need to ``import fsleyes_props`` to
+access them. You will however need to call the :func:`initGUI` function if you
+want to use any of the GUI generation functionality, before they are made
+available at the ``fsleyes_props`` namespace level.
 
 
 ---------------
@@ -198,21 +198,21 @@ code:
 .. autosummary::
    :nosignatures:
 
-   ~props.properties.HasProperties
-   ~props.syncable.SyncableHasProperties
-   ~props.properties_types.Object
-   ~props.properties_types.Boolean
-   ~props.properties_types.Int
-   ~props.properties_types.Real
-   ~props.properties_types.Percentage
-   ~props.properties_types.String
-   ~props.properties_types.FilePath
-   ~props.properties_types.Choice
-   ~props.properties_types.List
-   ~props.properties_types.Colour
-   ~props.properties_types.ColourMap
-   ~props.properties_types.Bounds
-   ~props.properties_types.Point
+   ~fsleyes_props.properties.HasProperties
+   ~fsleyes_props.syncable.SyncableHasProperties
+   ~fsleyes_props.properties_types.Object
+   ~fsleyes_props.properties_types.Boolean
+   ~fsleyes_props.properties_types.Int
+   ~fsleyes_props.properties_types.Real
+   ~fsleyes_props.properties_types.Percentage
+   ~fsleyes_props.properties_types.String
+   ~fsleyes_props.properties_types.FilePath
+   ~fsleyes_props.properties_types.Choice
+   ~fsleyes_props.properties_types.List
+   ~fsleyes_props.properties_types.Colour
+   ~fsleyes_props.properties_types.ColourMap
+   ~fsleyes_props.properties_types.Bounds
+   ~fsleyes_props.properties_types.Point
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -226,9 +226,9 @@ generation and parsing:
 .. autosummary::
    :nosignatures:
 
-   ~props.cli.applyArguments
-   ~props.cli.addParserArguments
-   ~props.cli.generateArguments
+   ~fsleyes_props.cli.applyArguments
+   ~fsleyes_props.cli.addParserArguments
+   ~fsleyes_props.cli.generateArguments
 
 
 The following functions are provided for serialisation/deserialisation of
@@ -238,8 +238,8 @@ property values to/from strings (equivalent methods are also available on
 .. autosummary::
    :nosignatures:
 
-   ~props.serialise.serialise
-   ~props.serialise.deserialise
+   ~fsleyes_props.serialise.serialise
+   ~fsleyes_props.serialise.deserialise
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -252,32 +252,32 @@ The following classes are provided for you to create GUI specifications:
 .. autosummary::
    :nosignatures:
 
-   ~props.build_parts.ViewItem
-   ~props.build_parts.Button
-   ~props.build_parts.Toggle
-   ~props.build_parts.Label
-   ~props.build_parts.Widget
-   ~props.build_parts.Group
-   ~props.build_parts.NotebookGroup
-   ~props.build_parts.HGroup
-   ~props.build_parts.VGroup 
+   ~fsleyes_props.build_parts.ViewItem
+   ~fsleyes_props.build_parts.Button
+   ~fsleyes_props.build_parts.Toggle
+   ~fsleyes_props.build_parts.Label
+   ~fsleyes_props.build_parts.Widget
+   ~fsleyes_props.build_parts.Group
+   ~fsleyes_props.build_parts.NotebookGroup
+   ~fsleyes_props.build_parts.HGroup
+   ~fsleyes_props.build_parts.VGroup 
 
 
 If the :func:`initGUI` function is called, the following GUI-related functions
-will be made available in the ``props`` package namespace:
+will be made available in the ``fsleyes_props`` package namespace:
 
 
 .. autosummary::
    :nosignatures:
 
-   ~props.widgets.makeWidget
-   ~props.widgets.makeListWidgets
-   ~props.widgets.makeSyncWidget
-   ~props.widgets.bindWidget
-   ~props.widgets.unbindWidget
-   ~props.widgets.bindListWidgets
-   ~props.build.buildGUI
-   ~props.build.buildDialog
+   ~fsleyes_props.widgets.makeWidget
+   ~fsleyes_props.widgets.makeListWidgets
+   ~fsleyes_props.widgets.makeSyncWidget
+   ~fsleyes_props.widgets.bindWidget
+   ~fsleyes_props.widgets.unbindWidget
+   ~fsleyes_props.widgets.bindListWidgets
+   ~fsleyes_props.build.buildGUI
+   ~fsleyes_props.build.buildDialog
 
 
 ^^^^^^^^^^^^^
@@ -359,7 +359,7 @@ from .suppress import (
 
 def initGUI():
     """If you wish to use GUI generation functionality, calling this function
-    will add the relevant functions to the ``props`` package namespace.
+    will add the relevant functions to the ``fsleyes_props`` package namespace.
     """
 
     mod = sys.modules[__name__]

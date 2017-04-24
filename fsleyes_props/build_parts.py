@@ -49,7 +49,7 @@ This all sounds a bit convoluted, but in practice is pretty simple.  Example::
 
 
     import wx
-    import props
+    import fsleyes_props as props
 
     class MyObj1(props.HasProperties):
         myPropA = props.Boolean()

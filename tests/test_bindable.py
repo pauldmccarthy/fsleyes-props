@@ -7,7 +7,7 @@
 
 import wx
 
-import props
+import fsleyes_props as props
 props.initGUI()
 
 class Test(props.HasProperties):

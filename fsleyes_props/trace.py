@@ -12,10 +12,10 @@
 
 
 .. warning:: When this module is imported, it monkey patches the
-             :class:`props.callqueue.CallQueue` class in a devious and
-             dangerous manner to allow for more informative debug statements.
-             Therefore it's a bad idea to even import this module, unless
-             you really know what you are doing.
+             :class:`.CallQueue` class in a devious and dangerous manner to
+             allow for more informative debug statements.  Therefore it's a
+             bad idea to even import this module, unless you really know what
+             you are doing.
 
 
 .. warning:: Just don't import this module, ok?
@@ -43,9 +43,9 @@ log = logging.getLogger(__name__)
 # in the propchange function.
 if log.getEffectiveLevel() == logging.DEBUG:
 
-    log.debug('Monkey-patching props.properties_value.queue instance')
+    log.debug('Monkey-patching fsleyes_props.properties_value.queue instance')
     
-    import props
+    import fsleyes_props as props
 
     try:    import queue
     except: import Queue as queue
@@ -105,7 +105,7 @@ if log.getEffectiveLevel() == logging.DEBUG:
         # caused this listener to be enqueued
         triggerFrame = None
         for frame in frames:
-            if 'props/props' not in frame[1]:
+            if 'fsleyes_props' not in frame[1]:
                 triggerFrame = frame
                 break
 
@@ -172,7 +172,7 @@ def trace(desc):
 
 
 def propchange(*args):
-    """Intended to be called from a :class:`props.PropertyValue` listener
+    """Intended to be called from a :class:`.PropertyValue` listener
     function.
 
     If this function is called due to a change, attempts to determine the line
@@ -185,7 +185,7 @@ def propchange(*args):
     if log.getEffectiveLevel() != logging.DEBUG:
         return
 
-    import props
+    import fsleyes_props as props
 
     theQ  = props.properties_value.PropertyValue.queue
     stack = inspect.stack()
@@ -251,13 +251,13 @@ def setcause(desc):
 
     for i, frame in enumerate(stack):
 
-        if 'props/props' not in frame[1]:
+        if 'fsleyes_props' not in frame[1]:
             causeFrame = frame
             break
 
     if causeFrame is not None:
         for i, frame in reversed(list(enumerate(stack))):
-            if 'props/props' in frame[1]:
+            if 'fsleyes_props' in frame[1]:
                 ultCauseFrame = stack[i + 1]
                 break
 

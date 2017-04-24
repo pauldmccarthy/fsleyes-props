@@ -52,7 +52,7 @@ Example usage
 
 ::
 
-    >>> import props
+    >>> import fsleyes_props as props
 
     >>> class MyObj(props.HasProperties):
             myint  = props.Int()

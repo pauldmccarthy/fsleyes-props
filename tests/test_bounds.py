@@ -8,7 +8,7 @@ import wx
 
 import logging
 
-import props
+import fsleyes_props as props
 
 
 class Thing(props.HasProperties):

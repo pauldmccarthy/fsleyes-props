@@ -8,10 +8,10 @@
 import logging
 logging.basicConfig()
 
-logging.getLogger('props').setLevel(logging.DEBUG)
+logging.getLogger('fsleyes_props').setLevel(logging.DEBUG)
 
 import wx
-import props
+import fsleyes_props as props
 props.initGUI()
 
 

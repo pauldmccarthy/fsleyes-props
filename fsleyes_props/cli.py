@@ -22,7 +22,7 @@ simplest way to do so is to allow the ``addParserArguments`` function to
 automatically generate short and long arguments from the property names::
 
     >>> import argparse
-    >>> import props
+    >>> import fsleyes_props as props
 
     >>> class MyObj(props.HasProperties):
             intProp  = props.Int()

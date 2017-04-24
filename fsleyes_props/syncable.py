@@ -15,7 +15,7 @@ provided by the :mod:`bindable` module.
 All that is needed to make use of this functionality is to extend the
 ``SyncableHasProperties`` class instead of the ``HasProperties`` class::
 
-    >>> import props
+    >>> import fsleyes_props as props
 
     >>> class MyObj(props.SyncableHasProperties):
             myint = props.Int()

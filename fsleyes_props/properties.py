@@ -111,8 +111,7 @@ class PropertyBase(object):
                               to an invalid value. This does not guarantee
                               that the property value will never be
                               invalid - see caveats in the
-                              :class:`~props.properties_value.PropertyValue`
-                              documentation.
+                              :class:`.PropertyValue` documentation.
         
         :param constraints:   Type specific constraints used to test
                               validity - passed to the

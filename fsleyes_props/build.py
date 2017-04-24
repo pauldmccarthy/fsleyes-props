@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #
-# build.py - Automatically build a wx GUI for a props.HasProperties
-#            object.
+# build.py - Automatically build a wx GUI for a HasProperties object.
 
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
@@ -36,7 +35,7 @@ The label for, and behaviour of, the widget for an individual property may be
 customised with a :class:`.Widget` object. As an example::
 
     import wx
-    import props
+    import fsleyes_props as props
 
     class MyObj(props.HasProperties):
         myint  = props.Int()
@@ -961,7 +960,7 @@ def buildGUI(parent,
              tooltips=None,
              showUnlink=False):
     """Builds a GUI interface which allows the properties of the given
-    :class:`~props.properties.HasProperties` object to be edited.
+    :class:`.HasProperties` object to be edited.
     
     Returns a reference to the top level GUI object (typically a
     :class:`wx.Frame`, :class:`wx.Panel` or

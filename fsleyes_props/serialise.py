@@ -5,7 +5,7 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 """This module provides functions for serialising and deserialising the values
-of most ``props`` property types (which are defined in
+of most ``fsleyes_props`` property types (which are defined in
 :mod:`.properties_types`).
 
 

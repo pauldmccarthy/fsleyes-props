@@ -6,7 +6,7 @@
 #
 
 import wx
-import props
+import fsleyes_props as props
 props.initGUI()
 
 import fsleyes_widgets.widgetlist as wl

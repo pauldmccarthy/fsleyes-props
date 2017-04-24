@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# widgets.py - Generate wx GUI widgets for props.PropertyBase objects.
+# widgets.py - Generate wx GUI widgets for PropertyBase objects.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
@@ -10,8 +10,8 @@ instance.
 
 Most of the functions in this module are not intended to be called directly -
 they are used by the :mod:`.build` module. However, a few functions defined
-here are made available at the :mod:`props` namespace level, and are intended
-to be called by application code:
+here are made available at the :mod:`fsleyes_props` namespace level, and are
+intended to be called by application code:
 
 
  .. autosummary::
@@ -49,12 +49,12 @@ purely to keep module file sizes down:
  .. autosummary::
     :nosignatures:
 
-    ~props.widgets_list._List
-    ~props.widgets_bounds._Bounds
-    ~props.widgets_point._Point
-    ~props.widgets_choice._Choice
-    ~props.widgets_boolean._Boolean
-    ~props.widgets_number._Number
+    ~fsleyes_props.widgets_list._List
+    ~fsleyes_props.widgets_bounds._Bounds
+    ~fsleyes_props.widgets_point._Point
+    ~fsleyes_props.widgets_choice._Choice
+    ~fsleyes_props.widgets_boolean._Boolean
+    ~fsleyes_props.widgets_number._Number
 
 
  .. warning:: The :mod:`.widgets_list` module has not been looked at
@@ -67,7 +67,7 @@ level of customisation. You can provide these arguments indirectly in the
 :class:`.ViewItem` specification for a specific property. For example::
 
 
-    import props
+    import fsleyes_props as props
 
     class MyObj(props.HasProperties):
         myColour     = props.Colour()

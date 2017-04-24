@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 #
-# widgets_list.py - A widget for editing a props.List property.
+# widgets_list.py - A widget for editing a List property.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""A widget for editing a :class:`~props.properties_types.List` property.
+"""A widget for editing a :class:`.List` property.
 
 .. warning:: The code in this module is old, and probably doesn't work. It 
              will be  updated when I, or somebody else,  needs a list widget.
@@ -24,11 +24,10 @@ def _pasteDataDialog(parent, hasProps, propObj):
     
     :param parent:   parent GUI object
     
-    :param hasProps: The :class:`~props.propeties.HasProperties` object
-                     which owns the ``propObj``.
+    :param hasProps: The :class:`.HasProperties` object which owns the
+                     ``propObj``.
     
-    :param propObj:  The :class:`~props.properties_types.List` property
-                     object.
+    :param propObj:  The :class:`.List` property object.
     """
 
     listObj  = getattr(hasProps, propObj.getLabel(hasProps))
