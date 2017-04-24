@@ -2,3 +2,5 @@
 .projectile
 .dir-locals.el
 doc/html
+htmlcov
+.coverage
