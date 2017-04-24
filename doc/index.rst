@@ -6,7 +6,6 @@
    :hidden:   
               
    props
-   pwidgets
 
    
 The ``props`` package uses `python descriptors
@@ -33,6 +32,3 @@ The more important parts of this documentation are as follows:
 
  - The :mod:`.properties` and :mod:`.properties_value` modules for details on
    how ``props`` works.
-
- - The :mod:`pwidgets` package for some custom ``wx`` widgets used in the
-   ``props`` package.
