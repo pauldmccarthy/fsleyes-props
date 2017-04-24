@@ -1,9 +1,7 @@
-:orphan:
-   
-props.widgets_boolean module
+fsleyes_props.widgets module
 ============================
 
-.. automodule:: props.widgets_boolean
+.. automodule:: fsleyes_props.widgets
     :members:
     :undoc-members:
     :show-inheritance:

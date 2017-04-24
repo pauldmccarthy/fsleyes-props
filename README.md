@@ -1,26 +1,27 @@
-Props
-=====
+fsleyes-props
+=============
 
-The `props` package is an event programming framework, which includes the
-ability for automatic CLI generation and, optionally, automatic GUI generation
-(if [wxPython](http://www.wxpython.org) is present).
+The `fsleyes-props` project is an event programming framework, which includes
+the ability for automatic CLI generation and, optionally, automatic GUI
+generation (if [wxPython](http://www.wxpython.org) is present). It is used by
+[FSLeyes](https://git.fmrib.ox.ac.uk/paulmc/fsleyes/).
 
 
 Dependencies
 ------------
 
 
-All of the dependencies of `props` are listed in the
-[requirements.txt](requirements.txt) file. `props` can be used without
+All of the dependencies of `fsleyes-props` are listed in the
+[requirements.txt](requirements.txt) file. `fsleyes-props` can be used without
 wxPython, but GUI functionality will not be available.
 
 
 Documentation
 -------------
 
-`props` is documented using [sphinx](http://http://sphinx-doc.org/). You can
-build the API documentation by installing `sphinx` and `sphinx-rtd-theme`, and
-running:
+`fsleyes-props` is documented using
+[sphinx](http://http://sphinx-doc.org/). You can build the API documentation
+by installing `sphinx` and `sphinx-rtd-theme`, and running:
 
     python setup.py doc
 
@@ -32,7 +33,7 @@ Example usage
 
 
 ```python
->>> import props
+>>> import fsleyes_props as props
 
 >>> class PropObj(props.HasProperties):
 >>>     myProperty = props.Boolean()

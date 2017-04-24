@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
-# setup.py - setuptools configuration for installing the props package.
+# setup.py - setuptools configuration for installing the fsleyes-props
+# package.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
@@ -25,11 +26,11 @@ basedir = op.dirname(__file__)
 install_requires = open(op.join(basedir, 'requirements.txt'), 'rt').readlines()
 
 packages = find_packages(
-    exclude=('doc', 'tests', 'dist', 'build', 'props.egg-info'))
+    exclude=('doc', 'tests', 'dist', 'build', 'fsleyes-props.egg-info'))
 
-# Extract the vesrion number from props/__init__.py
+# Extract the vesrion number from fsleyes_props/__init__.py
 version = {}
-with open(op.join(basedir, "props", "__init__.py"), 'rt') as f:
+with open(op.join(basedir, "fsleyes_props", "__init__.py"), 'rt') as f:
     for line in f:
         if line.startswith('__version__'):
             exec(line, version)
@@ -60,7 +61,8 @@ class doc(Command):
             shutil.rmtree(destdir)
 
         env   = dict(os.environ)
-        ppath = [op.join(pkgutil.get_loader('props').filename, '..')]
+        ppath = list(env.get('PYTHONPATH', '').split(':'))
+        ppath.append(op.join(pkgutil.get_loader('fsleyes_props').filename, '..'))
         
         env['PYTHONPATH'] = op.pathsep.join(ppath)
 
@@ -71,14 +73,14 @@ class doc(Command):
 
 setup(
 
-    name='props',
+    name='fsleyes-props',
 
     version=version,
 
     description='Python event programming framework, using wxPython',
     long_description=readme,
 
-    url='https://git.fmrib.ox.ac.uk/paulmc/props',
+    url='https://git.fmrib.ox.ac.uk/paulmc/fsleyes-props',
 
     author='Paul McCarthy',
 
@@ -100,5 +102,7 @@ setup(
         'doc' : doc
     },
 
-    install_requires=install_requires
+    install_requires=install_requires,
+    tests_require=['pytest', 'mock', 'pytest-cov', 'pytest-runner'],
+    test_suite='tests',    
 )

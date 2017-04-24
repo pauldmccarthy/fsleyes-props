@@ -1,9 +1,7 @@
-:orphan:
-   
-props.widgets_point module
+fsleyes_props.build module
 ==========================
 
-.. automodule:: props.widgets_point
+.. automodule:: fsleyes_props.build
     :members:
     :undoc-members:
     :show-inheritance:

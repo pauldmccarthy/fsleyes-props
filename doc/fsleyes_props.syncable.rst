@@ -1,7 +1,7 @@
-props.properties_types module
+fsleyes_props.syncable module
 =============================
 
-.. automodule:: props.properties_types
+.. automodule:: fsleyes_props.syncable
     :members:
     :undoc-members:
     :show-inheritance:

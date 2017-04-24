@@ -1,7 +1,7 @@
-props.properties_value module
+fsleyes_props.suppress module
 =============================
 
-.. automodule:: props.properties_value
+.. automodule:: fsleyes_props.suppress
     :members:
     :undoc-members:
     :show-inheritance:

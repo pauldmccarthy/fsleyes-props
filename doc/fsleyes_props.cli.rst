@@ -1,7 +1,7 @@
-props.build_parts module
+fsleyes_props.cli module
 ========================
 
-.. automodule:: props.build_parts
+.. automodule:: fsleyes_props.cli
     :members:
     :undoc-members:
     :show-inheritance:
