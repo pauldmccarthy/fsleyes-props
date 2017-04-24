@@ -463,7 +463,7 @@ def _Real(parent, hasProps, propObj, propVal, **kwargs):
 
     See the :func:`_String` documentation for details on the parameters.
     """
-    from props.widgets_number import _Number
+    from fsleyes_props.widgets_number import _Number
     return _Number(parent, hasProps, propObj, propVal, **kwargs)
 
 
@@ -474,7 +474,7 @@ def _Int(parent, hasProps, propObj, propVal, **kwargs):
 
     See the :func:`_String` documentation for details on the parameters.
     """
-    from props.widgets_number import _Number
+    from fsleyes_props.widgets_number import _Number
     return _Number(parent, hasProps, propObj, propVal, **kwargs)
 
 
@@ -486,7 +486,7 @@ def _Percentage(parent, hasProps, propObj, propVal, **kwargs):
     See the :func:`_String` documentation for details on the parameters.
     """ 
     # TODO Add '%' signs to Scale labels.
-    from props.widgets_number import _Number
+    from fsleyes_props.widgets_number import _Number
     return _Number(parent, hasProps, propObj, propVal, **kwargs) 
         
 
