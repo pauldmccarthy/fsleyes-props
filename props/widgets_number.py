@@ -15,11 +15,10 @@ import sys
 import wx
 
 
-from . import properties_types as ptypes
-from . import                     widgets
-
-import pwidgets.floatslider as floatslider
-import pwidgets.floatspin   as floatspin
+from . import properties_types     as ptypes
+from . import                         widgets
+import fsleyes_widgets.floatslider as floatslider
+import fsleyes_widgets.floatspin   as floatspin
 
 
 log = logging.getLogger(__name__)

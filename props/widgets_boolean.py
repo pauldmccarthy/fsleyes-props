@@ -14,9 +14,9 @@ import wx
 
 import six
 
-from . import                   widgets
-import pwidgets.bitmapradio  as bmpradio
-import pwidgets.bitmaptoggle as bmptoggle
+from . import                          widgets
+import fsleyes_widgets.bitmapradio  as bmpradio
+import fsleyes_widgets.bitmaptoggle as bmptoggle
 
 
 def _Boolean(parent,

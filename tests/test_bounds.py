@@ -45,7 +45,7 @@ if __name__ == '__main__':
     props.initGUI()
     
     logging.basicConfig()
-    # logging.getLogger('pwidgets.rangeslider').setLevel(logging.DEBUG)
+    # logging.getLogger('fsleyes_widgets.rangeslider').setLevel(logging.DEBUG)
 
     app   = wx.App()
     frame = wx.Frame(None)

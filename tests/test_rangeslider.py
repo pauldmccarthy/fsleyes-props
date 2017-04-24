@@ -8,16 +8,16 @@
 from __future__ import print_function
 
 import wx
-import pwidgets.floatslider as fltsld
+import fsleyes_widgets.floatslider as fltsld
 
-import pwidgets.rangeslider as rngsld
+import fsleyes_widgets.rangeslider as rngsld
 
 import logging
         
 if __name__ == '__main__':
 
     logging.basicConfig()
-    logging.getLogger('pwidgets.rangeslider').setLevel(logging.DEBUG)
+    logging.getLogger('fsleyes_widgets.rangeslider').setLevel(logging.DEBUG)
 
     app   = wx.App()
     frame = wx.Frame(None)

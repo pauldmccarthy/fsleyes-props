@@ -9,7 +9,7 @@
 from __future__ import print_function
 
 import wx
-import pwidgets.numberdialog as numdlg
+import fsleyes_widgets.numberdialog as numdlg
 
 
 if __name__ == '__main__':

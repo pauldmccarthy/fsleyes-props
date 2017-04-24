@@ -106,7 +106,7 @@ import wx
 try:                from wx.combo import BitmapComboBox
 except ImportError: from wx.adv   import BitmapComboBox
 
-import pwidgets.colourbutton as colourbtn
+import fsleyes_widgets.colourbutton as colourbtn
 
 
 log = logging.getLogger(__name__)

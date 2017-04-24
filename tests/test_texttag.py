@@ -15,12 +15,12 @@ logging.basicConfig(
            '%(funcName)-15.15s - '
            '%(message)s')
 
-logging.getLogger('pwidgets').setLevel(logging.DEBUG)
+logging.getLogger('fsleyes_widgets').setLevel(logging.DEBUG)
 
 import wx
 
-import pwidgets.texttag      as texttag
-import pwidgets.autotextctrl as autotextctrl
+import fsleyes_widgets.texttag      as texttag
+import fsleyes_widgets.autotextctrl as autotextctrl
 
 
 options = ['Signal',

@@ -12,10 +12,9 @@
 
 import wx
 
-import pwidgets.elistbox as elistbox
-
-from . import properties_types as ptypes
-from . import                     widgets
+import fsleyes_widgets.elistbox as elistbox
+from . import properties_types  as ptypes
+from . import                      widgets
 
 
 def _pasteDataDialog(parent, hasProps, propObj):

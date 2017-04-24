@@ -12,7 +12,7 @@ the :mod:`widgets` module namespace. It is separated purely to keep the
 
 import wx
 
-import pwidgets.rangeslider as rangeslider
+import fsleyes_widgets.rangeslider as rangeslider
 
 
 def _Bounds(parent,

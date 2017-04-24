@@ -9,7 +9,7 @@ import wx
 import props
 props.initGUI()
 
-import pwidgets.widgetlist as wl
+import fsleyes_widgets.widgetlist as wl
 
 
         

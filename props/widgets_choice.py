@@ -15,8 +15,8 @@ import wx
 
 import six
 
-import pwidgets.bitmapradio as bmpradio
-from . import                  widgets
+import fsleyes_widgets.bitmapradio as bmpradio
+from . import                         widgets
 
 
 log = logging.getLogger(__name__)

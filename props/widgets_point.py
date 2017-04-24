@@ -12,8 +12,8 @@ the :mod:`widgets` module namespace. It is separated purely to keep the
 
 import wx
 
-import pwidgets.floatslider as floatslider
-from . import                  widgets
+import fsleyes_widgets.floatslider as floatslider
+from . import                         widgets
 
 
 def _Point(parent,

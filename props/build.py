@@ -119,11 +119,11 @@ import sys
 import six
 import wx
 
-from . import                   widgets
-from . import                   syncable
-from . import build_parts    as parts
-import pwidgets.notebook     as nb
-import pwidgets.bitmaptoggle as bmptoggle
+from . import                          widgets
+from . import                          syncable
+from . import build_parts           as parts
+import fsleyes_widgets.notebook     as nb
+import fsleyes_widgets.bitmaptoggle as bmptoggle
 
 
 log = logging.getLogger(__name__)
@@ -528,8 +528,8 @@ def _makeGroupBorder(parent, group, ctr, *args, **kwargs):
     
 
 def _createNotebookGroup(parent, group, hasProps, propGui):
-    """Creates a :class:`pwidgets.notebook.Notebook` object from the given
-    :class:`.NotebookGroup` object.
+    """Creates a :class:`fsleyes_widgets.notebook.Notebook` object from the 
+    given :class:`.NotebookGroup` object.
 
     The children of the group object are also created via recursive calls to
     the :func:`_create` function.
@@ -965,7 +965,7 @@ def buildGUI(parent,
     
     Returns a reference to the top level GUI object (typically a
     :class:`wx.Frame`, :class:`wx.Panel` or
-    :class:`~pwidgets.notebook.Notebook`).
+    :class:`~fsleyes_widgets.notebook.Notebook`).
 
     Parameters:
     

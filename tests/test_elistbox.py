@@ -12,7 +12,7 @@ import random
 
 import wx
 
-import pwidgets.elistbox as elistbox
+import fsleyes_widgets.elistbox as elistbox
 
 
 logging.basicConfig(
