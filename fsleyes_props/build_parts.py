@@ -65,7 +65,7 @@ This all sounds a bit convoluted, but in practice is pretty simple.  Example::
     mo2View = props.VGroup((
 
         # myProp1 is only visible
-        # when MyObj1.myPropA is True 
+        # when MyObj1.myPropA is True
         props.Widget(
             'myProp1',
 
@@ -126,20 +126,20 @@ class ViewItem(object):
                  setup=None,
                  **kwargs):
         """Define a ``ViewItem``.
-        
+
         :param str key:      An identifier for this item. If this item is a
                              :class:`Widget`, this should be the property
                              name that the widget edits. This key is used to
                              look up labels and tooltips, if they are passed
                              in as dicts (see :func:`.buildGUI`).
-        
+
         :param str label:    A label for this item, which may be used in the
                              GUI.
 
         :param str tooltip:  A tooltip, which may be displayed when the user
                              hovers the mouse over the widget for this
                              :class:`ViewItem`.
-        
+
         :param visibleWhen:  A function which takes at least one argument (see
                              note about the ``dependencies`` parameter above),
                              the ``HasProperties`` instance, and returns a
@@ -147,7 +147,7 @@ class ViewItem(object):
                              function is called. The return value is used to
                              determine whether this item should be made
                              visible or invisible.
-        
+
         :param enabledWhen:  Same as the ``visibleWhen`` parameter, except the
                              state of the item (and its children) is changed
                              between enabled and disabled.
@@ -177,14 +177,15 @@ class ViewItem(object):
         self.setup        = setup
         self.kwargs       = kwargs
 
-        
+
     def __str__(self):
         return '{}({})'.format(self.__class__.__name__, self.key)
 
-    
-    def __repr__(self): return self.__str__()
 
-    
+    def __repr__(self):
+        return self.__str__()
+
+
     def __deepcopy__(self, memo):
         """Creates a deep copy of this ``ViewItem``. Deep copies are made
         of all attributes, except for the ``dependencies`` list, which may
@@ -234,9 +235,10 @@ class Button(ViewItem):
         self.text     = text
         ViewItem.__init__(self, key, **kwargs)
 
-    def __str__( self): return '{}({})'.format(self.__class__.__name__,
-                                               self.text)
-    def __repr__(self): return self.__str__()
+    def __str__( self):
+        return '{}({})'.format(self.__class__.__name__, self.text)
+    def __repr__(self):
+        return self.__str__()
 
 
 class Toggle(ViewItem):
@@ -259,20 +261,22 @@ class Toggle(ViewItem):
 
         All other arguments are passed through to :meth:`ViewItem.__init__`.
         """
-        
+
         self.callback = callback
         self.icon     = icon
         ViewItem.__init__(self, key, **kwargs)
 
-        
-    def __str__( self): return '{}()'.format(self.__class__.__name__)
-    def __repr__(self): return self.__str__() 
-    
+
+    def __str__( self):
+        return '{}()'.format(self.__class__.__name__)
+    def __repr__(self):
+        return self.__str__()
+
 
 class Label(ViewItem):
     """Represents a static text label."""
 
-    
+
     def __init__(self, viewItem=None, **kwargs):
         """Define a label.
 
@@ -287,12 +291,13 @@ class Label(ViewItem):
             kwargs['visibleWhen']  = viewItem.visibleWhen
             kwargs['enabledWhen']  = viewItem.enabledWhen
             kwargs['dependencies'] = viewItem.dependencies
-            
+
         ViewItem.__init__(self, **kwargs)
 
-    def __str__( self): return '{}({})'.format(self.__class__.__name__,
-                                               self.label)
-    def __repr__(self): return self.__str__() 
+    def __str__( self):
+        return '{}({})'.format(self.__class__.__name__, self.label)
+    def __repr__(self):
+        return self.__str__()
 
 
 class LinkBox(ViewItem):
@@ -310,23 +315,23 @@ class LinkBox(ViewItem):
             kwargs['tooltip']     = viewItem.tooltip
             kwargs['visibleWhen'] = viewItem.visibleWhen
             kwargs['enabledWhen'] = viewItem.enabledWhen
-            
-        ViewItem.__init__(self, **kwargs) 
+
+        ViewItem.__init__(self, **kwargs)
 
 
 class Widget(ViewItem):
     """Represents a widget which is used to modify a property value. """
 
-    
+
     def __init__(self, propName, **kwargs):
         """Define a :class:`Widget`.
-        
+
         :param str propName: The name of the property which this widget can
                              modify.
-        
+
         :param kwargs:       Passed to the :class:`ViewItem` constructor.
         """
-        
+
         kwargs['key'] = propName
         ViewItem.__init__(self, **kwargs)
 
@@ -340,15 +345,15 @@ class Group(ViewItem):
       - :class:`NotebookGroup`
     """
 
-    
+
     def __init__(self, children, showLabels=True, border=False, **kwargs):
         """Define a :class:`Group`.
-        
+
         Parameters:
-        
+
         :param children:        List of :class:`ViewItem` objects, the
                                 children of this :class:`Group`.
-        
+
         :param bool showLabels: Whether labels should be displayed for each of
                                 the children. If this is ``True``, an attribute
                                 will be added to this :class:`Group` object in
@@ -356,11 +361,11 @@ class Group(ViewItem):
                                 ``childLabels``, which contains a
                                 :class:`Label` object for each child.
 
-        :param bool border:     If ``True``, this group will be drawn with a 
+        :param bool border:     If ``True``, this group will be drawn with a
                                 border around it. If this group is a child of
                                 another :class:`VGroup`, it will be laid out
                                 a bit differently, too.
-        
+
         :param kwargs:          Passed to the :class:`ViewItem` constructor.
         """
         ViewItem.__init__(self, **kwargs)
@@ -373,7 +378,7 @@ class Group(ViewItem):
         def doStr(viewItem, depth):
 
             if isinstance(viewItem, Group):
-                
+
                 s = '{}{}\n'.format(' ' * depth, ViewItem.__str__(viewItem))
                 for child in viewItem.children:
                     s = s + doStr(child, depth + 1)
@@ -410,7 +415,7 @@ class HGroup(Group):
                          horizontal space to display all children in a
                          single row, the remaining children are
                          displayed on a new row.
-        
+
         :arg vertLabels: If ``True`` child labels are displayed above
                          the child.
         """
@@ -419,10 +424,10 @@ class HGroup(Group):
         Group.__init__(self, children, **kwargs)
 
 
-class VGroup(Group): 
+class VGroup(Group):
     """A group representing a GUI panel, whose children are laid out
     vertically.
     """
     def __init__(self, children, **kwargs):
         kwargs['border'] = kwargs.get('border', True)
-        Group.__init__(self, children, **kwargs) 
+        Group.__init__(self, children, **kwargs)

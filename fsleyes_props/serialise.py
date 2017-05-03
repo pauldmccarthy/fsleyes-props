@@ -53,8 +53,11 @@ def serialise(hasProps, propName):
                        '_serialise_{}'.format(propType),
                        None)
 
+    def defaultSfunc(s, *a):
+        return str(s)
+
     if sfunc is None:
-        sfunc = lambda s, *a: str(s)
+        sfunc = defaultSfunc
 
     sval = sfunc(val, hasProps, propObj)
 
@@ -69,20 +72,23 @@ def deserialise(hasProps, propName, string):
     serialised value of the named property from the given
     :class:`.HasProperties` instance.
     """
-    
+
     propObj  = hasProps.getProp(propName)
     propType = type(propObj).__name__
     dfunc    = getattr(sys.modules[__name__],
                        '_deserialise_{}'.format(propType),
                        None)
 
+    def defaultDfunc(s, *a):
+        return s
+
     if dfunc is None:
-        dfunc = lambda s, *a: s
+        dfunc = defaultDfunc
 
     dval = dfunc(string, hasProps, propObj)
 
     log.debug('Deserialised {}.{}: "{}" -> {}'.format(
-        type(hasProps).__name__, propName, string, dval)) 
+        type(hasProps).__name__, propName, string, dval))
 
     return dval
 
@@ -90,7 +96,7 @@ def deserialise(hasProps, propName, string):
 # The type specific conversions are performed by the
 # functions below. They must accept the following
 # arguments:
-# 
+#
 #   - The value to be serialised/deserialised
 #   - The HasProperties instance
 #   - The PropertyBase instance
@@ -101,7 +107,7 @@ def _serialise_Boolean(value, *a):
 
 
 def _deserialise_Boolean(value, *a):
-        
+
     # Special case - a string containig 'false'
     # (case insensitive) evaluates to False.
     if isinstance(value, six.string_types):
@@ -119,7 +125,7 @@ def _serialise_Choice(value, *a):
 
 
 def _deserialise_Choice(value, hasProps, propObj):
-    
+
     choices = propObj.getChoices(hasProps)
 
     # This is a bit hacky - Choice properties can store
@@ -140,7 +146,7 @@ def _serialise_Colour(value, *a):
     # Colour values should be in the range [0, 1]
     r, g, b, a = [int(v * 255) for v in value]
     hexstr     = '#{:02x}{:02x}{:02x}{:02x}'.format(r, g, b, a)
-    
+
     return hexstr
 
 
@@ -178,9 +184,9 @@ def _deserialise_Bounds(value, *a):
 
 def _serialise_Point(value, *a):
     value = map(str, value)
-    return DELIMITER.join(value) 
+    return DELIMITER.join(value)
 
 
 def _deserialise_Point(value, *a):
     value = value.split(DELIMITER)
-    return map(float, value) 
+    return map(float, value)

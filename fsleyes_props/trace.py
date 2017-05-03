@@ -44,7 +44,7 @@ log = logging.getLogger(__name__)
 if log.getEffectiveLevel() == logging.DEBUG:
 
     log.debug('Monkey-patching fsleyes_props.properties_value.queue instance')
-    
+
     import fsleyes_props as props
 
     try:    import queue
@@ -67,7 +67,7 @@ if log.getEffectiveLevel() == logging.DEBUG:
     # call property value listeners.
     theQ = props.properties_value.PropertyValue.queue
 
-    
+
     def tracePop(*args, **kwargs):
 
         # When the CallQueue calls its _pop
@@ -77,17 +77,17 @@ if log.getEffectiveLevel() == logging.DEBUG:
         # (enqueued in the tracePush function
         # below), so the propchange function
         # can print it out.
-        # 
+        #
         # This will throw Queue.EmptyError if
         # the _causes queue is empty, but
         # that is what the real _pop method
         # does anyway.
         try:    theQ._currentCause = theQ._causes.get_nowait()
         except: theQ._currentCause = None
-        
+
         return theQ._realPop(*args, **kwargs)
 
-    
+
     def tracePush(*args, **kwargs):
 
         pushed = theQ._realPush(*args, **kwargs)
@@ -121,7 +121,7 @@ if log.getEffectiveLevel() == logging.DEBUG:
         # Store the cause of the listener
         # push on the causes queue
         else:
-            
+
             cause = [triggerFrame[1],
                      triggerFrame[2],
                      triggerFrame[3]]
@@ -130,10 +130,10 @@ if log.getEffectiveLevel() == logging.DEBUG:
             else:
                 cause.append('<input>')
             theQ._causes.put_nowait(cause)
-        
+
         return True
-            
-    # Patch the CallQueue instance with 
+
+    # Patch the CallQueue instance with
     # our push/pop implementations
     theQ._causes          = queue.Queue()
     theQ._realPush        = theQ._CallQueue__push
@@ -144,7 +144,7 @@ if log.getEffectiveLevel() == logging.DEBUG:
 
 def trace(desc):
     """Outputs a log message containing the given description and the current
-    stack trace. 
+    stack trace.
     """
 
     if log.getEffectiveLevel() != logging.DEBUG:
@@ -167,7 +167,7 @@ def trace(desc):
             srcLine.strip())
 
     log.debug(lines)
-    
+
     return lines
 
 
@@ -179,7 +179,7 @@ def propchange(*args):
     of code which triggered the change. Prints some informative log messages.
 
     :arg args: The arguments that were passed to the listener function.
-    """ 
+    """
 
 
     if log.getEffectiveLevel() != logging.DEBUG:
@@ -200,7 +200,7 @@ def propchange(*args):
         triggerFile = stack[2][1]
         triggerLine = stack[2][2]
         triggerFunc = stack[2][3]
-        triggerSrc  = stack[2][4][stack[2][5]] 
+        triggerSrc  = stack[2][4][stack[2][5]]
     else:
         triggerFile = theQ._currentCause[0]
         triggerLine = theQ._currentCause[1]
@@ -213,7 +213,7 @@ def propchange(*args):
                       listenerFunc,
                       op.basename(listenerFile),
                       listenerLine))
-        
+
     else:
 
         if len(args) != 4:
@@ -224,14 +224,14 @@ def propchange(*args):
                 type(ctx).__name__,
                 name,
                 value)
-        
+
         log.debug('Listener {} ({}:{}) was {} '
                   '{} ({}:{}:{})'.format(
                       listenerFunc,
                       op.basename(listenerFile),
                       listenerLine,
                       reason,
-                      triggerFunc,                      
+                      triggerFunc,
                       op.basename(triggerFile),
                       triggerLine,
                       triggerSrc.strip()))
@@ -239,7 +239,7 @@ def propchange(*args):
 
 def setcause(desc):
     """I can't quite remember the difference betwen this function and the
-    :func:`propchange` function. 
+    :func:`propchange` function.
     """
 
     if log.getEffectiveLevel() != logging.DEBUG:
@@ -267,26 +267,26 @@ def setcause(desc):
         causeFile = causeFrame[1]
         causeLine = causeFrame[2]
         causeFunc = causeFrame[3]
-        causeSrc  = causeFrame[4][causeFrame[5]]         
+        causeSrc  = causeFrame[4][causeFrame[5]]
 
         line = '{}: Caused by {} ({}:{}:{})'.format(
             desc,
-            causeFunc,                      
+            causeFunc,
             op.basename(causeFile),
             causeLine,
             causeSrc.strip())
 
         if ultCauseFrame is not None:
-            
+
             causeFile = ultCauseFrame[1]
             causeLine = ultCauseFrame[2]
             causeFunc = ultCauseFrame[3]
             causeSrc  = ultCauseFrame[4][ultCauseFrame[5]]
             line = '{} (ultimately caused by {} ({}:{}:{})'.format(
-                line, 
-                causeFunc,                      
+                line,
+                causeFunc,
                 op.basename(causeFile),
                 causeLine,
-                causeSrc.strip()) 
+                causeSrc.strip())
 
         log.debug(line)

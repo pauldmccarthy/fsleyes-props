@@ -6,7 +6,7 @@
 #
 """A widget for editing a :class:`.List` property.
 
-.. warning:: The code in this module is old, and probably doesn't work. It 
+.. warning:: The code in this module is old, and probably doesn't work. It
              will be  updated when I, or somebody else,  needs a list widget.
 """
 
@@ -21,26 +21,26 @@ def _pasteDataDialog(parent, hasProps, propObj):
     """Displays a dialog containing an editable text field, allowing the
     user to type/paste bulk data which will be used to populate the list
     (one line per item).
-    
+
     :param parent:   parent GUI object
-    
+
     :param hasProps: The :class:`.HasProperties` object which owns the
                      ``propObj``.
-    
+
     :param propObj:  The :class:`.List` property object.
     """
 
     listObj  = getattr(hasProps, propObj.getLabel(hasProps))
     initText = '\n'.join([str(l).strip() for l in listObj])
- 
+
     frame = wx.Dialog(parent,
                       style=wx.DEFAULT_DIALOG_STYLE |
                             wx.RESIZE_BORDER)
     panel = wx.Panel(frame)
     text  = wx.TextCtrl(panel, value=initText,
-                        style=wx.TE_MULTILINE | 
-                              wx.TE_DONTWRAP  | 
-                              wx.VSCROLL      | 
+                        style=wx.TE_MULTILINE |
+                              wx.TE_DONTWRAP  |
+                              wx.VSCROLL      |
                               wx.HSCROLL)
 
     # ok/cancel buttons
@@ -113,7 +113,7 @@ def _editListDialog(parent, hasProps, propObj):
     # number of entries in the list
     numRowsSizer = wx.BoxSizer(wx.HORIZONTAL)
     numRowsPanel.SetSizer(numRowsSizer)
-    
+
     numRowsLabel = wx.StaticText(numRowsPanel, label='Number of entries')
     numRowsCtrl  = wx.SpinCtrl(numRowsPanel,
                                min=minval,
@@ -122,7 +122,7 @@ def _editListDialog(parent, hasProps, propObj):
 
     numRowsSizer.Add(numRowsLabel, flag=wx.EXPAND, proportion=1)
     numRowsSizer.Add(numRowsCtrl,  flag=wx.EXPAND, proportion=1)
-    
+
     listWidgets = []
 
     # Make a widget for every element in the list
@@ -164,7 +164,7 @@ def _editListDialog(parent, hasProps, propObj):
             widg = widgets.makeWidget(entryPanel, hasProps, propName)
             listWidgets.append(widg)
             entryPanelSizer.Add(widg, flag=wx.EXPAND)
- 
+
             oldLen = oldLen + 1
 
         # remove rows
@@ -177,13 +177,13 @@ def _editListDialog(parent, hasProps, propObj):
             widg = listWidgets.pop()
 
             entryPanelSizer.Remove(widg)
-            
+
             widg.Destroy()
 
             oldLen = oldLen - 1
         entryPanel.Layout()
         entryPanel.Refresh()
-        
+
 
     numRowsCtrl.Bind(wx.EVT_SPINCTRL, changeNumRows)
     okButton.Bind(wx.EVT_BUTTON, lambda e: frame.Close())
@@ -221,7 +221,7 @@ def _listDialogWidget(parent, hasProps, propObj, propVal):
     sizer.Add(pasteButton, flag=wx.EXPAND)
 
     panel.Layout()
-        
+
     return panel
 
 
@@ -232,7 +232,7 @@ def _listEmbedWidget(parent, hasProps, propObj, propVal):
                                           ptypes.Real)):
         raise RuntimeError('Unsupported property '
                            'type: {}'.format(propObj.__class__))
-    
+
     widget = elistbox.EditableListBox(
         parent,
         ['{}'.format(v) for v in propVal],
@@ -250,13 +250,13 @@ def _listEmbedWidget(parent, hasProps, propObj, propVal):
     def _listBoxEdit(ev):
         changeTriggeredByWidget[0] = True
         propVal[ev.idx] = ev.label
-        changeTriggeredByWidget[0] = False 
+        changeTriggeredByWidget[0] = False
 
     def _listChanged(*a):
 
         if changeTriggeredByWidget[0]:
             return
-        
+
         sel = widget.GetSelection()
         widget.Clear()
         for val in propVal:
@@ -269,11 +269,11 @@ def _listEmbedWidget(parent, hasProps, propObj, propVal):
 
     widget.Bind(elistbox.EVT_ELB_MOVE_EVENT,   _listBoxMove)
     widget.Bind(elistbox.EVT_ELB_EDIT_EVENT,   _listBoxEdit)
-    
+
     propVal.addListener('widgets_list_py_{}'.format(id(widget)),
                         _listChanged,
                         weak=False)
-    
+
     return widget
 
 

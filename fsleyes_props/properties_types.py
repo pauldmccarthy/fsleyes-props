@@ -72,7 +72,7 @@ class Boolean(props.PropertyBase):
         kwargs['default'] = kwargs.get('default', False)
         props.PropertyBase.__init__(self, **kwargs)
 
-        
+
     def cast(self, instance, attributes, value):
         """Overrides :meth:`.PropertyBase.cast`. Casts the given value to a
         ``bool``.
@@ -86,21 +86,21 @@ class Number(props.PropertyBase):
     A property which represents a number.  Don't use/subclass this,
     use/subclass one of ``Int`` or ``Real``.
     """
-    
+
     def __init__(self,
                  minval=None,
                  maxval=None,
                  clamped=False,
                  **kwargs):
         """Define a :class:`Number` property.
-        
+
         :param minval:  Minimum valid value
-        
+
         :param maxval:  Maximum valid value
-        
+
         :param clamped: If ``True``, the value will be clamped to its
                         min/max bounds.
-        
+
         :param kwargs:  Passed through to :meth:`.PropertyBase.__init__`.
                         If a ``default`` value is not provided, it is set
                         to something sensible.
@@ -124,10 +124,10 @@ class Number(props.PropertyBase):
         kwargs['clamped']    = clamped
         props.PropertyBase.__init__(self, **kwargs)
 
-        
+
     def validate(self, instance, attributes, value):
         """Overrides :meth:`.PropertyBase.validate`. Validates the given
-        number. 
+        number.
 
         Calls the :meth:`.PropertyBase.validate` method.
         Then, if the ``minval`` and/or ``maxval`` attributes have been set,
@@ -136,20 +136,20 @@ class Number(props.PropertyBase):
 
         :param instance:   The owning :class:`.HasProperties` instance (or
                            ``None`` for unbound property values).
-        
+
         :param attributes: Dictionary containing property constraints.
-        
+
         :param value:      The value to validate.
         """
-        
+
         props.PropertyBase.validate(self, instance, attributes, value)
-        
+
         minval = attributes['minval']
         maxval = attributes['maxval']
 
         if minval is not None and value < minval:
             raise ValueError('Must be at least {}'.format(minval))
-            
+
         if maxval is not None and value > maxval:
             raise ValueError('Must be at most {}'.format(maxval))
 
@@ -164,7 +164,7 @@ class Number(props.PropertyBase):
         """
 
         clamped = attributes['clamped']
-        
+
         if not clamped: return value
 
         minval = attributes['minval']
@@ -174,22 +174,22 @@ class Number(props.PropertyBase):
         if maxval is not None and value > maxval: return maxval
 
         return value
-        
-        
+
+
 class Int(Number):
     """A :class:`Number` which encapsulates an integer."""
-    
+
     def __init__(self, **kwargs):
         """Create an ``Int`` property. """
         Number.__init__(self, **kwargs)
 
-        
+
     def cast(self, instance, attributes, value):
         """Overrides :meth:`Number.cast`. Casts the given value to an ``int``,
         and then passes the value to :meth:`Number.cast`.
         """
         return Number.cast(self, instance, attributes, int(value))
-        
+
 
 class Real(Number):
     """A :class:`.Number` which encapsulates a floating point number."""
@@ -206,7 +206,7 @@ class Real(Number):
 
         return abs(a - b) < self.__precision
 
-    
+
     def __init__(self, precision=0.000000001, **kwargs):
         """Define a ``Real`` property.
 
@@ -214,16 +214,16 @@ class Real(Number):
                           use exact equality.
         """
         self.__precision = precision
-        
+
         Number.__init__(self, equalityFunc=self.__equals, **kwargs)
 
 
     def cast(self, instance, attributes, value):
         """Overrides :meth:`Number.cast`. Casts the given value to a ``float``,
         and then passes the value to :meth:`Number.cast`.
-        """ 
+        """
         return Number.cast(self, instance, attributes, float(value))
-        
+
 
 class Percentage(Real):
     """A :class:`Real` property which represents a percentage.
@@ -242,14 +242,14 @@ class Percentage(Real):
 
 class String(props.PropertyBase):
     """A property which encapsulates a string."""
-    
+
     def __init__(self, minlen=None, maxlen=None, **kwargs):
         """Cteate a ``String`` property.
-        
+
         :param int minlen: Minimum valid string length.
         :param int maxlen: Maximum valid string length.
-        """ 
-        
+        """
+
         kwargs['default'] = kwargs.get('default', None)
         kwargs['minlen']  = minlen
         kwargs['maxlen']  = maxlen
@@ -265,11 +265,11 @@ class String(props.PropertyBase):
 
         if value is None: value = ''
         else:             value = str(value)
-        
+
         if value == '': value = None
         return value
 
-        
+
     def validate(self, instance, attributes, value):
         """Overrides :meth:`.PropertyBase.validate`.
 
@@ -279,9 +279,9 @@ class String(props.PropertyBase):
         value has length less than ``minlen`` or greater than ``maxlen``,
         raises a :exc:`ValueError`.
         """
-        
+
         if value == '': value = None
-        
+
         props.PropertyBase.validate(self, instance, attributes, value)
 
         if value is None: return
@@ -297,7 +297,7 @@ class String(props.PropertyBase):
 
         if maxlen is not None and len(value) > maxlen:
             raise ValueError('Must have length at most {}'.format(maxlen))
-        
+
 
 class Choice(props.PropertyBase):
     """A property which may only be set to one of a set of predefined values.
@@ -326,7 +326,7 @@ class Choice(props.PropertyBase):
                  allowStr=False,
                  **kwargs):
         """Create a ``Choice`` property.
-        
+
         :arg choices:    List of values, the possible values that this property
                          can take. Can alternately be a ``dict`` - see the note
                          above.
@@ -348,7 +348,7 @@ class Choice(props.PropertyBase):
             alternates = {}
 
         # Alternates are stored twice:
-        # 
+        #
         #   - As a dict of { choice    : [alternate] } mappings
         #   - As a dict of { alternate : choice      } mappings
         #
@@ -403,21 +403,21 @@ class Choice(props.PropertyBase):
 
         self.setConstraint(instance, 'default', default)
 
-        
+
     def enableChoice(self, choice, instance=None):
         """Enables the given choice. """
         choiceEnabled = dict(self.getConstraint(instance, 'choiceEnabled'))
         choiceEnabled[choice] = True
         self.setConstraint(instance, 'choiceEnabled', choiceEnabled)
 
-        
+
     def disableChoice(self, choice, instance=None):
         """Disables the given choice. An attempt to set the property to
         a disabled value will result in a :exc:`ValueError`.
         """
         choiceEnabled = dict(self.getConstraint(instance, 'choiceEnabled'))
         choiceEnabled[choice] = False
-        self.setConstraint(instance, 'choiceEnabled', choiceEnabled) 
+        self.setConstraint(instance, 'choiceEnabled', choiceEnabled)
 
 
     def choiceEnabled(self, choice, instance=None):
@@ -426,22 +426,22 @@ class Choice(props.PropertyBase):
         """
         return self.getConstraint(instance, 'choiceEnabled')[choice]
 
-    
+
     def getChoices(self, instance=None):
         """Returns a list of the current choices. """
         return list(self.getConstraint(instance, 'choices'))
 
-    
+
     def getAlternates(self, instance=None):
         """Returns a list of the current acceptable alternate values for each
         choice.
         """
         choices  = self.getConstraint(instance, 'choices')
         altLists = self.getConstraint(instance, 'altLists')
-        
+
         return [altLists[c] for c in choices]
 
-    
+
     def updateChoice(self,
                      choice,
                      newChoice=None,
@@ -452,7 +452,7 @@ class Choice(props.PropertyBase):
 
         choices    = list(self.getConstraint(instance, 'choices'))
         altLists   = dict(self.getConstraint(instance, 'altLists'))
-        idx        = choices.index(choice) 
+        idx        = choices.index(choice)
 
         if newChoice is not None:
             choices[ idx]       = newChoice
@@ -461,7 +461,7 @@ class Choice(props.PropertyBase):
             altLists.pop(choice)
         else:
             newChoice = choice
-            
+
         if newAlt is not None: altLists[newChoice] = list(newAlt)
 
         self.__updateChoices(choices, altLists, instance)
@@ -486,7 +486,7 @@ class Choice(props.PropertyBase):
                 strc = str(c)
                 alts = alternates[c]
                 if strc not in alts:
-                    alts.append(strc) 
+                    alts.append(strc)
 
         if len(choices) != len(alternates):
             raise ValueError('Alternates are required for every choice')
@@ -506,17 +506,17 @@ class Choice(props.PropertyBase):
         if self.getConstraint(instance, 'allowStr'):
             strc = str(choice)
             if strc not in alternate:
-                alternate.append(strc) 
+                alternate.append(strc)
 
         choices.append(choice)
         altLists[choice] = list(alternate)
 
         self.__updateChoices(choices, altLists, instance)
 
-            
+
     def removeChoice(self, choice, instance=None):
         """Removes the specified choice from the list of possible choices. """
-        
+
         choices   = list(self.getConstraint(instance, 'choices'))
         altLists  = dict(self.getConstraint(instance, 'altLists'))
 
@@ -554,7 +554,7 @@ class Choice(props.PropertyBase):
 
         :param alternates: A dict of ``{choice :  [alternates]}`` mappings.
         """
-        
+
         propVal    = self.getPropVal(   instance)
         default    = self.getConstraint(instance, 'default')
         oldEnabled = self.getConstraint(instance, 'choiceEnabled')
@@ -591,7 +591,7 @@ class Choice(props.PropertyBase):
                 if   default in choices: propVal.set(default)
                 elif len(choices) > 0:   propVal.set(choices[0])
                 else:                    propVal.set(None)
-                
+
             propVal.setNotificationState(notifState)
             propVal.allowInvalid(        validState)
 
@@ -601,7 +601,7 @@ class Choice(props.PropertyBase):
             if propVal.get() != oldChoice:
                 propVal.propNotify()
 
-        
+
     def validate(self, instance, attributes, value):
         """Overrides :meth:`.PropertyBase.validate`.
 
@@ -613,16 +613,16 @@ class Choice(props.PropertyBase):
         choices    = self.getConstraint(instance, 'choices')
         enabled    = self.getConstraint(instance, 'choiceEnabled')
         alternates = self.getConstraint(instance, 'alternates')
-        
+
         if len(choices) == 0: return
 
-        # Check to see if this is an 
+        # Check to see if this is an
         # acceptable alternate value
         altValue = alternates.get(value, None)
 
         if value not in choices and altValue not in choices:
             raise ValueError('Invalid choice ({})'    .format(value))
-        
+
         if not enabled.get(value, False):
             raise ValueError('Choice is disabled ({})'.format(value))
 
@@ -635,26 +635,26 @@ class Choice(props.PropertyBase):
         """
         alternates = self.getConstraint(instance, 'alternates')
         return alternates.get(value, value)
-                
+
 
 
 class FilePath(String):
     """A property which represents a file or directory path.
 
     There is currently no support for validating a path which may be either a
-    file or a directory - only one or the other. 
+    file or a directory - only one or the other.
     """
 
     def __init__(self, exists=False, isFile=True, suffixes=[], **kwargs):
         """Create a ``FilePath`` property.
 
         :param bool exists:   If ``True``, the path must exist.
-        
+
         :param bool isFile:   If ``True``, the path must be a file. If
                               ``False``, the path must be a directory. This
                               check is only performed if ``exists`` is
                               ``True``.
-        
+
         :param list suffixes: List of acceptable file suffixes (only relevant
                               if ``isFile`` is ``True``).
         """
@@ -662,10 +662,10 @@ class FilePath(String):
         kwargs['exists']   = exists
         kwargs['isFile']   = isFile
         kwargs['suffixes'] = suffixes
-        
+
         String.__init__(self, **kwargs)
 
-        
+
     def validate(self, instance, attributes, value):
         """Overrides :meth:`.PropertyBase.validate`.
 
@@ -717,17 +717,17 @@ class List(props.ListPropertyBase):
     for the :class:`.PropertyValueList`, as it contains important usage
     information.
     """
-    
+
     def __init__(self, listType=None, minlen=None, maxlen=None, **kwargs):
         """Create a ``List`` property.
-        
+
         :param listType:   A :class:`.PropertyBase` type, specifying the
                            values allowed in the list. If ``None``, anything
                            can be stored in the list, but no casting or
                            validation will occur.
-                
+
         :param int minlen: Minimum list length.
-        
+
         :param int maxlen: Maximum list length.
         """
 
@@ -748,7 +748,7 @@ class List(props.ListPropertyBase):
 
     def validate(self, instance, attributes, value):
         """Overrides :meth:`.PropertyBase.validate`.
-        
+
         Checks that the given value (which should be a list) meets the
         ``minlen``/``maxlen`` constraints. Raises a :exc:`ValueError` if it
         does not.
@@ -763,7 +763,7 @@ class List(props.ListPropertyBase):
             raise ValueError('Must have length at least {}'.format(minlen))
         if maxlen is not None and len(value) > maxlen:
             raise ValueError('Must have length at most {}'.format(maxlen))
-     
+
 
 class Colour(props.PropertyBase):
     """A property which represents a RGBA colour, stored as four floating
@@ -773,7 +773,7 @@ class Colour(props.PropertyBase):
     alpha channel is set to 1.0.
     """
 
-    
+
     def __init__(self, **kwargs):
         """Create a ``Colour`` property.
 
@@ -805,8 +805,8 @@ class Colour(props.PropertyBase):
         for v in value:
             if (v < 0.0) or (v > 1.0):
                 raise ValueError('Colour values must be between 0.0 and 1.0')
-    
-        
+
+
     def cast(self, instance, attributes, value):
         """Ensures that the given ``value`` contains three or four floating
         point numbers, in the range ``(0.0 - 1.0)``.
@@ -816,7 +816,7 @@ class Colour(props.PropertyBase):
         """
 
         pv = self.getPropVal(instance)
-        
+
         if pv is not None: currentVal = pv.get()
         else:              currentVal = self._defaultConstraints['default']
 
@@ -830,7 +830,7 @@ class Colour(props.PropertyBase):
         for i, v in enumerate(value):
             if v < 0.0: value[i] = 0.0
             if v > 1.0: value[i] = 1.0
-        
+
         return value
 
 
@@ -857,16 +857,16 @@ class ColourMap(props.PropertyBase):
 
         if cmaps is None:
             cmaps = []
-            
+
         if default is None and len(cmaps) > 0:
             default = cmaps[0]
 
         kwargs['default'] = default
         kwargs['cmaps']   = list(cmaps)
-        
+
         props.PropertyBase.__init__(self, **kwargs)
 
-        
+
     def setColourMaps(self, cmaps, instance=None):
         """Set the colour maps for this property.
 
@@ -889,12 +889,12 @@ class ColourMap(props.PropertyBase):
         """
 
         cmaps = self.getColourMaps(instance)
-        
+
         if cmap not in cmaps:
             cmaps.append(cmap)
             self.setColourMaps(cmaps, instance)
 
-    
+
     def getColourMaps(self, instance=None):
         """Returns a list containing the names of registered colour maps
         available for this property.
@@ -913,11 +913,11 @@ class ColourMap(props.PropertyBase):
         if not isinstance(value, mplcolors.Colormap):
             raise ValueError('Colour map value is not a '
                              'matplotlib.colors.Colormap instance')
-        
+
 
     def cast(self, instance, attributes, value):
         """Overrides :meth:`.PropertyBase.cast`.
-        
+
         If the provided value is a string, an attempt is made to convert it to
         a colour map, via the :func:`matplotlib.cm.get_cmap` function. The
         value may either be the registered colour map name, or its
@@ -931,18 +931,18 @@ class ColourMap(props.PropertyBase):
             # Case insensitive match
             cmapKeys   = list(mplcm.cmap_d.keys())
             cmapNames  = [cm.name for cm in mplcm.cmap_d.values()]
-            
+
             lCmapNames = [s.lower() for s in cmapNames]
             lCmapKeys  = [s.lower() for s in cmapKeys]
 
             value = value.lower()
-            
+
             try:    idx = lCmapKeys .index(value)
             except: idx = lCmapNames.index(value)
 
             value = cmapKeys[idx]
             value = mplcm.get_cmap(value)
-            
+
         return value
 
 
@@ -988,7 +988,7 @@ class BoundsValueList(propvals.PropertyValueList):
         # get the length of the bounds for a dimension
         ylen = obj.mybounds.ylen
 
-        # set/access the minimum/maximum 
+        # set/access the minimum/maximum
         # constraints for a dimension
         obj.mybounds.xmin = 0
         tmax = obj.mybounds.tmax
@@ -1008,9 +1008,9 @@ class BoundsValueList(propvals.PropertyValueList):
             pv.disableNotification()
             pv.setAttribute('boundsDim',  int(np.floor(i / 2.0)))
             pv.setAttribute('boundsSide', 'high' if i % 2 else 'low')
-            pv.enableNotification() 
+            pv.enableNotification()
 
-        
+
     def getLo(self, axis=None):
         """Return the low value for the given (0-indexed) axis. If ``axis`` is
         not specified, the low bounds for all axes are returned.
@@ -1018,7 +1018,7 @@ class BoundsValueList(propvals.PropertyValueList):
         if axis is not None: return self[axis * 2]
         else:                return self[::2]
 
-        
+
     def getHi(self, axis=None):
         """Return the high value for the given (0-indexed) axis. If ``axis``
         is not specified, the high bounds for all axes are returned.
@@ -1026,75 +1026,75 @@ class BoundsValueList(propvals.PropertyValueList):
         if axis is not None: return self[axis * 2 + 1]
         else:                return self[1::2]
 
-        
+
     def getRange(self, axis):
         """Return the (low, high) values for the given (0-indexed) axis."""
         return (self.getLo(axis), self.getHi(axis))
 
-        
+
     def getLen(self, axis):
         """Return the distance between the low and high values for the
         specified axis.
         """
         return abs(self.getHi(axis) - self.getLo(axis))
 
-    
+
     def setLimit(self, axis, limit, value):
         """Sets the value for the specified axis and limit
         (0 == low, 1 == high).
-        """ 
+        """
         self[axis * 2 + limit] = value
 
-        
+
     def getLimit(self, axis, limit):
         """Returns the value for the specified axis and limit
         (0 == low, 1 == high).
         """
         return self[axis * 2 + limit]
 
-        
+
     def setLo(self, axis, value):
-        """Set the low value for the specified axis."""        
+        """Set the low value for the specified axis."""
         self[axis * 2] = value
 
-        
+
     def setHi(self, axis, value):
         """Set the high value for the specified axis."""
         self[axis * 2 + 1] = value
 
-        
+
     def setRange(self, axis, loval, hival):
         """Set the low and high values for the specified axis."""
         self[axis * 2:axis * 2 + 2] = [loval, hival]
 
-        
+
     def getMin(self, axis):
         """Return the minimum value (the low limit) for the specified axis."""
         return self.getPropertyValueList()[axis * 2].getAttribute('minval')
 
-        
+
     def getMax(self, axis):
         """Return the maximum value (the high limit) for the specified axis."""
-        return self.getPropertyValueList()[axis * 2 + 1].getAttribute('maxval') 
+        return self.getPropertyValueList()[axis * 2 + 1].getAttribute('maxval')
 
-        
+
     def setMin(self, axis, value):
         """Set the minimum value for the specified axis."""
         self.getPropertyValueList()[axis * 2]    .setAttribute('minval', value)
         self.getPropertyValueList()[axis * 2 + 1].setAttribute('minval', value)
 
-        
+
     def setMax(self, axis, value):
         """Set the maximum value for the specified axis."""
         self.getPropertyValueList()[axis * 2]    .setAttribute('maxval', value)
         self.getPropertyValueList()[axis * 2 + 1].setAttribute('maxval', value)
 
-        
+
     def getLimits(self, axis):
         """Return (minimum, maximum) limit values for the specified axis."""
         return (self.getMin(axis), self.getMax(axis))
 
-        
+
     def setLimits(self, axis, minval, maxval):
         """Set the minimum and maximum limit values for the specified axis."""
         self.setMin(axis, minval)
@@ -1112,7 +1112,7 @@ class BoundsValueList(propvals.PropertyValueList):
         for ax, coord in enumerate(point):
             if coord < self.getLo(ax) or coord > self.getHi(ax):
                 return False
-            
+
         return True
 
 
@@ -1131,14 +1131,14 @@ class BoundsValueList(propvals.PropertyValueList):
         dimCentres = self.getAttribute('dimCentres')
 
         centre = dimCentres[dim]
-        
+
         if centre is not None:
             if   side == 'low':  self.setHi(dim, centre + (centre - val))
             elif side == 'high': self.setLo(dim, centre - (val    - centre))
 
         propvals.PropertyValueList._listPVChanged(self, pv)
 
-        
+
     def __getattr__(self, name):
         """Return the specified value. Raises an :exc:`AttributeError` for
         unrecognised attributes, or an :exc:`IndexError` if an attempt is made
@@ -1148,7 +1148,7 @@ class BoundsValueList(propvals.PropertyValueList):
 
         lname = name.lower()
 
-        # TODO this is easy to read, but 
+        # TODO this is easy to read, but
         # could be made much more efficient
         if   lname == 'x':    return self.getRange(0)
         elif lname == 'y':    return self.getRange(1)
@@ -1163,7 +1163,7 @@ class BoundsValueList(propvals.PropertyValueList):
         elif lname == 'zlo':  return self.getLo(   2)
         elif lname == 'zhi':  return self.getHi(   2)
         elif lname == 'tlo':  return self.getLo(   3)
-        elif lname == 'thi':  return self.getHi(   3) 
+        elif lname == 'thi':  return self.getHi(   3)
         elif lname == 'xlen': return self.getLen(  0)
         elif lname == 'ylen': return self.getLen(  1)
         elif lname == 'zlen': return self.getLen(  2)
@@ -1175,20 +1175,20 @@ class BoundsValueList(propvals.PropertyValueList):
         elif lname == 'xmax': return self.getMax(  0)
         elif lname == 'ymax': return self.getMax(  1)
         elif lname == 'zmax': return self.getMax(  2)
-        elif lname == 'tmax': return self.getMax(  3) 
+        elif lname == 'tmax': return self.getMax(  3)
 
         raise AttributeError('{} has no attribute called {}'.format(
             self.__class__.__name__, name))
 
-        
+
     def __setattr__(self, name, value):
-        """Set the specified value. Raises an :exc:`IndexError` if an attempt 
-        is made to assign bound values values of a higher dimension than this 
+        """Set the specified value. Raises an :exc:`IndexError` if an attempt
+        is made to assign bound values values of a higher dimension than this
         list contains.
-        """ 
+        """
 
         lname = name.lower()
-        
+
         if   lname == 'x':    self.setRange(0, *value)
         elif lname == 'y':    self.setRange(1, *value)
         elif lname == 'z':    self.setRange(2, *value)
@@ -1200,7 +1200,7 @@ class BoundsValueList(propvals.PropertyValueList):
         elif lname == 'zlo':  self.setLo(   2, value)
         elif lname == 'zhi':  self.setHi(   2, value)
         elif lname == 'tlo':  self.setLo(   3, value)
-        elif lname == 'thi':  self.setHi(   3, value) 
+        elif lname == 'thi':  self.setHi(   3, value)
         elif lname == 'xmin': self.setMin(  0, value)
         elif lname == 'ymin': self.setMin(  1, value)
         elif lname == 'zmin': self.setMin(  2, value)
@@ -1228,7 +1228,7 @@ class Bounds(List):
     :meth:`.PropertyValue.setAttribute`, is that if you use the latter you will
     have to set the constraints on both the low and the high values.
 
-    
+
     **Bounds centering**
 
 
@@ -1238,18 +1238,18 @@ class Bounds(List):
     on the :class:`.BoundsValueList` instance associated with a ``Bounds``
     property::
 
-    
+
         class MyObject(props.HasProperties):
             bounds = props.Bounds(ndims=2)
 
-    
+
         obj = MyObject()
 
         # Centre the first dimension bounds at 0.0,
         # and the second dimension bounds at 50.0
         obj.setConstraint('bounds', 'dimCentres', [0.0, 50.0])
 
-        # Disable centering on the first dimension bounds, 
+        # Disable centering on the first dimension bounds,
         # but centre the second dimension bounds at 10.0
         obj.setConstraint('bounds', 'dimCentres', [None, 10.0])
 
@@ -1259,20 +1259,20 @@ class Bounds(List):
 
     def __init__(self,
                  ndims=1,
-                 real=True, 
+                 real=True,
                  minDistance=None,
                  clamped=True,
                  **kwargs):
         """Create a ``Bounds`` property.
-        
-        :arg ndims:        Number of dimensions. This is (currently) 
-                           not a property constraint, hence it cannot 
+
+        :arg ndims:        Number of dimensions. This is (currently)
+                           not a property constraint, hence it cannot
                            be changed.
 
         :arg real:         If ``True`` (the default), the bound values are
                            stored as :class:`Real` values; otherwise, they
                            are stored as :class:`Int` values.
-        
+
         :arg minDistance:  Minimum distance to be maintained between the
                            low/high values for each dimension.
 
@@ -1314,7 +1314,7 @@ class Bounds(List):
                       maxlen=ndims * 2,
                       **kwargs)
 
-        
+
     def _makePropVal(self, instance):
         """Overrides :meth:`.ListPropertyBase._makePropVal`.
 
@@ -1335,13 +1335,13 @@ class Bounds(List):
             listValidateFunc=self.validate,
             listAttributes=self._defaultConstraints,
             itemAttributes=self._listType._defaultConstraints)
-        
+
         return bvl
 
-        
+
     def validate(self, instance, attributes, value):
         """Overrides :meth:`.PropertyBase.validate`.
-        
+
         Raises a :exc:`ValueError` if the given value (a list of min/max
         values) is of the wrong length or data type, or if any of the min
         values are greater than the corresponding max value.
@@ -1371,15 +1371,15 @@ class Bounds(List):
             if dimCentres[i] is not None:
                 if (dimCentres[i] - imin) != (imax - dimCentres[i]):
                     raise ValueError('Minimum and maximum bounds are not '
-                                     'centred at {}'.format(dimCentres[i])) 
+                                     'centred at {}'.format(dimCentres[i]))
 
 
 class PointValueList(propvals.PropertyValueList):
     """A list of values which represent a point in some n-dimensional (up to 4)
     space.
-    
+
     This class is used by the :class:`Point` property to encapsulate point
-    values for between 1 and 4 dimensions. 
+    values for between 1 and 4 dimensions.
 
     This class just adds some convenience methods and attributes to the
     :class:`.PropertyValueList` base class, in a similar manner to the
@@ -1393,7 +1393,7 @@ class PointValueList(propvals.PropertyValueList):
 
         class MyObj(props.HasProperties):
             mypoint = props.Point(ndims=3)
- 
+
         obj = MyObj()
 
         y,z = obj.mypoint.yz
@@ -1401,55 +1401,55 @@ class PointValueList(propvals.PropertyValueList):
         obj.mypoint.zxy = (3,6,1)
     """
 
-    
+
     def __init__(self, *args, **kwargs):
         """Create a ``PointValueList`` - see
         :meth:`.PropertyValueList.__init__`.
         """
         propvals.PropertyValueList.__init__(self, *args, **kwargs)
 
-        
+
     def getPos(self, axis):
         """Return the point value for the specified (0-indexed) axis."""
         return self[axis]
 
-        
+
     def setPos(self, axis, value):
         """Set the point value for the specified axis."""
         self[axis] = value
 
-        
+
     def getMin(self, axis):
         """Get the minimum limit for the specified axis."""
         return self.getPropertyValueList()[axis].getAttribute('minval')
 
-        
+
     def getMax(self, axis):
         """Get the maximum limit for the specified axis."""
         return self.getPropertyValueList()[axis].getAttribute('maxval')
 
-        
+
     def getLimits(self, axis):
         """Get the (minimum, maximum) limits for the specified axis."""
         return (self.getMin(axis), self.getMax(axis))
 
-        
+
     def setMin(self, axis, value):
         """Set the minimum limit for the specified axis."""
         self.getPropertyValueList()[axis].setAttribute('minval', value)
 
-        
+
     def setMax(self, axis, value):
         """Set the maximum limit for the specified axis."""
         self.getPropertyValueList()[axis].setAttribute('maxval', value)
 
-        
+
     def setLimits(self, axis, minval, maxval):
         """Set the minimum and maximum limits for the specified axis."""
         self.setMin(axis, minval)
         self.setMax(axis, maxval)
 
-        
+
     def __getattr__(self, name):
         """Return the specified point value. Raises an :exc:`AttributeError`
         for unrecognised attributes, or an :exc:`IndexError` if a dimension
@@ -1468,16 +1468,16 @@ class PointValueList(propvals.PropertyValueList):
             elif dim == 'y': res.append(self[1])
             elif dim == 'z': res.append(self[2])
             elif dim == 't': res.append(self[3])
-            
+
         if len(res) == 1: return res[0]
         return res
 
-        
+
     def __setattr__(self, name, value):
         """Set the specified point value. Raises an :exc:`IndexError` if a
         dimension which does not exist for this ``PointValueList`` is
         specified.
-        """ 
+        """
 
         lname = name.lower()
 
@@ -1492,9 +1492,9 @@ class PointValueList(propvals.PropertyValueList):
             raise AttributeError('Improper number of values '
                                  '({}) for attribute {}'.format(
                                      len(value), lname))
-            
+
         newvals = self[:]
-        
+
         for dim, val in zip(lname, value):
             if   dim == 'x': newvals[0] = val
             elif dim == 'y': newvals[1] = val
@@ -1514,12 +1514,12 @@ class Point(List):
 
     def __init__(self,
                  ndims=2,
-                 real=True, 
+                 real=True,
                  **kwargs):
         """Create a ``Point`` property.
-        
+
         :param int ndims: Number of dimensions.
-        
+
         :param bool real: If ``True`` the point values are stored as
                           :class:`Real` values, otherwise they are
                           stored as :class:`Int` values.
@@ -1535,12 +1535,12 @@ class Point(List):
         if ndims < 1 or ndims > 4:
             raise ValueError('Only points of one to four '
                              'dimensions are supported')
-            
+
         elif len(default) != ndims:
             raise ValueError('{} point values are required'.format(ndims))
 
         kwargs['default']    = default
-        
+
         self._ndims   = ndims
         self._real    = real
 
@@ -1553,7 +1553,7 @@ class Point(List):
                       maxlen=ndims,
                       **kwargs)
 
-        
+
     def _makePropVal(self, instance):
         """Overrides :meth:`.ListPropertyBase._makePropVal`.
 
@@ -1574,7 +1574,7 @@ class Point(List):
             listValidateFunc=self.validate,
             listAttributes=self._defaultConstraints,
             itemAttributes=self._listType._defaultConstraints)
-        
+
         return pvl
 
 
@@ -1582,7 +1582,7 @@ class ArrayProxy(propvals.PropertyValue):
     """A proxy class indended to encapsulate a ``numpy`` array.  ``ArrayProxy``
     instances are used by the :class:`Array` property type.
 
-    
+
     An ``ArrayProxy`` is a :class:`.PropertyValue` which contains, and tries
     to act like, a ``numpy`` array.  Element access andassignment, and
     attribute access can be performed through the ``ArrayProxy``.
@@ -1600,7 +1600,7 @@ class ArrayProxy(propvals.PropertyValue):
     bypass the :class:`.PropertyValue` notification procedure.
     """
 
-    
+
     def __init__(self, *args, **kwargs):
         """Create an ``ArrayProxy``. All arguments are passed through to the
         :meth:`.PropertyValue.__init__` method.
@@ -1608,10 +1608,10 @@ class ArrayProxy(propvals.PropertyValue):
 
         def defaultEquals(this, other):
             if isinstance(this,  ArrayProxy): this  = this .getArray()
-            if isinstance(other, ArrayProxy): other = other.getArray() 
+            if isinstance(other, ArrayProxy): other = other.getArray()
 
             return np.all(this == other)
-        
+
         kwargs['equalityFunc'] = kwargs.get('equalityFunc', defaultEquals)
         propvals.PropertyValue.__init__(self, *args, **kwargs)
 
@@ -1621,7 +1621,7 @@ class ArrayProxy(propvals.PropertyValue):
         """
         return self
 
-    
+
     def getArray(self):
         """Returns a reference to the ``numpy`` array encapsulated by this
         ``ArrayProxy``.
@@ -1646,18 +1646,18 @@ class ArrayProxy(propvals.PropertyValue):
         """
 
         array = self.getArray()
-        
+
         array.__setitem__(*args, **kwargs)
 
         notifState = self.getNotificationState()
         self.disableNotification()
-        
+
         self.set(array)
-        
+
         self.setNotificationState(notifState)
         self.propNotify()
 
-        
+
 class Array(props.PropertyBase):
     """A property which represents a ``numpy`` array. Each array is
     encapsulated within an :class:`ArrayProxy` instance.
@@ -1675,9 +1675,9 @@ class Array(props.PropertyBase):
                      performs equality tests on an element-wise basis.
 
         :arg dtype:     ``numpy`` data type.
-        
+
         :arg shape:     Initial shape of the array.
-        
+
         :arg resizable: Defaults to ``True``. If ``False``, the array size
                         will be fixed to the ``shape`` specified
                         here. Different sized arrays will still be allowed, if
@@ -1695,12 +1695,12 @@ class Array(props.PropertyBase):
 
         props.PropertyBase.__init__(self, **kwargs)
 
-    
+
     def _makePropVal(self, instance):
         """Overrides :meth`.PropertyBase._makePropVal`. Creates and returns
         an :class:`.ArrayProxy` for the given ``instance``.
         """
-        
+
         default = self._defaultConstraints.get('default', None)
         ap      = ArrayProxy(
             instance,
@@ -1710,7 +1710,7 @@ class Array(props.PropertyBase):
             validateFunc=self.validate,
             allowInvalid=self._allowInvalid,
             **self._defaultConstraints)
-        
+
         return ap
 
 
@@ -1727,7 +1727,7 @@ class Array(props.PropertyBase):
         """Overrides :meth`.PropertyBase.validate`. If the given ``value`` has
         the wrong data type, or this ``Array`` is not resizable and the
         ``value`` has the wrong shape, a :exc:`ValueError` is raised.
-        """ 
+        """
         props.PropertyBase.validate(self, instance, attributes, value)
 
         dtype     = attributes['dtype']
@@ -1737,7 +1737,7 @@ class Array(props.PropertyBase):
         if value.dtype != dtype:
             raise ValueError('Invalid data type: {} (should be {})'.format(
                 value.dtype, dtype))
-        
+
         if (not resizable) and (value.shape != shape):
             raise ValueError('Invalid shape: {} (should be {})'.format(
                 value.shape, shape))

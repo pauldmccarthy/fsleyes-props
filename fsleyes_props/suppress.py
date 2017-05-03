@@ -31,9 +31,9 @@ def suppress(hasProps, propName, notify=False):
 
 
     :arg hasProps: ``HasProperties`` instance.
-    
+
     :arg propName: Property to suppress notifications for.
-    
+
     :arg notify:   If ``True``, a notification will be triggered
                    on ``propName`` via :meth:`.HasProperties.propNotify`,
                    exit. Defaults to ``False``.
@@ -51,7 +51,7 @@ def suppress(hasProps, propName, notify=False):
 
     try:
         yield
-        
+
     finally:
         hasProps.setNotificationState(propName, state)
 
@@ -70,7 +70,7 @@ def suppressAll(hasProps):
     This function is intended to be used as follows::
 
         with suppressAll(hasProps):
-            # Do stuff which might cause unwanted 
+            # Do stuff which might cause unwanted
             # property value notifications to occur
 
 
@@ -105,6 +105,6 @@ def skip(hasProps, propName, listenerName):
 
     try:
         yield
-        
+
     finally:
         hasProps.setListenerState(propName, listenerName, state)

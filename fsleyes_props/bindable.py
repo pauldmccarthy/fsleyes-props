@@ -81,7 +81,7 @@ Example usage
     # Changing a bound property value on either
     # instance will result in the value being
     # propagated to the other instance.
-    >>> myobj2.myint = 8  
+    >>> myobj2.myint = 8
     >>> print myobj1
     MyObj
        myint = 8
@@ -142,12 +142,15 @@ class Bidict(object):
 
     def get(self, key, default=None):
         return self._thedict.get(key, default)
-    
-    def __getitem__(self, key): return self._thedict.__getitem__(key)
-    def __repr__(   self):      return self._thedict.__repr__()
-    def __str__(    self):      return self._thedict.__str__() 
 
-    
+    def __getitem__(self, key):
+        return self._thedict.__getitem__(key)
+    def __repr__(   self):
+        return self._thedict.__repr__()
+    def __str__(    self):
+        return self._thedict.__str__()
+
+
 def bindProps(self,
               propName,
               other,
@@ -163,9 +166,9 @@ def bindProps(self,
 
     :arg str propName:  The name of a property on this ``HasProperties``
                         instance.
-    
+
     :arg other:         Another ``HasProperties`` instance.
-    
+
     :arg otherPropName: The name of a property on ``other`` to
                         bind to. If ``None`` it is assumed that
                         there is a property on ``other`` called
@@ -232,7 +235,7 @@ def isBound(self, propName, other, otherPropName=None):
     """Returns ``True`` if the specified property is bound to the
     other ``HasProperties`` instance, ``False`` otherwise.
     """
-    
+
     if otherPropName is None: otherPropName = propName
 
     myProp       = self     .getProp(   propName)
@@ -246,11 +249,11 @@ def isBound(self, propName, other, otherPropName=None):
 def syncAndNotifyAtts(self, name, value):
     """This method is called by the
     :meth:`.PropertyValue.notifyAttributeListeners` method.
-    
+
     It ensures that the attributes of any bound :class:`.PropertyValue`
     instances are synchronised, and then notifies all attribute listeners.
     """
-    
+
     boundPropVals = _sync(self, True, name, value)
     boundPropVals = [self] + [bpv[0] for bpv in boundPropVals]
 
@@ -275,7 +278,7 @@ def syncAndNotify(self):
         allBpvs.append(bpv)
 
     _callAllListeners([self] + allBpvs, False)
-    
+
 
 def _bindProps(self,
                myProp,
@@ -298,9 +301,9 @@ def _bindProps(self,
 
         if bindatt: myPropVal.setAttributes(otherPropVal.getAttributes())
         if bindval: myPropVal.set(          otherPropVal.get())
-        
+
         myPropVal.allowInvalid(allow)
-        
+
     bindPropVals(myPropVal,
                  otherPropVal,
                  bindval=bindval,
@@ -349,12 +352,12 @@ def _bindListProps(self,
     # all the list values have been synced
     notifState = myPropVal.getNotificationState()
     myPropVal.disableNotification()
-    
+
     # Force the two lists to have
     # the same number of elements
     if len(myPropVal) > len(otherPropVal):
         del myPropVal[len(otherPropVal):]
-    
+
     elif len(myPropVal) < len(otherPropVal):
         myPropVal.extend(otherPropVal[len(myPropVal):])
 
@@ -388,7 +391,7 @@ def _bindListProps(self,
         # in a list is handled at the list level
         bindPropVals(myItem, otherItem, bindval=False, bindatt=bindatt)
         propValMap[myItem] = otherItem
-        
+
         atts = otherItem.getAttributes()
 
         # Set attributes first, because the attribute
@@ -409,8 +412,8 @@ def _bindListProps(self,
             # notify attribute listeners first
             if bindatt:
                 for name, val in atts.items():
-                    syncAndNotifyAtts(myItem, name, val) 
-            
+                    syncAndNotifyAtts(myItem, name, val)
+
             syncAndNotify(myItem)
 
     # This mapping is stored on the PVL objects,
@@ -419,7 +422,7 @@ def _bindListProps(self,
     otherPropValMaps = getattr(otherPropVal, '_listPropValMaps', {})
 
     # We can't use the PropValList objects as
-    # keys, because they are not hashable. 
+    # keys, because they are not hashable.
     myPropValMaps[   id(otherPropVal)] = propValMap
     otherPropValMaps[id(myPropVal)]    = propValMap
 
@@ -430,7 +433,7 @@ def _bindListProps(self,
     # between the PropertyValueList objects
     atts = otherPropVal.getAttributes()
     myPropVal.setAttributes(atts)
-    
+
     bindPropVals(myPropVal, otherPropVal)
 
     # Manually notify list-level listeners
@@ -448,22 +451,22 @@ def _bindListProps(self,
     # and notify all listeners.
     for name, val in atts.items():
         syncAndNotifyAtts(myPropVal, name, val)
-        
+
     syncAndNotify(myPropVal)
 
-    
+
 def propValsAreBound(pv1, pv2):
     """Returns ``True`` if the given :class:`.PropertyValue` instances are
     bound to each other, ``False`` otherwise.
     """
-    
+
     pv1BoundPropVals = pv1.__dict__.get('boundPropVals', {})
     pv2BoundPropVals = pv2.__dict__.get('boundPropVals', {})
 
     return (id(pv2) in pv1BoundPropVals and
             id(pv1) in pv2BoundPropVals)
 
-                     
+
 def bindPropVals(myPropVal,
                  otherPropVal,
                  bindval=True,
@@ -491,7 +494,7 @@ def bindPropVals(myPropVal,
     myBoundAttPropVals    = mine .__dict__.get('boundAttPropVals', wvd())
     otherBoundPropVals    = other.__dict__.get('boundPropVals',    wvd())
     otherBoundAttPropVals = other.__dict__.get('boundAttPropVals', wvd())
-    
+
     if unbind: action = 'Unbinding'
     else:      action = 'Binding'
 
@@ -514,7 +517,7 @@ def bindPropVals(myPropVal,
         else:
             myBoundPropVals[   id(other)] = other
             otherBoundPropVals[id(mine)]  = mine
-        
+
     if bindatt:
         if unbind:
             myBoundAttPropVals   .pop(id(other))
@@ -539,7 +542,7 @@ def bindPropVals(myPropVal,
 def _syncPropValLists(masterList, slaveList):
     """Called by the :func:`_sync` function when one of a pair of bound
     :class:`.PropertyValueList` instances changes.
-    
+
     Propagates the change on the ``masterList`` (either an addition, a
     removal, or a re-ordering) to the ``slaveList``.
     """
@@ -551,7 +554,7 @@ def _syncPropValLists(masterList, slaveList):
     # addition/removal/reorder), the PV objects which
     # changed are stored in this list and returned
     changed = []
-    
+
     # one or more items have been
     # added to the master list
     if len(masterList) > len(slaveList):
@@ -589,7 +592,7 @@ def _syncPropValLists(masterList, slaveList):
     elif len(masterList) < len(slaveList):
 
         mpvs = masterList.getPropertyValueList()
-        
+
         # Loop through the PV objects in the slave
         # list, and check to see if their mapped
         # master PV object has been removed from
@@ -604,18 +607,18 @@ def _syncPropValLists(masterList, slaveList):
             mpv = propValMap[spv]
 
             # we've found a value in the slave list
-            # which is no longer in the master list 
+            # which is no longer in the master list
             if mpv not in mpvs:
 
                 # Delete the item from the slave
                 # list, and delete the PV mapping
                 del slaveList[ i]
                 del propValMap[mpv]
-                
+
     # list re-order, or individual
     # value change
     else:
-        
+
         mpvs     = masterList.getPropertyValueList()
         mpvids   = [id(m) for m in mpvs]
         newOrder = []
@@ -639,14 +642,14 @@ def _syncPropValLists(masterList, slaveList):
         # which have changed, and copy the
         # new value across to the slave list
         else:
-            
+
             for i, (masterVal, slaveVal) in \
                 enumerate(
                     zip(masterList.getPropertyValueList(),
                         slaveList .getPropertyValueList())):
 
                 if masterVal == slaveVal: continue
-                
+
                 notifState = slaveVal.getNotificationState()
                 validState = slaveVal.allowInvalid()
                 slaveVal.disableNotification()
@@ -660,8 +663,8 @@ def _syncPropValLists(masterList, slaveList):
                               masterVal.get(),
                               slaveList._context.__class__.__name__,
                               slaveList._name,
-                              slaveList.get())) 
- 
+                              slaveList.get()))
+
                 slaveVal.set(masterVal.get())
                 changed.append(slaveVal)
 
@@ -681,7 +684,7 @@ def buildBPVList(self, key, node=None, bpvSet=None):
 
     Returns two lists - the first containing bound PVs, and the second
     containing the parent for each bound PV.
-    
+
     :arg self:   The root PV.
 
     :arg key:    A string, either ``boundPropVals`` or ``boundAttPropVals``.
@@ -702,19 +705,19 @@ def buildBPVList(self, key, node=None, bpvSet=None):
     # A recursive depth-first search from this
     # PV through the network of all directly
     # or indirectly bound PVs.
-    # 
+    #
     # We use a set of PV ids to make sure
     # that we don't add duplicates to the
     # list of PVs that need to be synced
     if bpvSet is None:
         bpvSet = set()
-    
+
     bpvs = node.__dict__.get(key, {}).values()
     bpvs = [b for b in bpvs if b is not self and id(b) not in bpvSet]
-        
+
     for b in bpvs:
         bpvSet.add(id(b))
-            
+
     boundPropVals.extend(bpvs)
     bpvParents   .extend([node] * len(bpvs))
 
@@ -725,7 +728,7 @@ def buildBPVList(self, key, node=None, bpvSet=None):
         bpvParents   .extend(childBpvps)
 
     return boundPropVals, bpvParents
-    
+
 
 def _sync(self, atts=False, attName=None, attValue=None):
     """Called by :func:`_notify`.
@@ -744,7 +747,7 @@ def _sync(self, atts=False, attName=None, attValue=None):
 
     from . import properties_value
 
-    # This PV is already being synced 
+    # This PV is already being synced
     # to some other PV - don't sync back
     if getattr(self, '_syncing', False):
         return []
@@ -765,7 +768,7 @@ def _sync(self, atts=False, attName=None, attValue=None):
             try:
                 if bpv.getAttribute(attName) == attValue: continue
             except KeyError:
-                pass 
+                pass
         elif self == bpv:
             continue
 
@@ -775,8 +778,8 @@ def _sync(self, atts=False, attName=None, attValue=None):
 
         # Disable notification on the PV, as we
         # manually trigger notifications in the
-        # _notify function below. 
-        notifState = bpv.getNotificationState() 
+        # _notify function below.
+        notifState = bpv.getNotificationState()
         bpv.disableNotification()
 
         log.debug('Syncing bound property values ({}) '
@@ -787,7 +790,7 @@ def _sync(self, atts=False, attName=None, attValue=None):
                       id(self._context),
                       bpv._context.__class__.__name__,
                       bpv._name,
-                      id(bpv._context)))        
+                      id(bpv._context)))
 
         # Normal PropertyValue object (i.e. not a PropertyValueList)
         if atts or not isinstance(self, properties_value.PropertyValueList):
@@ -796,7 +799,7 @@ def _sync(self, atts=False, attName=None, attValue=None):
             changedPropVals.append((bpv, None))
 
             # Allow invalid values, as otherwise
-            # an error may be raised. 
+            # an error may be raised.
             validState = bpv.allowInvalid()
             bpv.allowInvalid(True)
 
@@ -807,7 +810,7 @@ def _sync(self, atts=False, attName=None, attValue=None):
             else:    bpv.set(self.get())
 
             bpv.allowInvalid(validState)
-            
+
         # PropertyValueList instances -
         # store a reference ot the PV list,
         # and to all list items that changed
@@ -853,7 +856,7 @@ def _callAllListeners(propVals, att, name=None, value=None):
 
         if isinstance(func, properties_value.WeakFunctionRef):
             func = func.function()
-            
+
         return func
 
     try:
@@ -871,7 +874,7 @@ def _callAllListeners(propVals, att, name=None, value=None):
             else:
                 pListeners = []
                 pArgs      = None
-                
+
             for listeners, args in [(cListeners, cArgs), (pListeners, pArgs)]:
 
                 for l in listeners:

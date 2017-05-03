@@ -31,20 +31,20 @@ def _Bounds(parent,
     allow the user to edit the low/high values along each dimension of the
     given :class:`.Bounds` property value.
 
-    
+
     If both the ``slider`` and ``spin`` arguments are ``True``, a
     :class:`.RangeSliderSpinPanel` widget is returned; otherwise
     a :class:`.RangePanel` is returned.
 
-    
+
     If both ``slider`` and ``spin`` are ``False``, a :exc:`ValueError` is
     raised.
-    
+
 
     :arg slider:     Display slider widgets allowing the user to control the
                      bound values.
 
-    :arg spin:       Display spin control widgets allowing the user to control 
+    :arg spin:       Display spin control widgets allowing the user to control
                      the bound values.
 
     :arg showLimits: Show the bound limits.
@@ -57,10 +57,10 @@ def _Bounds(parent,
     :arg labels:     A list of strings of length ``2 * ndims``, where ``ndims``
                      is the number of dimensions on the ``Bounds`` property;
                      the strings are used as labels on the widget.
-    
+
     :arg spinWidth:  Desired spin control width. See the
                      :class:`.FloatSpinCtrl` class.
-    
+
     See the :func:`.widgets._String` documentation for details on the other
     parameters.
     """
@@ -108,7 +108,7 @@ def _Bounds(parent,
                 minDistance=minDistance,
                 spinWidth=spinWidth,
                 style=style)
-            
+
         elif slider or spin:
 
             style = 0
@@ -149,13 +149,13 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
 
     :arg sliderPanel: The :class:`.RangeSliderSpinPanel`/:class:`.RangePanel`
                       instance.
-    
+
     :arg axis:        The 0-indexed axis of the :class:`.Bounds` value.
 
     See :func:`_Bounds` for details on the other arguments.
     """
 
-    
+
     lowProp    = propVal.getPropertyValueList()[axis * 2]
     highProp   = propVal.getPropertyValueList()[axis * 2 + 1]
 
@@ -163,7 +163,7 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     lowName     = 'BoundBind_{}_{}'.format(id(sliderPanel), id(lowProp))
     highName    = 'BoundBind_{}_{}'.format(id(sliderPanel), id(highProp))
     lowAttName  = 'BoundBindAtt_{}_{}'.format(id(sliderPanel), id(lowProp))
-    highAttName = 'BoundBindAtt_{}_{}'.format(id(sliderPanel), id(highProp)) 
+    highAttName = 'BoundBindAtt_{}_{}'.format(id(sliderPanel), id(highProp))
 
     # Called when the low PV changes
     def lowGuiUpdate(*a):
@@ -196,8 +196,8 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         lowProp .disableListener(lowName)
         highProp.disableListener(highName)
         propVal.setRange(axis, ev.low, ev.high)
-        lowProp .enableListener(lowName) 
-        highProp.enableListener(highName) 
+        lowProp .enableListener(lowName)
+        highProp.enableListener(highName)
 
     # Called when any attributes of the
     # individual bounds property values change
@@ -242,7 +242,7 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         sliderPanel.Bind(rangeslider.EVT_RANGE_LIMIT, updatePropRange)
 
     def onDestroy(ev):
-        ev.Skip() 
+        ev.Skip()
         if ev.GetEventObject() is not sliderPanel:
             return
 
@@ -251,5 +251,5 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         lowProp .removeAttributeListener(lowAttName)
         highProp.removeAttributeListener(highAttName)
         propVal .removeAttributeListener(boundName)
-        
+
     sliderPanel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)

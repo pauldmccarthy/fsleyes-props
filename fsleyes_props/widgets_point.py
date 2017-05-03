@@ -32,14 +32,14 @@ def _Point(parent,
                      corresponding controls.
 
     :arg showLimits: Show labels displaying the point limits.
-    
+
     :arg editLimits: Show buttons allowing the user to edit the point limits.
 
     :arg mousewheel: The user can use the mouse wheel to change the point
                      value.
 
     See the :func:`.widgets._String` documentation for details on the other
-    parameters. 
+    parameters.
     """
     panel = wx.Panel(parent)
     sizer = wx.BoxSizer(wx.VERTICAL)
@@ -84,14 +84,14 @@ def _pointBind(hasProps, propObj, propVal, slider, dim, editLimits):
     other.
 
     :arg slider: The :class:`.SliderSpinPanel` instance.
-    
+
     :arg dim:    The 0-indexed dimension of the :class:`.Point` value.
 
     See :func:`_Point` for details on the other arguments.
     """
 
     dimPropVal = propVal.getPropertyValueList()[dim]
-    
+
     widgets._propBind(hasProps,
                       propObj._listType,
                       dimPropVal,
@@ -101,7 +101,7 @@ def _pointBind(hasProps, propObj, propVal, slider, dim, editLimits):
     def propLimitsChanged(*a):
         minval = propVal.getMin(dim)
         maxval = propVal.getMax(dim)
-        
+
         if minval is not None: slider.SetMin(minval)
         if maxval is not None: slider.SetMax(maxval)
 

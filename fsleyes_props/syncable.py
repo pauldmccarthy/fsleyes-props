@@ -21,7 +21,7 @@ All that is needed to make use of this functionality is to extend the
             myint = props.Int()
             def __init__(self, parent=None):
                 props.SyncableHasProperties.__init__(self, parent=parent)
-    
+
 
 Given a class definition such as the above, a parent-child relationship
 between two instances can be set up as follows::
@@ -71,13 +71,13 @@ log = logging.getLogger(__name__)
 _SYNC_SALT_ = '_sync_'
 """Constant string added to sync-related property names and listeners."""
 
-    
+
 class SyncableHasProperties(props.HasProperties):
     """An extension to the ``HasProperties`` class which supports parent-child
     relationships between instances.
     """
 
-    
+
     @classmethod
     def _saltSyncPropertyName(cls, propName):
         """Adds a prefix to the given property name, to be used as the
@@ -92,7 +92,7 @@ class SyncableHasProperties(props.HasProperties):
         added by the :meth:`_saltSyncPropertyName` method.
         """
         return propName[len(_SYNC_SALT_):]
- 
+
 
     @classmethod
     def getSyncPropertyName(cls, propName):
@@ -102,7 +102,7 @@ class SyncableHasProperties(props.HasProperties):
         """
         return cls._saltSyncPropertyName(propName)
 
-    
+
     @classmethod
     def getSyncProperty(cls, propName):
         """Returns the :class:`.PropertyBase` instance of the boolean property
@@ -111,7 +111,7 @@ class SyncableHasProperties(props.HasProperties):
         """
         return cls.getProp(cls.getSyncPropertyName(propName))
 
-    
+
     def __init__(self, **kwargs):
         """Create a ``SyncableHasProperties`` instance.
 
@@ -119,13 +119,13 @@ class SyncableHasProperties(props.HasProperties):
         there is no need to call this constructor explicitly. Otherwise, the
         parent must be an instance of the same class to which this instance's
         properties should be bound.
-        
-        :arg parent:    Another ``SyncableHasProperties`` instance, which has 
+
+        :arg parent:    Another ``SyncableHasProperties`` instance, which has
                         the same type as this instance.
-        
+
         :arg nobind:    A sequence of property names which should not be bound
                         with the parent.
-        
+
         :arg nounbind:  A sequence of property names which cannot be unbound
                         from the parent.
 
@@ -140,7 +140,7 @@ class SyncableHasProperties(props.HasProperties):
                         property is bound to the parent, this instance will
                         inherit the parent's value. Otherwise, when a property
                         is bound, the parent will inherit this instance's
-                        value. 
+                        value.
 
         :arg kwargs:    Other arguments are passed to the
                         :meth:`.HasProperties.__init__` method.
@@ -151,12 +151,12 @@ class SyncableHasProperties(props.HasProperties):
         nounbind  = kwargs.pop('nounbind',  [])
         state     = kwargs.pop('state',     True)
         direction = kwargs.pop('direction', True)
-        
+
         props.HasProperties.__init__(self, **kwargs)
-        
+
         self._nobind   = nobind
         self._nounbind = nounbind
-        
+
         # If parent is none, then this instance
         # is a 'parent' instance, and doesn't need
         # to worry about being bound. So we've got
@@ -177,7 +177,7 @@ class SyncableHasProperties(props.HasProperties):
             raise TypeError('parent is of a different type '
                             '({} != {})'.format(parent.__class__,
                                                 self.__class__))
- 
+
 
         # Set up a binding between this
         # instance and its parent
@@ -211,7 +211,7 @@ class SyncableHasProperties(props.HasProperties):
             # Add a boolean sync property
             # for this regular property.
             bindProp = types.Boolean(default=True)
-            
+
             self.addProperty(self._saltSyncPropertyName(pn), bindProp)
 
             # Initialise the binding direction
@@ -226,7 +226,7 @@ class SyncableHasProperties(props.HasProperties):
 
             self._initSyncProperty(pn, pState)
 
-                    
+
     def getParent(self):
         """Returns the parent of this instance, or ``None`` if there is no
         parent.
@@ -251,8 +251,8 @@ class SyncableHasProperties(props.HasProperties):
         children = [c for c in children if c is not None]
 
         return children
-                
-    
+
+
     def _saltSyncListenerName(self, propName):
         """Adds a prefix and a suffix to the given property name, to be used
         as the name for an internal listener on the corresponding boolean sync
@@ -268,7 +268,7 @@ class SyncableHasProperties(props.HasProperties):
         Configures a binding between this instance and its parent for the
         specified property.
         """
-        
+
         bindPropName  = self._saltSyncPropertyName(propName)
         bindPropObj   = self.getProp(bindPropName)
         bindPropVal   = bindPropObj.getPropVal(self)
@@ -280,7 +280,7 @@ class SyncableHasProperties(props.HasProperties):
 
         if (not initState) and (not self.canBeUnsyncedFromParent(propName)):
             raise ValueError('Invalid initial state for '
-                             'nounbindproperty {}'.format(propName)) 
+                             'nounbindproperty {}'.format(propName))
 
         if not self.canBeSyncedToParent(propName):
             bindPropVal.set(False)
@@ -295,9 +295,9 @@ class SyncableHasProperties(props.HasProperties):
         if initState:
             if direction: slave, master = self, self._parent()
             else:         slave, master = self._parent(), self
-            slave.bindProps(propName, master) 
+            slave.bindProps(propName, master)
 
-        
+
     def _syncPropChanged(self, value, valid, ctx, bindPropName):
         """Called when a hidden boolean property controlling the sync
         state of the specified real property changes.
@@ -322,7 +322,7 @@ class SyncableHasProperties(props.HasProperties):
 
         if direction: slave, master = self, self._parent()
         else:         slave, master = self._parent(), self
-        
+
         slave.bindProps(propName, master, unbind=(not bindPropVal))
 
 
@@ -332,7 +332,7 @@ class SyncableHasProperties(props.HasProperties):
         """
         return self._bindDirections[propName]
 
-    
+
     def setBindingDirection(self, direction, propName=None):
         """Set the current binding direction for the named property. If the
         direction is ``True``, when this property is bound, this instance
@@ -348,7 +348,7 @@ class SyncableHasProperties(props.HasProperties):
         for pn in propNames:
             self._bindDirections[pn] = direction
 
-        
+
     def syncToParent(self, propName):
         """Synchronise the given property with the parent instance.
 
@@ -367,14 +367,14 @@ class SyncableHasProperties(props.HasProperties):
         bindPropName = self._saltSyncPropertyName(propName)
 
         if getattr(self, bindPropName):
-            return 
+            return
 
         with suppress.suppress(self, bindPropName):
             setattr(self, bindPropName, True)
 
         self._syncPropChanged(None, None, None, bindPropName)
 
-    
+
     def unsyncFromParent(self, propName):
         """Unsynchronise the given property from the parent instance.
 
@@ -388,8 +388,8 @@ class SyncableHasProperties(props.HasProperties):
         """
         if propName in self._nounbind:
             raise RuntimeError('{} cannot be unbound from '
-                               'parent'.format(propName))        
-        
+                               'parent'.format(propName))
+
         bindPropName = self._saltSyncPropertyName(propName)
 
         if not getattr(self, bindPropName):
@@ -403,7 +403,7 @@ class SyncableHasProperties(props.HasProperties):
 
     def syncAllToParent(self):
         """Synchronises all properties to the parent instance.
-        
+
         Does not attempt to synchronise properties in the ``nobind`` list.
         """
         propNames = self.getAllProperties()[0]
@@ -418,7 +418,7 @@ class SyncableHasProperties(props.HasProperties):
 
     def unsyncAllFromParent(self):
         """Unynchronises all properties from the parent instance.
-        
+
         Does not attempt to synchronise properties in the ``nounbind`` list.
         """
         propNames = self.getAllProperties()[0]
@@ -428,7 +428,7 @@ class SyncableHasProperties(props.HasProperties):
                propName in self._nobind:
                 continue
 
-            self.unsyncFromParent(propName)         
+            self.unsyncFromParent(propName)
 
 
     def detachFromParent(self):
@@ -464,8 +464,8 @@ class SyncableHasProperties(props.HasProperties):
                     parent._children.remove(c)
 
         self._parent = None
- 
-        
+
+
     def isSyncedToParent(self, propName):
         """Returns ``True`` if the specified property is synced to the parent
         of this ``SyncableHasProperties`` instance, ``False`` otherwise.
@@ -486,9 +486,9 @@ class SyncableHasProperties(props.HasProperties):
         of this ``SyncableHasProperties`` instance, ``False`` otherwise.
         """
         propNames = self.getAllProperties()[0]
-        return all([self.isSyncedToParent(p) for p in propNames]) 
+        return all([self.isSyncedToParent(p) for p in propNames])
 
-    
+
     def canBeSyncedToParent(self, propName):
         """Returns ``True`` if the given property can be synced between this
         ``SyncableHasProperties`` instance and its parent (see the ``nobind``
@@ -496,12 +496,12 @@ class SyncableHasProperties(props.HasProperties):
         """
         return propName not in self._nobind
 
-    
+
     def canBeUnsyncedFromParent(self, propName):
         """Returns ``True`` if the given property can be unsynced between this
         ``SyncableHasProperties`` instance and its parent (see the
         ``nounbind`` parameter in :meth:`__init__`).
-        """ 
+        """
         return propName not in self._nounbind
 
 
@@ -521,10 +521,10 @@ class SyncableHasProperties(props.HasProperties):
                          overwrite=overwrite,
                          weak=weak)
 
-        
+
     def removeSyncChangeListener(self, propName, listenerName):
         """De-registers the given listener from receiving sync
         state changes.
-        """ 
+        """
         bindPropName = self._saltSyncPropertyName(propName)
         self.removeListener(bindPropName, listenerName)

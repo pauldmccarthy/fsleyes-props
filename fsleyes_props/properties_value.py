@@ -52,7 +52,7 @@ class WeakFunctionRef(object):
     or attribute changes.
     """
 
-    
+
     def __init__(self, func):
         """Create a new ``WeakFunctionRef`` to encapsulate the given
         function or bound/unbound method.
@@ -77,7 +77,7 @@ class WeakFunctionRef(object):
 
         # Unbound/class method or function
         else:
- 
+
             self.obj      = None
             self.objType  = None
             self.func     = weakref.ref(func)
@@ -98,20 +98,20 @@ class WeakFunctionRef(object):
         if func is None: return '{} <dead>'.format(s)
         else:            return s
 
-        
+
     def __repr__(self):
         """Return a string representation of the function."""
         return self.__str__()
 
-    
+
     def __isMethod(self, func):
         """Returns ``True`` if the given function is a bound method,
         ``False`` otherwise.
-        
+
         This seems to be one of the few areas where python 2 and 3 are
         irreconcilably incompatible (or just where :mod:`six` does not have a
         function to help us).
-        
+
         In Python 2 there is no difference between an unbound method and a
         function. But in Python 3, an unbound method is still a method (and
         inspect.ismethod returns True).
@@ -132,7 +132,7 @@ class WeakFunctionRef(object):
             ismethod = inspect.ismethod(func)
 
         return ismethod
-    
+
 
     def __findPrivateMethod(self):
         """Finds and returns the bound method associated with the encapsulated
@@ -162,7 +162,7 @@ class WeakFunctionRef(object):
 
         return None
 
-    
+
     def function(self):
         """Return a reference to the encapsulated function or method,
         or ``None`` if the function has been garbage collected.
@@ -183,7 +183,7 @@ class WeakFunctionRef(object):
 
         # If the function is a bound private method,
         # its name on the instance will have been
-        # mangled, so we need to search for it 
+        # mangled, so we need to search for it
         except: return self.__findPrivateMethod()
 
 
@@ -218,7 +218,7 @@ class Listener(object):
         pvName  = self.propVal()._name
 
         return '{} ({}.{})'.format(self.name, ctxName, pvName)
- 
+
 
 
 class PropertyValue(object):
@@ -241,7 +241,7 @@ class PropertyValue(object):
     A queue is used for notification so that listeners are notified in
     the order that values were changed.
     """
-    
+
 
     def __init__(self,
                  context,
@@ -256,7 +256,7 @@ class PropertyValue(object):
                  parent=None,
                  **attributes):
         """Create a ``PropertyValue`` object.
-        
+
         :param context:        An object which is passed as the first argument
                                to the ``validateFunc``, ``preNotifyFunc``,
                                ``postNotifyFunc``, and any registered
@@ -274,7 +274,7 @@ class PropertyValue(object):
                                context, a dictionary containing the attributes
                                of this object, and the value to cast. Must
                                return that value, cast/converted appropriately.
-        
+
         :param validateFunc:   Function which accepts three parameters - the
                                context, a dictionary containing the attributes
                                of this object, and a value. This function
@@ -291,12 +291,12 @@ class PropertyValue(object):
                                listeners are called. See the
                                :meth:`addListener` method for details of the
                                parameters this function must accept.
-        
+
         :param postNotifyFunc: Function to be called whenever the property
                                value changes, but after any registered
                                listeners are called. Must accept the same
                                parameters as the ``preNotifyFunc``.
-        
+
         :param allowInvalid:   If ``False``, any attempt to set the value to
                                something invalid will result in a
                                :exc:`ValueError`. Note that this does not
@@ -307,17 +307,17 @@ class PropertyValue(object):
                                a value may change, even if the value itself
                                has not changed.
 
-        :param parent:         If this PV instance is a member of a 
+        :param parent:         If this PV instance is a member of a
                                :class:`PropertyValueList` instance, the latter
                                sets itself as the parent of this PV. Whenever
                                the value of this PV changes, the
                                :meth:`PropertyValueList._listPVChanged` method
                                is called.
-        
-        :param attributes:     Any key-value pairs which are to be associated 
-                               with this :class:`PropertyValue` object, and 
-                               passed to the ``castFunc`` and ``validateFunc`` 
-                               functions. Attributes are not used by the 
+
+        :param attributes:     Any key-value pairs which are to be associated
+                               with this :class:`PropertyValue` object, and
+                               passed to the ``castFunc`` and ``validateFunc``
+                               functions. Attributes are not used by the
                                ``PropertyValue`` or ``PropertyValueList``
                                classes, however they are used by the
                                :class:`.PropertyBase` and
@@ -326,11 +326,11 @@ class PropertyValue(object):
                                may register to be notified when attribute
                                values change.
         """
-        
+
         if name     is     None: name  = 'PropertyValue_{}'.format(id(self))
         if castFunc is not None: value = castFunc(context, attributes, value)
         if equalityFunc is None: equalityFunc = lambda a, b: a == b
-        
+
         self._context                 = weakref.ref(context)
         self._validate                = validateFunc
         self._name                    = name
@@ -387,14 +387,14 @@ class PropertyValue(object):
             other = other.get()
         return self._equalityFunc(self.get(), other)
 
-    
+
     def __ne__(self, other):
         """Returns ``True`` if the given object has a different value to
         this instance, ``False`` otherwise.
-        """ 
+        """
         return not self.__eq__(other)
 
-    
+
     def __saltListenerName(self, name):
         """Adds a constant string to the given listener name.
 
@@ -403,7 +403,7 @@ class PropertyValue(object):
         """
         return 'PropertyValue_{}_{}'.format(self._name, name)
 
-    
+
     def __unsaltListenerName(self, name):
         """Removes a constant string from the given listener name,
         which is assumed to have been generated by the
@@ -411,7 +411,7 @@ class PropertyValue(object):
         """
 
         salt = 'PropertyValue_{}_'.format(self._name)
-        
+
         return name[len(salt):]
 
 
@@ -423,7 +423,7 @@ class PropertyValue(object):
         if self.__parent is not None: return self.__parent()
         else:                         return None
 
-    
+
     def allowInvalid(self, allow=None):
         """Query/set the allow invalid state of this value.
 
@@ -434,8 +434,8 @@ class PropertyValue(object):
             return self._allowInvalid
 
         self._allowInvalid = bool(allow)
-    
-        
+
+
     def enableNotification(self, bound=False):
         """Enables notification of property value and attribute listeners for
         this ``PropertyValue`` object.
@@ -455,7 +455,7 @@ class PropertyValue(object):
         for bpv in bpvs:
             bpv.enableNotification()
 
-        
+
     def disableNotification(self, bound=False):
         """Disables notification of property value and attribute listeners for
         this ``PropertyValue`` object. Notification can be re-enabled via
@@ -466,39 +466,39 @@ class PropertyValue(object):
                     ``PropertyValue`` instances that are bound to this one
                     (see the :mod:`.bindable` module). If ``False`` (the
                     default), notification is only disabled on this
-                    ``PropertyValue``. 
+                    ``PropertyValue``.
         """
         self.__notification = False
 
         if not bound:
-            return 
+            return
 
         bpvs = bindable.buildBPVList(self, 'boundPropVals')[0]
         for bpv in bpvs:
-            bpv.disableNotification() 
+            bpv.disableNotification()
 
-        
+
     def getNotificationState(self):
         """Returns ``True`` if notification is currently enabled, ``False``
         otherwise.
         """
         return self.__notification
 
-        
+
     def setNotificationState(self, value):
         """Sets the current notification state."""
         if value: self.enableNotification()
         else:     self.disableNotification()
 
-        
+
     def addAttributeListener(self, name, listener, weak=True, immediate=False):
         """Adds an attribute listener for this ``PropertyValue``. The
         listener callback function must accept the following arguments:
-        
+
           - ``context``:   The context associated with this ``PropertyValue``.
-        
+
           - ``attribute``: The name of the attribute that changed.
-        
+
           - ``value``:     The new attribute value.
 
           - ``name``:      The name of this ``PropertyValue`` instance.
@@ -506,7 +506,7 @@ class PropertyValue(object):
         :param name:      A unique name for the listener. If a listener with
                           the specified name already exists, it will be
                           overwritten.
-        
+
         :param listener:  The callback function.
 
         :param weak:      If ``True`` (the default), a weak reference to the
@@ -521,7 +521,7 @@ class PropertyValue(object):
 
         if weak:
             listener = WeakFunctionRef(listener)
-        
+
         name = self.__saltListenerName(name)
         self._attributeListeners[name] = Listener(self,
                                                   name,
@@ -529,7 +529,7 @@ class PropertyValue(object):
                                                   True,
                                                   immediate)
 
-        
+
     def disableAttributeListener(self, name):
         """Disables the attribute listener with the specified ``name``. """
         name = self.__saltListenerName(name)
@@ -537,25 +537,25 @@ class PropertyValue(object):
                                                                   name))
         self._attributeListeners[name].enabled = False
 
-    
+
     def enableAttributeListener(self, name):
         """Enables the attribute listener with the specified ``name``. """
         name = self.__saltListenerName(name)
         log.debug('Enabling attribute listener on {}: {}'.format(self._name,
-                                                                 name)) 
+                                                                 name))
         self._attributeListeners[name].enabled = True
 
-        
+
     def removeAttributeListener(self, name):
         """Removes the attribute listener of the given name."""
         log.debug('Removing attribute listener on {}.{}: {}'.format(
             self._context().__class__.__name__, self._name, name))
-        
+
         name     = self.__saltListenerName(name)
         listener = self._attributeListeners.pop(name, None)
 
         if listener is not None:
-            
+
             cb = listener.function
 
             if isinstance(cb, WeakFunctionRef):
@@ -571,7 +571,7 @@ class PropertyValue(object):
         """
         return self._attributes.copy()
 
-        
+
     def setAttributes(self, atts):
         """Sets all the attributes of this ``PropertyValue`` object.
         from the given dictionary.
@@ -580,12 +580,12 @@ class PropertyValue(object):
         for name, value in atts.items():
             self.setAttribute(name, value)
 
-        
+
     def getAttribute(self, name):
         """Returns the value of the named attribute."""
         return self._attributes[name]
 
-        
+
     def setAttribute(self, name, value):
         """Sets the named attribute to the given value, and notifies any
         registered attribute listeners of the change.
@@ -625,9 +625,9 @@ class PropertyValue(object):
         else:   lDict = self._changeListeners
 
         allListeners = []
-        
+
         for lName, listener in list(lDict.items()):
-            
+
             if not listener.enabled:
                 continue
 
@@ -636,10 +636,10 @@ class PropertyValue(object):
             if isinstance(cb, WeakFunctionRef):
                 cb = cb.function()
 
-            # The owner of the referred function/method 
+            # The owner of the referred function/method
             # has been GC'd - remove it
             if cb is None:
-                
+
                 log.debug('Removing dead listener {}'.format(lName))
                 if att:
                     self.removeAttributeListener(
@@ -658,7 +658,7 @@ class PropertyValue(object):
             if self._preNotifyListener.function is not None and \
                self._preNotifyListener.enabled:
                 allListeners = [self._preNotifyListener] + allListeners
-            
+
             if self._postNotifyListener.function is not None and \
                self._postNotifyListener.enabled:
                 allListeners = allListeners + [self._postNotifyListener]
@@ -675,8 +675,8 @@ class PropertyValue(object):
         """
 
         bindable.syncAndNotifyAtts(self, name, value)
-        
-        
+
+
     def addListener(self,
                     name,
                     callback,
@@ -701,9 +701,9 @@ class PropertyValue(object):
                           the name already exists, a :exc`RuntimeError` will be
                           raised, or it will be overwritten, depending upon
                           the value of the ``overwrite`` argument.
-        
+
         :param callback:  The callback function.
-        
+
         :param overwrite: If ``True`` any previous listener with the same name
                           will be overwritten.
 
@@ -726,12 +726,12 @@ class PropertyValue(object):
         if name in ('prenotify', 'postnotify'):
             raise ValueError('Reserved listener name used: {}. '
                              'Use a different name.'.format(name))
-        
+
         log.debug('Adding listener on {}.{}: {}'.format(
             self._context().__class__.__name__,
             self._name,
             name))
-        
+
         fullName = self.__saltListenerName(name)
         prior    = self._changeListeners.get(fullName, None)
 
@@ -740,11 +740,11 @@ class PropertyValue(object):
 
         if (prior is not None) and (not overwrite):
             raise RuntimeError('Listener {} already exists'.format(name))
-        
+
         elif prior is not None:
             prior.function  = callback
             prior.immediate = immediate
-            
+
         else:
             self._changeListeners[fullName] = Listener(self,
                                                        fullName,
@@ -793,7 +793,7 @@ class PropertyValue(object):
             # just in case bindable tries to call
             # a removed listener.
             listener.enabled = False
-            
+
             cb = listener.function
 
             if isinstance(cb, WeakFunctionRef):
@@ -809,7 +809,7 @@ class PropertyValue(object):
         log.debug('Enabling listener on {}: {}'.format(self._name, name))
         self._changeListeners[name].enabled = True
 
-    
+
     def disableListener(self, name):
         """Disables the listener with the specified ``name``, but does not
         remove it from the list of listeners.
@@ -855,7 +855,7 @@ class PropertyValue(object):
         """
         self._preNotifyListener.function = preNotifyFunc
 
-        
+
     def setPostNotifyFunction(self, postNotifyFunc):
         """Sets the function to be called on value changes, after any
         registered listeners.
@@ -867,12 +867,12 @@ class PropertyValue(object):
         """Returns the most recent property value before the current one."""
         return self.__lastValue
 
-        
+
     def get(self):
         """Returns the current property value."""
         return self.__value
 
-        
+
     def set(self, newValue):
         """Sets the property value.
 
@@ -889,7 +889,7 @@ class PropertyValue(object):
             newValue = self._castFunc(self._context(),
                                       self._attributes,
                                       newValue)
-            
+
         # Check to see if the new value is valid
         valid    = False
         validStr = None
@@ -931,8 +931,8 @@ class PropertyValue(object):
             self.__lastValue,
             self.__value,
             'valid' if valid else 'invalid - {}'.format(validStr)))
-        
-        # Notify any registered listeners. 
+
+        # Notify any registered listeners.
         self.propNotify()
 
 
@@ -946,7 +946,7 @@ class PropertyValue(object):
         if not self.__notification:
             return
 
-        # If this PV is a member of a PV list, 
+        # If this PV is a member of a PV list,
         # tell the list that this PV has
         # changed, so that it can notify its own
         # list-level listeners of the change
@@ -999,7 +999,7 @@ class PropertyValueList(PropertyValue):
 
       # the value after this will be [5, 2, 3]
       myobj.mylist[0]  = 5
-    
+
       # the value after this will be [5, 6, 7]
       myobj.mylist[1:] = [6, 7]
 
@@ -1009,7 +1009,7 @@ class PropertyValueList(PropertyValue):
       # This will result in an IndexError
       myobj.mylist[0:2] = [6, 7, 8]
 
-    The exception to this rule concerns modifications which would replace 
+    The exception to this rule concerns modifications which would replace
     every value in the list::
 
       # These assignments are equivalent
@@ -1054,35 +1054,35 @@ class PropertyValueList(PropertyValue):
         """Create a ``PropertyValueList``.
 
         :param context:          See :meth:`PropertyValue.__init__`.
-        
+
         :param name:             See :meth:`PropertyValue.__init__`.
-        
+
         :param values:           Initial list values.
-        
+
         :param itemCastFunc:     Function which casts a single list item.
-        
+
         :param itemEqualityFunc: Function which tests equality of two values.
-        
-        :param itemValidateFunc: Function which validates a single list item. 
-        
-        :param listValidateFunc: Function which validates the list as a whole. 
-        
+
+        :param itemValidateFunc: Function which validates a single list item.
+
+        :param listValidateFunc: Function which validates the list as a whole.
+
         :param itemAllowInvalid: Whether items are allowed to containg
                                  invalid values.
-        
+
         :param preNotifyFunc:    See :meth:`PropertyValue.__init__`.
-        
+
         :param postNotifyFunc:   See :meth:`PropertyValue.__init__`.
-        
+
         :param listAttributes:   Attributes to be associated with this
                                  ``PropertyValueList``.
-        
+
         :param itemAttributes:   Attributes to be associated with new
                                  ``PropertyValue`` items added to
                                  the list.
         """
         if name is None: name = 'PropertyValueList_{}'.format(id(self))
-        
+
         if listAttributes is None: listAttributes = {}
 
         def itemEquals(a, b):
@@ -1124,7 +1124,7 @@ class PropertyValueList(PropertyValue):
         self._itemEqualityFunc = itemEquals
         self._itemAllowInvalid = itemAllowInvalid
         self._itemAttributes   = itemAttributes
-            
+
         # The list of PropertyValue objects.
         if values is not None: values = [self.__newItem(v) for v in values]
         else:                  values = []
@@ -1139,15 +1139,15 @@ class PropertyValueList(PropertyValue):
 
         if other is None:
             return False
-        
+
         if len(self) != len(other):
             return False
-        
+
         return all([self._itemEqualityFunc(ai, bi)
                     for ai, bi
                     in zip(self[:], other[:])])
 
-        
+
     def getPropertyValueList(self):
         """Return (a copy of) the underlying property value list, allowing
         access to the ``PropertyValue`` instances which manage each list
@@ -1155,7 +1155,7 @@ class PropertyValueList(PropertyValue):
         """
         return list(PropertyValue.get(self))
 
-        
+
     def get(self):
         """Overrides :meth:`PropertyValue.get`. Returns this
         ``PropertyValueList`` object.
@@ -1179,7 +1179,7 @@ class PropertyValueList(PropertyValue):
 
         self[:] = newValues
 
-        
+
     def __newItem(self, item):
         """Called whenever a new item is added to the list.  Encapsulate the
         given item in a ``PropertyValue`` instance.
@@ -1198,7 +1198,7 @@ class PropertyValueList(PropertyValue):
             validateFunc=self._itemValidateFunc,
             parent=self,
             **itemAtts)
-        
+
         return propVal
 
 
@@ -1208,7 +1208,7 @@ class PropertyValueList(PropertyValue):
         """
         return [pv.get() for pv in PropertyValue.getLast(self)]
 
-    
+
     def _listPVChanged(self, pv):
         """This function is called by list items when their value changes.
         List-level listeners are notified of the change. See the
@@ -1223,37 +1223,44 @@ class PropertyValueList(PropertyValue):
                           pv,
                           self[:]))
             self.propNotify()
-    
-    
+
+
     def __getitem__(self, key):
         vals = [pv.get() for pv in PropertyValue.get(self)]
         return vals.__getitem__(key)
 
-    def __len__(     self):        return self[:].__len__()
-    def __repr__(    self):        return self[:].__repr__()
-    def __str__(     self):        return self[:].__str__()
-    def __iter__(    self):        return self[:].__iter__()
-    def __contains__(self, item):  return self[:].__contains__(item)
-    def index(       self, item):  return self[:].index(item)
-    def count(       self, item):  return self[:].count(item)
+    def __len__(     self):
+        return self[:].__len__()
+    def __repr__(    self):
+        return self[:].__repr__()
+    def __str__(     self):
+        return self[:].__str__()
+    def __iter__(    self):
+        return self[:].__iter__()
+    def __contains__(self, item):
+        return self[:].__contains__(item)
+    def index(       self, item):
+        return self[:].index(item)
+    def count(       self, item):
+        return self[:].count(item)
 
-    
+
     def insert(self, index, item):
         """Inserts the given item before the given index. """
-        
+
         propVals = self.getPropertyValueList()
-        propVals.insert(index, self.__newItem(item)) 
+        propVals.insert(index, self.__newItem(item))
         PropertyValue.set(self, propVals)
 
-        
+
     def insertAll(self, index, items):
         """Inserts all of the given items before the given index."""
 
         propVals = self.getPropertyValueList()
-        propVals[index:index] = map(self.__newItem, items) 
+        propVals[index:index] = map(self.__newItem, items)
         PropertyValue.set(self, propVals)
 
-        
+
     def append(self, item):
         """Appends the given item to the end of the list."""
 
@@ -1269,7 +1276,7 @@ class PropertyValueList(PropertyValue):
         propVals.extend(map(self.__newItem, iterable))
         PropertyValue.set(self, propVals)
 
-        
+
     def pop(self, index=-1):
         """Remove and return the specified value in the list (default:
         last).
@@ -1288,28 +1295,28 @@ class PropertyValueList(PropertyValue):
         propVals.insert(to, propVals.pop(from_))
         PropertyValue.set(self, propVals)
 
-    
+
     def remove(self, value):
         """Remove the first item in the list with the specified value. """
 
         # delegates to __delitem__, defined below
         del self[self.index(value)]
 
-        
+
     def removeAll(self, values):
         """Removes the first occurrence in the list of all of the specified
         values.
         """
-        
+
         propVals = self.getPropertyValueList()
         listVals = [pv.get() for pv in propVals]
-        
+
         for v in values:
             propVals.pop(listVals.index(v))
-            
+
         PropertyValue.set(self, propVals)
 
-        
+
     def reorder(self, idxs):
         """Reorders the list according to the given sequence of indices."""
 
@@ -1325,7 +1332,7 @@ class PropertyValueList(PropertyValue):
 
         propVals = self.getPropertyValueList()
         propVals = [propVals[i] for i in idxs]
-        
+
         PropertyValue.set(self, propVals)
 
 
@@ -1348,7 +1355,7 @@ class PropertyValueList(PropertyValue):
         # Replacement of all items in list
         if len(indices) == len(self) and \
            len(indices) != len(values):
-            
+
             notifState = self.getNotificationState()
             self.disableNotification()
             del self[:]
@@ -1372,18 +1379,18 @@ class PropertyValueList(PropertyValue):
             propVal.disableNotification()
             propVal.set(val)
             propVal.setNotificationState(notifState)
-            
+
             changedVals[idx] = not self._itemEqualityFunc(
                 propVal.get(), oldVals[idx])
 
         # Notify list-level and item-level listeners
         # if any values in the list were changed
         if any(changedVals):
-            
+
             log.debug('Notifying list-level listeners ({}.{} {})'.format(
                 self._context().__class__.__name__,
                 self._name,
-                id(self._context()))) 
+                id(self._context())))
             self.propNotify()
 
             log.debug('Notifying item-level listeners ({}.{} {})'.format(
@@ -1398,17 +1405,17 @@ class PropertyValueList(PropertyValue):
             # above, so we want this suppressed.
             notifState = self.getNotificationState()
             self.disableNotification()
-        
+
             for idx in indices:
                 if changedVals[idx]:
                     propVals[idx].propNotify()
 
             self.setNotificationState(notifState)
 
-        
+
     def __delitem__(self, key):
         """Remove items at the specified index/slice from the list."""
-        
+
         propVals = self.getPropertyValueList()
         propVals.__delitem__(key)
         PropertyValue.set(self, propVals)

@@ -121,7 +121,7 @@ def _propBind(hasProps,
               widgetSet=None,
               widgetDestroy=None):
     """Binds a :class:`.PropertyValue` instance to a widget.
-    
+
     Sets up event callback functions such that, on a change to the given
     property value, the value displayed by the given GUI widget will be
     updated. Similarly, whenever a GUI event of the specified type (or types -
@@ -129,19 +129,19 @@ def _propBind(hasProps,
     set to the value controlled by the GUI widget.
 
     :param hasProps:      The owning :class:`.HasProperties` instance.
-    
+
     :param propObj:       The :class:`.PropertyBase` property type.
-    
+
     :param propVal:       The :class:`.PropertyValue` to be bound.
-    
+
     :param guiObj:        The :mod:`wx` GUI widget
-    
-    :param evType:        The event type (or list of event types) which should 
+
+    :param evType:        The event type (or list of event types) which should
                           be listened for on the ``guiObj``.
-    
+
     :param widgetGet:     Function which returns the current widget value. If
                           ``None``, the ``guiObj.GetValue`` method is used.
- 
+
     :param widgetSet:     Function which sets the current widget value. If
                           ``None``, the ``guiObj.SetValue`` method is used.
 
@@ -189,9 +189,9 @@ def _propBind(hasProps,
             propVal._name,
             id(hasProps),
             value))
-        
+
         widgetSet(value)
-        
+
     def _propUpdate(*a):
         """
         Called when the value controlled by the GUI widget
@@ -208,7 +208,7 @@ def _propBind(hasProps,
             id(hasProps),
             guiObj.__class__.__name__,
             id(guiObj),
-            value)) 
+            value))
 
         propVal.disableListener(listenerName)
         propVal.set(value)
@@ -216,7 +216,7 @@ def _propBind(hasProps,
         # Re-enable the property listener
         # bound to this widget only if the
         # widget has not been destroyed.
-        # 
+        #
         # This is to prevent a (somewhat
         # harmless) scenario whereby setting
         # the property value results in the
@@ -224,11 +224,11 @@ def _propBind(hasProps,
         # is bound.
         if guiObj:
             propVal.enableListener(listenerName)
-        
+
 
     def _attUpdate(ctx, att, *a):
         val = propVal.getAttribute(att)
-        if att == 'enabled': 
+        if att == 'enabled':
             guiObj.Enable(val)
 
     _guiUpdate(propVal.get())
@@ -241,10 +241,10 @@ def _propBind(hasProps,
 
     def onDestroy(ev):
         ev.Skip()
- 
+
         if ev.GetEventObject() is not guiObj:
             return
-        
+
         log.debug('Widget {} ({}) destroyed (removing '
                   'listener {} from {}.{})'.format(
                       guiObj.__class__.__name__,
@@ -269,7 +269,7 @@ def _propUnbind(hasProps, propObj, propVal, guiObj, evType):
     if not isinstance(evType, Iterable): evType = [evType]
 
     listenerName    = 'WidgetBind_{}'   .format(id(guiObj))
-    listenerAttName = 'WidgetBindAtt_{}'.format(id(guiObj)) 
+    listenerAttName = 'WidgetBindAtt_{}'.format(id(guiObj))
 
     propVal.removeListener(         listenerName)
     propVal.removeAttributeListener(listenerAttName)
@@ -291,11 +291,11 @@ def _setupValidation(widget, hasProps, propObj, propVal):
       - :class:`.Number`
 
     :param widget:   The :mod:`wx` GUI widget.
-    
+
     :param hasProps: The owning :class:`.HasProperties` instance.
-    
+
     :param propObj:  The :class:`.PropertyBase` property type.
-    
+
     :param propVal:  The :class:`.PropertyValue` instance.
     """
 
@@ -309,10 +309,10 @@ def _setupValidation(widget, hasProps, propObj, propVal):
         widget background colour according to the validity
         of the new value.
         """
-        
+
         if valid: newBGColour = validBGColour
         else:     newBGColour = invalidBGColour
-        
+
         widget.SetBackgroundColour(newBGColour)
         widget.Refresh()
 
@@ -329,25 +329,25 @@ def _setupValidation(widget, hasProps, propObj, propVal):
     def onDestroy(ev):
         propVal.removeListener(lName)
         ev.Skip()
-    
+
     widget.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
 
     # Validate the initial property value,
     # so the background is appropriately set
     _changeBGOnValidate(None, propVal.isValid(), None)
-    
+
 
 def _String(parent, hasProps, propObj, propVal, **kwargs):
     """Creates and returns a :class:`wx.TextCtrl` object, allowing the user to
     edit the given ``propVal`` (managed by a :class:`.String` instance).
 
     :param parent:   The :mod:`wx` parent object.
-    
+
     :param hasProps: The owning :class:`.HasProperties` instance.
 
     :param propObj:  The :class:`.PropertyBase` instance (assumed to be a
                      :class:`.String`).
-    
+
     :param propVal:  The :class:`.PropertyValue` instance.
 
     :param kwargs:   Type-specific options.
@@ -362,7 +362,7 @@ def _String(parent, hasProps, propObj, propVal, **kwargs):
         def wheel(ev):
             widget.GetParent().GetEventHandler().ProcessEvent(ev)
         widget.Bind(wx.EVT_MOUSEWHEEL, wheel)
-    
+
     # Use a DC object to calculate a decent
     # minimum size for the widget
     dc       = wx.ClientDC(widget)
@@ -371,10 +371,10 @@ def _String(parent, hasProps, propObj, propVal, **kwargs):
 
     widget.SetMinSize((max(textSize[0], widgSize[0]),
                        max(textSize[1], widgSize[1])))
- 
+
     _propBind(hasProps, propObj, propVal, widget, wx.EVT_TEXT)
     _setupValidation(widget, hasProps, propObj, propVal)
-    
+
     return widget
 
 
@@ -417,7 +417,7 @@ def _FilePath(parent, hasProps, propObj, propVal, **kwargs):
 
     exists = propObj.getConstraint(hasProps, 'exists')
     isFile = propObj.getConstraint(hasProps, 'isFile')
-    
+
     def _choosePath(ev):
         global _lastFilePathDir
 
@@ -427,11 +427,11 @@ def _FilePath(parent, hasProps, propObj, propVal, **kwargs):
                                 defaultDir=lastFilePathDir,
                                 defaultFile=value,
                                 style=wx.FD_OPEN)
-            
+
         elif exists and (not isFile):
             dlg = wx.DirDialog(parent,
                                message='Choose directory',
-                               defaultPath=lastFilePathDir) 
+                               defaultPath=lastFilePathDir)
 
         else:
             dlg = wx.FileDialog(parent,
@@ -443,16 +443,16 @@ def _FilePath(parent, hasProps, propObj, propVal, **kwargs):
 
         dlg.ShowModal()
         path = dlg.GetPath()
-        
+
         if path != '' and path is not None:
             _FilePath.lastFilePathDir = op.dirname(path)
             propVal.set(path)
-            
+
     _setupValidation(textbox, hasProps, propObj, propVal)
     _propBind(hasProps, propObj, propVal, textbox, wx.EVT_TEXT)
 
     button.Bind(wx.EVT_BUTTON, _choosePath)
-    
+
     return panel
 
 
@@ -484,11 +484,11 @@ def _Percentage(parent, hasProps, propObj, propVal, **kwargs):
     :func:`.widgets_number._Number` function for more details.
 
     See the :func:`_String` documentation for details on the parameters.
-    """ 
+    """
     # TODO Add '%' signs to Scale labels.
     from fsleyes_props.widgets_number import _Number
-    return _Number(parent, hasProps, propObj, propVal, **kwargs) 
-        
+    return _Number(parent, hasProps, propObj, propVal, **kwargs)
+
 
 def _Colour(parent, hasProps, propObj, propVal, size=(16, 16), **kwargs):
     """Creates and returns a :class:`.ColourButton` widget, allowing
@@ -503,7 +503,7 @@ def _Colour(parent, hasProps, propObj, propVal, size=(16, 16), **kwargs):
 
         vals = colourButton.GetValue()
         return [v / 255.0 for v in vals]
-    
+
     def widgetSet(vals):
         colour = [int(v * 255.0) for v in vals]
         colourButton.SetValue(colour)
@@ -570,7 +570,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
 
     # These are used by the inner-functions defined
     # below, and are dynamically updated when the
-    # list of available colour maps change. I'm 
+    # list of available colour maps change. I'm
     # storing each of them in a list, so the inner
     # functions will have access to updated versions.
     cmapKeys = [list(propObj.getColourMaps(hasProps))]
@@ -586,7 +586,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
     def wheel(ev):
         parent.GetEventHandler().ProcessEvent(ev)
     cbox.Bind(wx.EVT_MOUSEWHEEL, wheel)
-    
+
     def widgetGet():
         sel = cbox.GetSelection()
         if sel == -1:
@@ -599,9 +599,9 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
         else:
             cbox.SetSelection(0)
 
-    # Called when the list of available 
-    # colour maps changes - updates the 
-    # options displayed in the combobox 
+    # Called when the list of available
+    # colour maps changes - updates the
+    # options displayed in the combobox
     def cmapsChanged(*a):
 
         selected    = cbox.GetSelection()
@@ -610,7 +610,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
 
         cbox.Clear()
 
-        # Store the width of the biggest bitmap, 
+        # Store the width of the biggest bitmap,
         # and the width of the biggest label.
         # the BitmapComboBox doesn't size itself
         # properly on all platforms, so we'll
@@ -634,7 +634,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
             # Or a dictionary
             else:
                 name = labels.get(cmap.name, cmap.name)
-            
+
             bitmap = _makeColourMapBitmap(cmap)
             cbox.Append(name, bitmap)
 
@@ -646,7 +646,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
             if lblWidth > maxLblWidth: maxLblWidth = lblWidth
 
         # Explicitly set the minimum size from
-        # the maximum bitmap/label sizes, with 
+        # the maximum bitmap/label sizes, with
         # some extra to account for the drop
         # down button
         cbox.InvalidateBestSize()
@@ -666,7 +666,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
 
     def onDestroy(ev):
         propVal.removeAttributeListener(lName)
-        
+
     # Bind the combobox to the property
     _propBind(hasProps,
               propObj,
@@ -683,7 +683,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
     else:                  currentVal = cmapObjs[0].index(currentVal)
 
     cbox.SetSelection(currentVal)
- 
+
     return cbox
 
 
@@ -703,7 +703,7 @@ def _LinkBox(parent, hasProps, propObj, propVal, **kwargs):
        (not hasProps.canBeSyncedToParent(    propName)) or \
        (not hasProps.canBeUnsyncedFromParent(propName)):
         linkBox.Enable(False)
-        
+
     else:
 
         # Update the binding state when the linkbox is modified
@@ -721,12 +721,12 @@ def _LinkBox(parent, hasProps, propObj, propVal, **kwargs):
             hasProps.removeSyncChangeListener(propName, lName)
 
         lName = 'widget_LinkBox_{}_{}'.format(propName, linkBox)
-        
+
         linkBox.Bind(wx.EVT_TOGGLEBUTTON,   onLinkBox)
         linkBox.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
         hasProps.addSyncChangeListener(propName, lName, onSyncProp, weak=False)
 
-    return linkBox    
+    return linkBox
 
 
 def makeSyncWidget(parent, hasProps, propName, **kwargs):
@@ -751,9 +751,9 @@ def makeWidget(parent, hasProps, propName, **kwargs):
 
     :param parent:       A :mod:`wx` object to be used as the parent for the
                          generated widget(s).
-    
+
     :param hasProps:     A :class:`.HasProperties` instance.
-    
+
     :param str propName: Name of the :class:`.PropertyBase` property to
                          generate a widget for.
 
@@ -827,7 +827,7 @@ def bindListWidgets(widgets,
     """Binds the given sequence of widgets to each of the values in the
     specified list property.
     """
-    
+
     if widgetSets is None: widgetSets = [None] * len(widgets)
     if widgetGets is None: widgetGets = [None] * len(widgets)
 
@@ -836,7 +836,7 @@ def bindListWidgets(widgets,
 
     for propVal, widget, wGet, wSet in zip(
             propValList, widgets, widgetGets, widgetSets):
-        
+
         _propBind(hasProps,
                   propObj,
                   propVal,
@@ -852,6 +852,6 @@ def unbindWidget(widget, hasProps, propName, evTypes):
     """
 
     propObj = hasProps.getProp(   propName)
-    propVal = hasProps.getPropVal(propName) 
+    propVal = hasProps.getPropVal(propName)
 
     _propUnbind(hasProps, propObj, propVal, widget, evTypes)

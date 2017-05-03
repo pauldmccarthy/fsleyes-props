@@ -65,7 +65,7 @@ function::
     >>> propHelp  = {'intProp' : 'Sets int value', 'boolProp' : 'Toggles bool'}
 
     >>> parser = argparse.ArgumentParser('MyObj')
-    >>> props.addParserArguments(MyObj, 
+    >>> props.addParserArguments(MyObj,
                                  parser,
                                  shortArgs=shortArgs,
                                  longArgs=longArgs,
@@ -210,26 +210,26 @@ def _String(parser,
             atype=str):
     """Adds an argument to the given parser for the given :class:`.String`
     property.
-    
+
     :param parser:   An ``ArgumentParser`` instance.
-    
+
     :param propCls:  A ``HasProperties`` class or instance.
 
     :param propObj:  The ``PropertyBase`` class.
-    
+
     :param propName: Name of the property.
-    
+
     :param propHelp: Custom help text for the property.
-    
+
     :param shortArg: String to use as the short argument.
-    
+
     :param longArg:  String to use as the long argument.
 
     :param atype:    Data type to expect (defaults to ``str``). This allows
                      the conversion type to be overridden for some, but not
                      all, property types.
     """
-    parser.add_argument(shortArg, longArg, help=propHelp, type=atype) 
+    parser.add_argument(shortArg, longArg, help=propHelp, type=atype)
 
 
 def _Choice(parser,
@@ -260,7 +260,7 @@ def _Choice(parser,
                   the ``default`` constraint of the :class:`.Choice`
                   object is used.
 
-    :arg useAlts: If ``True`` (the default), alternate values for the 
+    :arg useAlts: If ``True`` (the default), alternate values for the
                   choices are added as options (see the :class:`.Choice`
                   class). n.b. This flag will have no effect if  ``choices``
                   is explicitly set to ``None``, as desrcibed above.
@@ -283,11 +283,11 @@ def _Choice(parser,
 
         for altList in alternates:
             choices += [a for a in altList]
-        
+
     if default is None:
         default = propObj.getConstraint(None, 'default')
 
-    # Make sure that only unique 
+    # Make sure that only unique
     # choices are set as options.
     if choices is not None:
 
@@ -308,8 +308,8 @@ def _Choice(parser,
                         help=propHelp,
                         choices=choices,
                         metavar=metavar)
-    
-    
+
+
 def _Boolean(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given :class:`.Boolean`
     property. See the :func:`_String` documentation for details on the
@@ -327,42 +327,42 @@ def _Boolean(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
                         action='store_const',
                         const=True)
 
-    
+
 def _Int(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given :class:`.Int`
     property. See the :func:`_String` documentation for details on the
     parameters.
-    """ 
+    """
     parser.add_argument(shortArg,
                         longArg,
                         help=propHelp,
                         metavar='INT',
                         type=int)
 
-    
+
 def _Real(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given :class:`.Real`
     property. See the :func:`_String` documentation for details on the
     parameters.
-    """ 
+    """
     parser.add_argument(shortArg,
                         longArg,
                         help=propHelp,
                         metavar='REAL',
                         type=float)
 
-    
+
 def _Percentage(
         parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given :class:`.Percentage`
     property. See the :func:`_String` documentation for details on the
     parameters.
-    """ 
+    """
     parser.add_argument(shortArg,
                         longArg,
                         help=propHelp,
                         metavar='PERC',
-                        type=float)    
+                        type=float)
 
 
 def _Bounds(parser,
@@ -376,13 +376,13 @@ def _Bounds(parser,
     """Adds an argument to the given parser for the given :class:`.Bounds`
     property. See the :func:`_String` documentation for details on the
     parameters.
-    """ 
+    """
     ndims = getattr(propCls, propName)._ndims
     real  = getattr(propCls, propName)._real
 
     metavar = tuple(['LO', 'HI'] * ndims)
 
-    if atype is None: 
+    if atype is None:
         if real: atype = float
         else:    atype = int
 
@@ -398,11 +398,11 @@ def _Point(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
     """Adds an argument to the given parser for the given :class:`.Point`
     property. See the :func:`_String` documentation for details on the
     parameters.
-    """ 
+    """
     ndims = getattr(propCls, propName)._ndims
     real  = getattr(propCls, propName)._real
     if real: pType = float
-    else:    pType = int 
+    else:    pType = int
     parser.add_argument(shortArg,
                         longArg,
                         help=propHelp,
@@ -436,7 +436,7 @@ def _Colour(parser,
                         type=float,
                         nargs=nargs)
 
-    
+
 def _ColourMap(parser,
                propObj,
                propCls,
@@ -448,11 +448,11 @@ def _ColourMap(parser,
                choices=None,
                metavar=None):
     """Adds an argument to the given parser for the given :class:`.ColourMap`
-    property. 
+    property.
 
     :arg parseStr: If ``False`` (the default), the parser will be configured
                    to parse any registered ``matplotlib`` colour map name.
-                   Otherwise, the parser will accept any string, and assume 
+                   Otherwise, the parser will accept any string, and assume
                    that the ``ColourMap`` property is set up to accept it.
 
     :arg choices:  This parameter can be used to restrict the values that
@@ -461,31 +461,31 @@ def _ColourMap(parser,
     :arg metavar:  If ``choices`` is not ``None``, they will be shown in the
                    help text, unless this string is provided.
 
-    See the :func:`_String` documentation for details on the other parameters. 
+    See the :func:`_String` documentation for details on the other parameters.
     """
-    
+
     # Attempt to retrieve a matplotlib.cm.ColourMap
-    # instance given its name 
+    # instance given its name
     def parse(cmapName):
         try:
 
             import matplotlib.cm as mplcm
-            
+
             cmapKeys   = mplcm.cmap_d.keys()
             cmapNames  = [cm.name for cm in mplcm.cmap_d.values()]
-            
+
             lCmapNames = [s.lower() for s in cmapNames]
             lCmapKeys  = [s.lower() for s in cmapKeys]
 
             cmapName = cmapName.lower()
-            
+
             try:    idx = lCmapKeys .index(cmapName)
             except: idx = lCmapNames.index(cmapName)
 
             cmapName = cmapKeys[idx]
-            
+
             return mplcm.get_cmap(cmapName)
-        
+
         except:
             raise argparse.ArgumentTypeError(
                 'Unknown colour map: {}'.format(cmapName))
@@ -503,17 +503,17 @@ def _ColourMap(parser,
                         choices=choices,
                         metavar=metavar)
 
-    
+
 def _getShortArgs(propCls, propNames, exclude=''):
     """Generates unique single-letter argument names for each of the names in
     the given list of property names. Any letters in the exclude string are
     not used as short arguments.
 
     :param propCls:   A ``HasProperties`` class.
-    
-    :param propNames: List of property names for which short arguments 
+
+    :param propNames: List of property names for which short arguments
                       are to be generated.
-    
+
     :param exclude:   String containing letters which should not be used.
     """
 
@@ -539,7 +539,7 @@ def _getShortArgs(propCls, propNames, exclude=''):
                             propCls.__name__,
                             propName,
                             propCls._shortArgs[propName]))
-                                       
+
                 shortArgs[propName] = propCls._shortArgs[propName]
                 continue
 
@@ -547,7 +547,7 @@ def _getShortArgs(propCls, propNames, exclude=''):
         # property name or, if that doesn't
         # work, in the alphabet
         for c in propName + letters:
-            
+
             if (c not in list(shortArgs.values())) and (c not in exclude):
                 shortArgs[propName] = c
                 break
@@ -557,7 +557,7 @@ def _getShortArgs(propCls, propNames, exclude=''):
                            'for HasProperties object {} - please provide '
                            'custom short arguments via a _shortArgs '
                            'attribute'.format(propCls.__name__))
-        
+
     return shortArgs
 
 
@@ -574,17 +574,17 @@ def applyArguments(hasProps,
     stored in the ``Namespace`` object.
 
     :param hasProps:   The ``HasProperties`` instance.
-    
+
     :param arguments:  The ``Namespace`` instance.
 
     :param propNames:  List of property names to apply. If ``None``, an attempt
                        is made to set all properties. If not ``None``, the
                        property values are set in the order specified by this
                        list.
-    
+
     :param xformFuncs: A dictionary of ``{property name -> function}``
                        mappings, which can be used to transform the value given
-                       on the command line before it is assigned to the 
+                       on the command line before it is assigned to the
                        property.
 
     :param longArgs:   Dict containing ``{property name : longArg}`` mappings.
@@ -625,7 +625,7 @@ def applyArguments(hasProps,
 
         setattr(hasProps, propName, argVal)
 
-    
+
 def addParserArguments(
         propCls,
         parser,
@@ -640,30 +640,30 @@ def addParserArguments(
 
     :param propCls:        A ``HasProperties`` class. An instance may
                            alternately be passed in.
-    
+
     :param parser:         An ``ArgumentParser`` to add arguments to.
-    
+
     :param list cliProps:  List containing the names of properties to add
                            arguments for. If ``None``, and an attribute called
                            ``_cliProps``' is present on the ``propCls`` class,
                            the value of that attribute is used. Otherwise an
                            argument is added for all properties.
-    
+
     :param dict shortArgs: Dict containing ``{propName: shortArg}`` mappings,
                            to be used as the short (typically single letter)
-                           argument flag for each property. If ``None``, and 
+                           argument flag for each property. If ``None``, and
                            an attribute called ``_shortArgs`` is present on
                            the ``propCls`` class, the value of that attribute
                            is used. Otherwise, short arguments are
                            automatically generated for each property.
-    
+
     :param dict longArgs:  Dict containing ``{propName: longArg}`` mappings,
                            to be used as the long argument flag for each
                            property. If ``None``, and an attribute called
                            ``_longArgs`` is present on the ``propCls`` class,
                            the value of that attribute is used. Otherwise, the
                            name of each property is used as its long argument.
-    
+
     :param dict propHelp:  Dict containing ``{propName: helpString]``
                            mappings, to be used as the help text for each
                            property. If ``None``, and an attribute called
@@ -676,8 +676,8 @@ def addParserArguments(
                            :func:`_Choice` function). If ``None``, and an
                            attribute called ``_propExtra`` is present on the
                            ``propCls`` class, the value of that attribute is
-                           used instead. 
-    
+                           used instead.
+
     :param str exclude:    String containing letters which should not be used
                            as short arguments.
     """
@@ -709,7 +709,7 @@ def addParserArguments(
     if extra is None:
         if hasattr(propCls, '_propExtra'):
             extra = propCls._propExtra
-        else: 
+        else:
             extra = {prop : {} for prop in cliProps}
 
     for propName in cliProps:
@@ -738,7 +738,7 @@ def addParserArguments(
                    longArg,
                    **propExtra)
 
-        
+
 def generateArguments(hasProps,
                       useShortArgs=False,
                       xformFuncs=None,
@@ -748,7 +748,7 @@ def generateArguments(hasProps,
                       exclude=''):
     """Given a ``HasProperties`` instance, generates a list of arguments which
     could be used to configure another instance in the same way.
-    
+
     :param hasProps:     The ``HasProperties`` instance.
 
     :param useShortArgs: If ``True`` the short argument version is used instead
@@ -782,13 +782,13 @@ def generateArguments(hasProps,
 
     if xformFuncs is None:
         xformFuncs = {}
- 
+
     for propName in cliProps:
         propObj = hasProps.getProp(propName)
         xform   = xformFuncs.get(propName, lambda v: v)
         propVal = xform(getattr(hasProps, propName))
 
-        # TODO Should I skip a property 
+        # TODO Should I skip a property
         #      if its value is None?
         if propVal is None:
             continue
@@ -802,14 +802,14 @@ def generateArguments(hasProps,
         #      TODO below.
 
         # TODO This logic could somehow be stored
-        #      as default transform functions for 
+        #      as default transform functions for
         #      the respective types
         if isinstance(propObj, (ptypes.Bounds, ptypes.Point, ptypes.Colour)):
             values = ['{}'.format(v) for v in propVal]
-            
+
         elif isinstance(propObj, ptypes.ColourMap):
             values = [propVal.name]
-            
+
         elif isinstance(propObj, ptypes.Boolean):
             values = None
             if not propVal: argKey = None

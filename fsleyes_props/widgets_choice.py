@@ -34,7 +34,7 @@ def _Choice(parent,
     """Creates and returns a widget allowing the user to modify the given
     :class:`.Choice` property value.
 
-    
+
     By default, ``wx.Choice`` widget is used. However, if the ``icons``
     argument is specified, a :class:`.BitmapRadioBox` is used instead.
 
@@ -43,7 +43,7 @@ def _Choice(parent,
                      label to be displayed for each choice. If not provided,
                      the string representation of each choice is used. Not
                      used if the ``icons`` argument is specified.
-    
+
                      .. note:: If the ``Choice`` property is dynamic (i.e.
                                choices are going to be added/removed during
                                program execution), you must ensure that the
@@ -53,11 +53,11 @@ def _Choice(parent,
 
                                As an alternative to passing in a ``dict``, you
                                may also set ``labels`` to a function. In this
-                               case, the ``labels`` function must accept a 
-                               single choice value as its only argument, and 
-                               return a label for that choice. 
+                               case, the ``labels`` function must accept a
+                               single choice value as its only argument, and
+                               return a label for that choice.
 
-    :arg icons:      If provided, a :class:`.BitmapRadioBox` is used instead 
+    :arg icons:      If provided, a :class:`.BitmapRadioBox` is used instead
                      of a ``wx.Choice`` widget. The ``icons`` should be a
                      dictionary of ``{ choice : imageFile}`` mappings,
                      containing an icon files to be used for each choice. The
@@ -71,10 +71,10 @@ def _Choice(parent,
                      only these choices. All other possible choice values
                      will be ignored.
 
-    :arg style:      Passed through to the :meth:`.BitmapRadioBox.__init__` 
+    :arg style:      Passed through to the :meth:`.BitmapRadioBox.__init__`
                      method. Not used if no ``icons`` were provided.
 
-    
+
     See the :func:`.widgets._String` documentation for details on the other
     parameters.
     """
@@ -98,7 +98,7 @@ def _Choice(parent,
         event  = bmpradio.EVT_BITMAP_RADIO_EVENT
         widget = bmpradio.BitmapRadioBox(parent, style=style)
 
-    # Otherwise we use a regular drop down 
+    # Otherwise we use a regular drop down
     # box, via the wx.Choice widget.
     else:
         event  = wx.EVT_CHOICE
@@ -144,7 +144,7 @@ def _Choice(parent,
         # of {choice : label} mappings
         elif isinstance(labels, dict):
             curLabels = [labels[c] for c in choices[0]]
-                
+
         # or a function which, given a
         # choice, returns a label for it
         else:
@@ -160,7 +160,7 @@ def _Choice(parent,
             for ci, choice in enumerate(choices[0]):
                 if not propObj.choiceEnabled(choice, hasProps):
                     curLabels.pop(ci)
-                    
+
         log.debug('Updating options for Widget '
                   '{} ({}) from {}.{} ({}): {}'.format(
                       widget.__class__.__name__,
@@ -175,7 +175,7 @@ def _Choice(parent,
         else:
 
             widget.Clear()
-            
+
             # If using a BitmapRadio widget, we can
             # show all choices, but disable the
             # buttons for disabled choices
@@ -234,5 +234,5 @@ def _Choice(parent,
                       widgetGet=widgetGet,
                       widgetSet=widgetSet,
                       widgetDestroy=onDestroy)
-    
+
     return widget

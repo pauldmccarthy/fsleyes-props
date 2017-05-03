@@ -55,27 +55,27 @@ class CallQueue(object):
              enqueueing the same function with different arguments.
 
              Testing for function *and* argument equality is a difficult task:
-        
+
                - I can't take the hash of the arguments, as I can't assume
                  that they are hashable (e.g.  ``numpy`` arrays).
-        
+
                - I can't test for identity, as things which have the same
                  value may not have the same id (e.g. strings).
-        
+
                - I can't test argument equality, because in some cases the
                  argument may be a mutable type (e.g. a ``list``), and its
                  value may have changed between the time the function was
                  queued, and the time it is called. *And* the arguments might
                  be big (again, ``numpy`` arrays), so an equality test could
                  be expensive.
-        
+
              So this is quite a pickle. Something to come back to if things
              are breaking because of it.
 
-        
+
         **Holding the queue**
 
-        
+
         The :meth:`hold` method temporarily stops the ``CallQueue`` from
         queueing and executing functions. Any functions which are enqueued
         while the queue is held are kept in a separate queue. The queue is
@@ -87,10 +87,10 @@ class CallQueue(object):
         """
 
         # The queue is a queue of Call instances
-        # 
+        #
         # The queued dict contains mappings of
         # {name : [List of Call instances]}
-        # 
+        #
         self.__queue          = queue.Queue()
         self.__queued         = {}
         self.__skipDuplicates = skipDuplicates
@@ -101,7 +101,7 @@ class CallQueue(object):
         # this count, and every call to
         # release will decrement it.
         self.__holding        = 0
-        
+
 
         # If the queue is being held, enqueued
         # functions are added to this list
@@ -132,12 +132,12 @@ class CallQueue(object):
             if call.name == name:
                 self.__debug(call, 'Dequeueing held function', 'from queue')
                 call.execute = False
-            
-        
+
+
 
     def call(self, func, name, args):
         """Enqueues the given function, and calls all functions in the queue
-        
+
         (unless the call to this method was as a result another function
         being called from the queue).
         """
@@ -149,16 +149,16 @@ class CallQueue(object):
     def callAll(self, funcs):
         """Enqueues all of the given functions, and calls all functions in
         the queue.
-        
+
         (unless the call to this method was as a result another function
         being called from the queue).
 
-        Assumes that the given ``funcs`` parameter is a list of 
+        Assumes that the given ``funcs`` parameter is a list of
         ``(function, name, arguments)`` tuples.
         """
-        
+
         anyEnqueued = False
-        
+
         for func in funcs:
             if self.__push(Call(*func)):
                 anyEnqueued = True
@@ -173,7 +173,7 @@ class CallQueue(object):
         """
         self.__holding += 1
 
-    
+
     def release(self):
         """Releases the queue. """
         self.__holding -= 1
@@ -184,12 +184,12 @@ class CallQueue(object):
 
         if self.__holding > 0:
             return []
-        
+
         held = self.__held
         self.__held = []
         return [(c.func, c.name, c.args) for c in held if c.execute]
 
-        
+
     def __call(self):
         """Call all of the functions which are currently enqueued.
 
@@ -214,16 +214,16 @@ class CallQueue(object):
 
                 try:
                     call.func(*call.args)
-                
+
                 except Exception as e:
                     import traceback
                     log.warn('Function {} raised exception: {}'.format(
                         call.name, e), exc_info=True)
                     traceback.print_stack()
-                    
+
             except queue.Empty:
                 break
-            
+
         self.__calling = False
 
 
@@ -255,10 +255,10 @@ class CallQueue(object):
 
         self.__queue.put_nowait(call)
         self.__queued[call.name] = enqueued + [call]
-        
+
         return True
 
-    
+
     def __pop(self):
         """Pops the next function from the queue and returns the ``Call``
         instance which encapsulates it.
@@ -269,20 +269,20 @@ class CallQueue(object):
 
         # TODO shouldn't the call always
         # be at the end of the list?
-        # 
+        #
         # This will be a little bit faster
         # if you remove the call by index.
         enqueued.remove(call)
-        
+
         if len(enqueued) == 0:
             self.__queued.pop(call.name)
-            
+
         return call
 
 
     def __debug(self, call, prefix, postfix=None):
         """Prints a standardised log message."""
-        
+
         if log.getEffectiveLevel() != logging.DEBUG:
             return
 
@@ -290,7 +290,7 @@ class CallQueue(object):
 
         if postfix is None: postfix = ' '
         else:               postfix = ' {} '.format(postfix)
-            
+
         log.debug('{} {} [{}.{}]{}({} in queue)'.format(
             prefix,
             call.name,

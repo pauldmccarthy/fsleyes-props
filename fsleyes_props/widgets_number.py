@@ -44,18 +44,18 @@ def _Number(
     :class:`.SliderSpinPanel` widget is returned; otherwise a
     :class:`.FloatSpinCtrl`, or :class:`.FloatSliders` widget is returned.
 
-    
+
     If both ``slider`` and ``spin`` are ``False``, a :exc:`ValueError` is
     raised.
-    
+
 
     :arg slider:     Display slider widgets allowing the user to control the
                      bound values.
 
-    :arg spin:       Display spin control widgets allowing the user to control 
+    :arg spin:       Display spin control widgets allowing the user to control
                      the bound values.
 
-    :arg showLimits: Show labels displaying the min/max values, if thye are 
+    :arg showLimits: Show labels displaying the min/max values, if thye are
                      set on the ``Number`` property.
 
     :arg editLimits: Allow the user to edit the min/max values.
@@ -89,7 +89,7 @@ def _Number(
                             mousewheel,
                             increment,
                             spinWidth)
-    
+
     else:
         return _makeSlider(parent,
                            hasProps,
@@ -120,16 +120,16 @@ def _makeSpinBox(parent,
     if not isinstance(propObj, (ptypes.Int, ptypes.Real)):
         raise TypeError('Unrecognised property type: {}'.format(
             propObj.__class__.__name__))
-    
+
     def getMinVal(val):
         if val is not None: return val
         if   isinstance(propObj, ptypes.Int):  return -2 ** 31 + 1
         elif isinstance(propObj, ptypes.Real): return -sys.float_info.max
-        
+
     def getMaxVal(val):
         if val is not None: return val
         if   isinstance(propObj, ptypes.Int):  return 2 ** 31 - 1
-        elif isinstance(propObj, ptypes.Real): return sys.float_info.max 
+        elif isinstance(propObj, ptypes.Real): return sys.float_info.max
 
     value   = propVal.get()
     minval  = propVal.getAttribute('minval')
@@ -164,7 +164,7 @@ def _makeSpinBox(parent,
         increment=increment,
         style=style,
         width=spinWidth)
-    
+
     widgets._propBind(
         hasProps, propObj, propVal, spin, floatspin.EVT_FLOATSPIN)
 
@@ -187,7 +187,7 @@ def _makeSpinBox(parent,
     def onDestroy(ev):
         propVal.removeAttributeListener(listenerName)
         ev.Skip()
-    
+
     spin.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
 
     return spin
@@ -222,10 +222,10 @@ def _makeSlider(parent,
 
         if mousewheel: style = floatslider.FS_MOUSEWHEEL
         else:          style = 0
-        
+
         if not real:
             style |= floatslider.FS_INTEGER
-            
+
         evt    = wx.EVT_SLIDER
         slider = floatslider.FloatSlider(
             parent,
@@ -233,7 +233,7 @@ def _makeSlider(parent,
             minValue=minval,
             maxValue=maxval,
             style=style)
-        
+
     else:
         evt    = floatslider.EVT_SSP_VALUE
         style  = 0
@@ -256,7 +256,7 @@ def _makeSlider(parent,
     widgets._propBind(hasProps, propObj, propVal, slider, evt)
 
     # Update slider min/max bounds and labels
-    # whenever the property constraints change.    
+    # whenever the property constraints change.
     def updateSliderRange(*a):
         minval = propVal.getAttribute('minval')
         maxval = propVal.getAttribute('maxval')
@@ -266,8 +266,8 @@ def _makeSlider(parent,
             type(hasProps).__name__,
             propVal._name,
             minval,
-            maxval)) 
-        
+            maxval))
+
         slider.SetRange(minval, maxval)
         # TODO check that value has changed due to the range change?
 
@@ -278,7 +278,7 @@ def _makeSlider(parent,
     def onDestroy(ev):
         propVal.removeAttributeListener(listenerName)
         ev.Skip()
-    
+
     slider.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
 
     if editLimits:
