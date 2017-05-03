@@ -7,7 +7,7 @@
 """``fsleyes_props`` is a framework for event-driven programming using python
 descriptors, similar in functionality to, and influenced by `Enthought Traits
 <http://code.enthought.com/projects/traits/>`_.
-  
+
 -------------
 Example usage
 -------------
@@ -113,7 +113,7 @@ created for each of the ``PropertyBase`` instances (or a
 of these ``PropertyValue`` instances encapsulates a single value, of any type
 (a ``PropertyValueList`` instance encapsulates multiple ``PropertyValue``
 instances).  Whenever this value changes, the ``PropertyValue`` instance
-notifies any registered listeners of the change.  
+notifies any registered listeners of the change.
 
 
 ^^^^^^^^^^^^
@@ -260,7 +260,7 @@ The following classes are provided for you to create GUI specifications:
    ~fsleyes_props.build_parts.Group
    ~fsleyes_props.build_parts.NotebookGroup
    ~fsleyes_props.build_parts.HGroup
-   ~fsleyes_props.build_parts.VGroup 
+   ~fsleyes_props.build_parts.VGroup
 
 
 If the :func:`initGUI` function is called, the following GUI-related functions
@@ -338,14 +338,14 @@ from .serialise import (
     deserialise)
 
 from .build_parts import (
-    ViewItem, 
+    ViewItem,
     Button,
     Toggle,
     Label,
-    Widget, 
-    Group, 
+    Widget,
+    Group,
     NotebookGroup,
-    HGroup, 
+    HGroup,
     VGroup)
 
 from .suppress import (
@@ -369,7 +369,7 @@ def initGUI():
     # We monkey patch the widgets
     # module here (rather than widgets
     # itself) to avoid circular
-    # dependency problems    
+    # dependency problems
     from .widgets_list    import _List
     from .widgets_bounds  import _Bounds
     from .widgets_point   import _Point
@@ -396,11 +396,11 @@ def initGUI():
         buildGUI,
         buildDialog)
 
-    mod.makeWidget      = makeWidget     
+    mod.makeWidget      = makeWidget
     mod.makeListWidgets = makeListWidgets
-    mod.makeSyncWidget  = makeSyncWidget 
-    mod.bindWidget      = bindWidget     
-    mod.unbindWidget    = unbindWidget   
+    mod.makeSyncWidget  = makeSyncWidget
+    mod.bindWidget      = bindWidget
+    mod.unbindWidget    = unbindWidget
     mod.bindListWidgets = bindListWidgets
-    mod.buildGUI        = buildGUI       
-    mod.buildDialog     = buildDialog 
+    mod.buildGUI        = buildGUI
+    mod.buildDialog     = buildDialog
