@@ -43,9 +43,9 @@ with open(op.join(basedir, 'README.md'), 'rt') as f:
 
 class doc(Command):
     """Build the API documentation. """
-    
+
     user_options = []
-    
+
     def initialize_options(self):
         pass
 
@@ -63,12 +63,12 @@ class doc(Command):
         env   = dict(os.environ)
         ppath = list(env.get('PYTHONPATH', '').split(':'))
         ppath.append(op.join(pkgutil.get_loader('fsleyes_props').filename, '..'))
-        
+
         env['PYTHONPATH'] = op.pathsep.join(ppath)
 
         print('Building documentation [{}]'.format(destdir))
 
-        sp.call(['sphinx-build', docdir, destdir], env=env) 
+        sp.call(['sphinx-build', docdir, destdir], env=env)
 
 
 setup(
@@ -104,6 +104,10 @@ setup(
 
     install_requires=install_requires,
     setup_requires=['pytest-runner'],
-    tests_require=['pytest', 'mock', 'pytest-cov', 'pytest-runner'],
-    test_suite='tests',    
+    tests_require=['pytest',
+                   'mock',
+                   'pytest-cov',
+                   'pytest-html',
+                   'pytest-runner'],
+    test_suite='tests',
 )
