@@ -119,6 +119,8 @@ still work.
 import logging
 import weakref
 
+import fsl.utils.weakfuncref as weakfuncref
+
 
 log = logging.getLogger(__name__)
 
@@ -854,7 +856,7 @@ def _callAllListeners(propVals, att, name=None, value=None):
     def getFunc(listener):
         func = l.function
 
-        if isinstance(func, properties_value.WeakFunctionRef):
+        if isinstance(func, weakfuncref.WeakFunctionRef):
             func = func.function()
 
         return func

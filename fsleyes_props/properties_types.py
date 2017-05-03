@@ -201,6 +201,7 @@ class Real(Number):
         Tests for equality according to the ``precision`` passed to
         :meth:`__init__`.
         """
+
         if any((a is None, b is None, self.__precision is None)):
             return a == b
 
@@ -263,11 +264,8 @@ class String(props.PropertyBase):
         string, it is replaced with ``None``.
         """
 
-        if value is None: value = ''
-        else:             value = str(value)
-
-        if value == '': value = None
-        return value
+        if value == '': return None
+        else:           return value
 
 
     def validate(self, instance, attributes, value):

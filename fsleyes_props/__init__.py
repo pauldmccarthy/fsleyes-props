@@ -304,9 +304,6 @@ from .properties import (
     HasProperties,
     DisabledError)
 
-from .properties_value import (
-    WeakFunctionRef)
-
 from .bindable import (
     bindPropVals,
     propValsAreBound,
