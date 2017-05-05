@@ -13,4 +13,4 @@ def test_importall():
     import fsleyes_props as props
 
     for _, module, _ in pkgutil.iter_modules(props.__path__, 'fsleyes_props.'):
-        __import__(module) 
+        __import__(module)
