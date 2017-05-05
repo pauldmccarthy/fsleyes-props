@@ -9,10 +9,14 @@
 callback functions.
 """
 
+
 import logging
 
 try:                import queue
 except ImportError: import Queue as queue
+
+
+import fsl.utils.async as async
 
 
 log = logging.getLogger(__name__)
@@ -108,6 +112,7 @@ class CallQueue(object):
         self.__held           = []
 
 
+    @async.mutex
     def dequeue(self, name):
         """If the specified function is on the queue, it is (effectively)
         dequeued, and not executed.
@@ -132,7 +137,6 @@ class CallQueue(object):
             if call.name == name:
                 self.__debug(call, 'Dequeueing held function', 'from queue')
                 call.execute = False
-
 
 
     def call(self, func, name, args):
@@ -167,6 +171,7 @@ class CallQueue(object):
             self.__call()
 
 
+    @async.mutex
     def hold(self):
         """Holds the queue. For every call to ``hold``, the :meth:`release`
         method must be called once before the queue will be truly released.
@@ -174,11 +179,13 @@ class CallQueue(object):
         self.__holding += 1
 
 
+    @async.mutex
     def release(self):
         """Releases the queue. """
         self.__holding -= 1
 
 
+    @async.mutex
     def clearHeld(self):
         """Clears and returns the list of held functions. """
 
@@ -227,8 +234,12 @@ class CallQueue(object):
         self.__calling = False
 
 
+    @async.mutex
     def __push(self, call):
         """Enqueues the given ``Call`` instance.
+
+        If the queue has been held (see :meth:`hold`), the call is
+        stored, and ``False`` is returned.
 
         If ``True`` was passed in for the ``skipDuplicates`` parameter
         during initialisation, and the function is already enqueued,
@@ -237,8 +248,7 @@ class CallQueue(object):
         Otherwise, this method returnes ``True``.
         """
 
-        funcName, modName = self.__getCallbackDetails(call.func)
-        enqueued          = self.__queued.get(call.name, [])
+        enqueued = self.__queued.get(call.name, [])
 
         if self.__holding > 0:
             self.__debug(call, 'Holding function')
@@ -259,6 +269,7 @@ class CallQueue(object):
         return True
 
 
+    @async.mutex
     def __pop(self):
         """Pops the next function from the queue and returns the ``Call``
         instance which encapsulates it.
