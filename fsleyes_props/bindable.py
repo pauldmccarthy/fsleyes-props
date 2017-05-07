@@ -854,7 +854,7 @@ def _callAllListeners(propVals, att, name=None, value=None):
     # properties_value.Listener
     # instance.
     def getFunc(listener):
-        func = l.function
+        func = listener.function
 
         if isinstance(func, weakfuncref.WeakFunctionRef):
             func = func.function()
