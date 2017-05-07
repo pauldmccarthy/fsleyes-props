@@ -408,22 +408,12 @@ def _createButton(parent, viewItem, hasProps, propGui):
 
     if viewItem.icon is not None:
 
-        bmp = wx.Bitmap(viewItem.icon, wx.BITMAP_TYPE_PNG)
-
-        # BU_NOTEXT causes segfault under OSX
-        if wx.Platform == '__WXMAC__':
-            style = wx.BU_EXACTFIT | wx.ALIGN_CENTRE
-        else:
-            style = wx.BU_EXACTFIT | wx.ALIGN_CENTRE | wx.BU_NOTEXT
-
+        bmp    = wx.Bitmap(viewItem.icon, wx.BITMAP_TYPE_PNG)
+        style  = wx.BU_EXACTFIT | wx.ALIGN_CENTRE | wx.BU_NOTEXT
         button = wx.Button(parent, style=style)
-        button.SetBitmap(bitmap=bmp)
 
-        # Under wxPython-Phoenix, setting
-        # label to "" will result in the
-        # button being labelled "Button".
-        if not six.PY2:
-            button.SetLabel(" ")
+        button.SetBitmapLabel(bitmap=bmp)
+
     else:
         button = wx.Button(parent, label=btnText, style=wx.BU_EXACTFIT)
 
