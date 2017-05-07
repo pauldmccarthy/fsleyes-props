@@ -471,8 +471,8 @@ def _ColourMap(parser,
 
             import matplotlib.cm as mplcm
 
-            cmapKeys   = mplcm.cmap_d.keys()
-            cmapNames  = [cm.name for cm in mplcm.cmap_d.values()]
+            cmapKeys   = list(mplcm.cmap_d.keys())
+            cmapNames  = [mplcm.cmap_d[k].name for k in cmapKeys]
 
             lCmapNames = [s.lower() for s in cmapNames]
             lCmapKeys  = [s.lower() for s in cmapKeys]

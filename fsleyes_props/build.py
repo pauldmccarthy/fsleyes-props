@@ -786,8 +786,8 @@ def _create(parent, viewItem, hasProps, propGui):
             obj.SetToolTip(wx.ToolTip(viewItem.tooltip))
 
             children = obj.GetChildren()
-            if len(children) > 0:
-                map(setToolTip, children)
+            for c in children:
+                setToolTip(c)
 
         setToolTip(guiObject)
 

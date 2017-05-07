@@ -688,7 +688,7 @@ class FilePath(String):
 
         if isFile:
 
-            matchesSuffix = any(map(lambda s: value.endswith(s), suffixes))
+            matchesSuffix = any([value.endswith(s) for s in suffixes])
 
             # If the file doesn't exist, it's bad
             if not op.isfile(value):

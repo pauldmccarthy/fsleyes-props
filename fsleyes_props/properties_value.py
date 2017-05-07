@@ -1116,7 +1116,7 @@ class PropertyValueList(PropertyValue):
         """Inserts all of the given items before the given index."""
 
         propVals = self.getPropertyValueList()
-        propVals[index:index] = map(self.__newItem, items)
+        propVals[index:index] = [self.__newItem(i) for i in items]
         PropertyValue.set(self, propVals)
 
 
@@ -1132,7 +1132,7 @@ class PropertyValueList(PropertyValue):
         """Appends all items in the given iterable to the end of the list."""
 
         propVals = self.getPropertyValueList()
-        propVals.extend(map(self.__newItem, iterable))
+        propVals.extend([self.__newItem(i) for i in iterable])
         PropertyValue.set(self, propVals)
 
 

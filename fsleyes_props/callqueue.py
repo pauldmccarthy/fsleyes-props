@@ -12,9 +12,7 @@ callback functions.
 
 import logging
 
-try:                import queue
-except ImportError: import Queue as queue
-
+import six.moves.queue as queue
 
 import fsl.utils.async as async
 
