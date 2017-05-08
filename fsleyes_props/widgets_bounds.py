@@ -10,7 +10,10 @@ the :mod:`widgets` module namespace. It is separated purely to keep the
 ``widgets`` module file size down.
 """
 
+
 import wx
+
+import numpy as np
 
 import fsleyes_widgets.rangeslider as rangeslider
 
@@ -159,23 +162,20 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     lowProp    = propVal.getPropertyValueList()[axis * 2]
     highProp   = propVal.getPropertyValueList()[axis * 2 + 1]
 
-    boundName   = 'BoundBind_{}_{}'.format(id(sliderPanel), id(propVal))
     lowName     = 'BoundBind_{}_{}'.format(id(sliderPanel), id(lowProp))
     highName    = 'BoundBind_{}_{}'.format(id(sliderPanel), id(highProp))
     lowAttName  = 'BoundBindAtt_{}_{}'.format(id(sliderPanel), id(lowProp))
     highAttName = 'BoundBindAtt_{}_{}'.format(id(sliderPanel), id(highProp))
 
-    # Called when the low PV changes
-    def lowGuiUpdate(*a):
-        value = lowProp.get()
-        if sliderPanel.GetLow() == value: return
-        sliderPanel.SetLow(value)
+    # Called when the low or high PV changes
+    def guiUpdate(*a):
+        lowVal  = lowProp.get()
+        highVal = highProp.get()
 
-    # Called when the high PV changes
-    def highGuiUpdate(*a):
-        value = highProp.get()
-        if sliderPanel.GetHigh() == value: return
-        sliderPanel.SetHigh(value)
+        if np.all(np.isclose(sliderPanel.GetRange(), (lowVal, highVal))):
+            return
+
+        sliderPanel.SetRange(lowVal, highVal)
 
     # Called on a rangeslider.EVT_LOW_RANGE event
     def lowPropUpdate(ev):
@@ -209,8 +209,7 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         minval = propVal.getMin(axis)
         maxval = propVal.getMax(axis)
 
-        if minval is not None: sliderPanel.SetMin(minval)
-        if maxval is not None: sliderPanel.SetMax(maxval)
+        sliderPanel.SetLimits(minval, maxval)
 
     # Called on rangeslider.EVT_RANGE_LIMIT events
     def updatePropRange(ev):
@@ -225,8 +224,8 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
     sliderPanel.Bind(rangeslider.EVT_LOW_RANGE,  lowPropUpdate)
     sliderPanel.Bind(rangeslider.EVT_HIGH_RANGE, highPropUpdate)
 
-    lowProp .addListener(lowName,  lowGuiUpdate,  weak=False)
-    highProp.addListener(highName, highGuiUpdate, weak=False)
+    lowProp .addListener(lowName,  guiUpdate, weak=False)
+    highProp.addListener(highName, guiUpdate, weak=False)
 
     lowProp .addAttributeListener(lowAttName,  updateSliderRange, weak=False)
     highProp.addAttributeListener(highAttName, updateSliderRange, weak=False)
