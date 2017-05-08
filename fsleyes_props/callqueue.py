@@ -25,10 +25,11 @@ class Call(object):
     on the queue.
     """
 
-    def __init__(self, func, name, args):
+    def __init__(self, func, name, args, kwargs):
         self.func    = func
         self.name    = name
         self.args    = args
+        self.kwargs  = kwargs
         self.execute = True
 
         # The CallQueue.dequeue method sets the
@@ -137,14 +138,14 @@ class CallQueue(object):
                 call.execute = False
 
 
-    def call(self, func, name, args):
+    def call(self, func, name, *args, **kwargs):
         """Enqueues the given function, and calls all functions in the queue
 
         (unless the call to this method was as a result another function
         being called from the queue).
         """
 
-        if self.__push(Call(func, name, args)):
+        if self.__push(Call(func, name, args, kwargs)):
             self.__call()
 
 
@@ -156,7 +157,7 @@ class CallQueue(object):
         being called from the queue).
 
         Assumes that the given ``funcs`` parameter is a list of
-        ``(function, name, arguments)`` tuples.
+        ``(function, name, args, kwargs)`` tuples.
         """
 
         anyEnqueued = False
@@ -192,7 +193,7 @@ class CallQueue(object):
 
         held = self.__held
         self.__held = []
-        return [(c.func, c.name, c.args) for c in held if c.execute]
+        return [(c.func, c.name, c.args, c.kwargs) for c in held if c.execute]
 
 
     def __call(self):
@@ -218,7 +219,7 @@ class CallQueue(object):
                 self.__debug(call, 'Calling function')
 
                 try:
-                    call.func(*call.args)
+                    call.func(*call.args, **call.kwargs)
 
                 except Exception as e:
                     import traceback

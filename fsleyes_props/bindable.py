@@ -902,7 +902,7 @@ def _callAllListeners(propVals, att, name=None, value=None):
     # as the result of the execution of another
     # listener, so we only want to re-queue the ones
     # that are still active.
-    queued = [(getFunc(l), l.makeQueueName(), a)
+    queued = [(getFunc(l), l.makeQueueName(), a, {})
               for l, a in queued
               if l.enabled]
 

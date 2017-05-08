@@ -304,6 +304,10 @@ from .properties import (
     HasProperties,
     DisabledError)
 
+from .properties_value import (
+    safeCall
+)
+
 from .bindable import (
     bindPropVals,
     propValsAreBound,

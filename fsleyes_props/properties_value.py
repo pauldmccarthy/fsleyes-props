@@ -28,6 +28,7 @@ they are separated to keep file sizes down.  However, the
 """
 
 
+import uuid
 import logging
 import weakref
 
@@ -73,7 +74,6 @@ class Listener(object):
         pvName  = self.propVal()._name
 
         return '{} ({}.{})'.format(self.name, ctxName, pvName)
-
 
 
 class PropertyValue(object):
@@ -1288,3 +1288,12 @@ class PropertyValueList(PropertyValue):
         propVals = self.getPropertyValueList()
         propVals.__delitem__(key)
         PropertyValue.set(self, propVals)
+
+
+def safeCall(func, *args, **kwargs):
+    """This function is may be used to "safely" run a function which may
+    trigger ``PropertyValue`` notifications. Any notifications are queued
+    and executed in the correct order.
+    """
+    name = uuid.uuid4()
+    PropertyValue.queue.call(func, name, *args, **kwargs)
