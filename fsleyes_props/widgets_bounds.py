@@ -212,12 +212,6 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         if minval is not None: sliderPanel.SetMin(minval)
         if maxval is not None: sliderPanel.SetMax(maxval)
 
-    # Called when any attributes of the
-    # bounds property value changes
-    def updateCentering(ctx, att, val, *a):
-        if att == 'dimCentres':
-            sliderPanel.CentreAt(val[axis])
-
     # Called on rangeslider.EVT_RANGE_LIMIT events
     def updatePropRange(ev):
         lowProp .disableAttributeListener(lowName)
@@ -236,7 +230,6 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
 
     lowProp .addAttributeListener(lowAttName,  updateSliderRange, weak=False)
     highProp.addAttributeListener(highAttName, updateSliderRange, weak=False)
-    propVal .addAttributeListener(boundName,   updateCentering,   weak=False)
 
     if editLimits:
         sliderPanel.Bind(rangeslider.EVT_RANGE_LIMIT, updatePropRange)
@@ -250,6 +243,5 @@ def _boundBind(hasProps, propObj, sliderPanel, propVal, axis, editLimits):
         highProp.removeListener(         highName)
         lowProp .removeAttributeListener(lowAttName)
         highProp.removeAttributeListener(highAttName)
-        propVal .removeAttributeListener(boundName)
 
     sliderPanel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)

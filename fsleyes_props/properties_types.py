@@ -999,15 +999,6 @@ class BoundsValueList(propvals.PropertyValueList):
         """
         propvals.PropertyValueList.__init__(self, *args, **kwargs)
 
-        # Add some identifying attributes to each
-        # PV - see the _listPVChanged method
-        for i, pv in enumerate(self.getPropertyValueList()):
-
-            pv.disableNotification()
-            pv.setAttribute('boundsDim',  int(np.floor(i / 2.0)))
-            pv.setAttribute('boundsSide', 'high' if i % 2 else 'low')
-            pv.enableNotification()
-
 
     def getLo(self, axis=None):
         """Return the low value for the given (0-indexed) axis. If ``axis`` is
@@ -1114,29 +1105,6 @@ class BoundsValueList(propvals.PropertyValueList):
         return True
 
 
-    def _listPVChanged(self, pv):
-        """Overrides :meth:`.PropertyValueList._listPVChanged`. This method is
-        called when any of the ``PropertyValue`` instances contained in this
-        ``BoundsValueList`` change. If bounds centering is enabled (see the
-        :class:`Bounds` class documentation), the value of the
-        ``PropertyValue`` instance, which is paired with the changed, is
-        updated.
-        """
-
-        val        = pv.get()
-        dim        = pv  .getAttribute('boundsDim')
-        side       = pv  .getAttribute('boundsSide')
-        dimCentres = self.getAttribute('dimCentres')
-
-        centre = dimCentres[dim]
-
-        if centre is not None:
-            if   side == 'low':  self.setHi(dim, centre + (centre - val))
-            elif side == 'high': self.setLo(dim, centre - (val    - centre))
-
-        propvals.PropertyValueList._listPVChanged(self, pv)
-
-
     def __getattr__(self, name):
         """Return the specified value. Raises an :exc:`AttributeError` for
         unrecognised attributes, or an :exc:`IndexError` if an attempt is made
@@ -1225,34 +1193,6 @@ class Bounds(List):
     methods, instead of using, for example,
     :meth:`.PropertyValue.setAttribute`, is that if you use the latter you will
     have to set the constraints on both the low and the high values.
-
-
-    **Bounds centering**
-
-
-    ``Bounds`` properties have a special feature, called *centering*, which
-    can be used to force the bounds along one dimension to be centered at a
-    specific value. This is enabled by setting the ``dimCentres`` attribute
-    on the :class:`.BoundsValueList` instance associated with a ``Bounds``
-    property::
-
-
-        class MyObject(props.HasProperties):
-            bounds = props.Bounds(ndims=2)
-
-
-        obj = MyObject()
-
-        # Centre the first dimension bounds at 0.0,
-        # and the second dimension bounds at 50.0
-        obj.setConstraint('bounds', 'dimCentres', [0.0, 50.0])
-
-        # Disable centering on the first dimension bounds,
-        # but centre the second dimension bounds at 10.0
-        obj.setConstraint('bounds', 'dimCentres', [None, 10.0])
-
-    When centering is enabled on a dimension, the low and high bound values
-    for that dimension will be made symmetric about the centre value.
     """
 
     def __init__(self,
@@ -1294,11 +1234,8 @@ class Bounds(List):
         elif len(default) != 2 * ndims:
             raise ValueError('{} bound values are required'.format(2 * ndims))
 
-        dimCentres = [None] * ndims
-
         kwargs['default']     = default
         kwargs['minDistance'] = minDistance
-        kwargs['dimCentres']  = dimCentres
 
         self._real   = real
         self._ndims  = ndims
@@ -1346,7 +1283,6 @@ class Bounds(List):
         """
 
         minDistance = attributes['minDistance']
-        dimCentres  = attributes['dimCentres']
 
         # the List.validate method will check
         # the value length and type for us
@@ -1365,11 +1301,6 @@ class Bounds(List):
             if imax - imin < minDistance:
                 raise ValueError('Minimum and maximum bounds must be at '
                                  'least {} apart'.format(minDistance))
-
-            if dimCentres[i] is not None:
-                if (dimCentres[i] - imin) != (imax - dimCentres[i]):
-                    raise ValueError('Minimum and maximum bounds are not '
-                                     'centred at {}'.format(dimCentres[i]))
 
 
 class PointValueList(propvals.PropertyValueList):
