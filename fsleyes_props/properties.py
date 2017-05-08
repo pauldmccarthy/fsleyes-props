@@ -791,20 +791,20 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         setattr(self, propName, value)
 
 
-    def enableNotification(self, propName, bound=False):
+    def enableNotification(self, propName, *args, **kwargs):
         """Enables notification of listeners on the given property.
 
         See the :meth:`.PropertyValue.enableNotification` method.
         """
-        self.getPropVal(propName).enableNotification(bound)
+        self.getPropVal(propName).enableNotification(*args, **kwargs)
 
 
-    def disableNotification(self, propName, bound=False):
+    def disableNotification(self, propName, *args, **kwargs):
         """Disables notification of listeners on the given property.
 
         See the :meth:`.PropertyValue.disableNotification` method.
         """
-        self.getPropVal(propName).disableNotification(bound)
+        self.getPropVal(propName).disableNotification(*args, **kwargs)
 
 
     def getNotificationState(self, propName):

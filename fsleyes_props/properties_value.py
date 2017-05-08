@@ -29,13 +29,9 @@ they are separated to keep file sizes down.  However, the
 
 
 import logging
-import inspect
-import types
 import weakref
 
 from collections import OrderedDict
-
-import six
 
 from . import callqueue
 from . import bindable
@@ -295,7 +291,7 @@ class PropertyValue(object):
         self._allowInvalid = bool(allow)
 
 
-    def enableNotification(self, bound=False):
+    def enableNotification(self, bound=False, att=False):
         """Enables notification of property value and attribute listeners for
         this ``PropertyValue`` object.
 
@@ -304,18 +300,25 @@ class PropertyValue(object):
                     (see the :mod:`.bindable` module). If ``False`` (the
                     default), notification is only enabled on this
                     ``PropertyValue``.
+
+        :arg att:   If ``True``, notification is enabled on all attribute
+                    listeners as well as property value listeners.
         """
         self.__notification = True
 
         if not bound:
             return
 
-        bpvs = bindable.buildBPVList(self, 'boundPropVals')[0]
+        bpvs = list(bindable.buildBPVList(self, 'boundPropVals')[0])
+
+        if att:
+            bpvs += list(bindable.buildBPVList(self, 'boundAttPropVals')[0])
+
         for bpv in bpvs:
             bpv.enableNotification()
 
 
-    def disableNotification(self, bound=False):
+    def disableNotification(self, bound=False, att=False):
         """Disables notification of property value and attribute listeners for
         this ``PropertyValue`` object. Notification can be re-enabled via
         the :meth:`enableNotification` or :meth:`setNotificationState` methods.
@@ -326,13 +329,20 @@ class PropertyValue(object):
                     (see the :mod:`.bindable` module). If ``False`` (the
                     default), notification is only disabled on this
                     ``PropertyValue``.
+
+        :arg att:   If ``True``, notification is disabled on all attribute
+                    listeners as well as property value listeners.
         """
         self.__notification = False
 
         if not bound:
             return
 
-        bpvs = bindable.buildBPVList(self, 'boundPropVals')[0]
+        bpvs = list(bindable.buildBPVList(self, 'boundPropVals')[0])
+
+        if att:
+            bpvs += list(bindable.buildBPVList(self, 'boundAttPropVals')[0])
+
         for bpv in bpvs:
             bpv.disableNotification()
 
