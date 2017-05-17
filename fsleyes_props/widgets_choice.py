@@ -121,6 +121,7 @@ def _Choice(parent,
     # When the property value changes,
     # update the widget value
     def widgetSet(value):
+        log.debug('Updating widget value: {}'.format(value))
         if len(choices[0]) > 0:
             return widget.SetSelection(choices[0].index(value))
         else:
