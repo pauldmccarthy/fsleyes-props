@@ -614,20 +614,17 @@ def applyArguments(hasProps,
 
         # An argVal of None means that no value
         # was passed in for this property
-        if argVal is None: continue
+        if argVal is None:
+            continue
 
-        try:
-            argVal = xform(argVal, **kwargs)
+        argVal = xform(argVal, **kwargs)
 
-            log.debug('Setting {}.{} = {}'.format(
-                type(hasProps).__name__,
-                propName,
-                argVal))
+        log.debug('Setting {}.{} = {}'.format(
+            type(hasProps).__name__,
+            propName,
+            argVal))
 
-            setattr(hasProps, propName, argVal)
-
-        except:
-            log.warning('Invalid value for {}: {}'.format(propName, argVal))
+        setattr(hasProps, propName, argVal)
 
 
 def addParserArguments(
