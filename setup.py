@@ -60,9 +60,12 @@ class doc(Command):
         if op.exists(destdir):
             shutil.rmtree(destdir)
 
-        env   = dict(os.environ)
-        ppath = list(env.get('PYTHONPATH', '').split(':'))
-        ppath.append(op.join(pkgutil.get_loader('fsleyes_props').filename, '..'))
+        env     = dict(os.environ)
+        ppath   = list(env.get('PYTHONPATH', '').split(':'))
+        dirname = pkgutil.get_loader('fsl').get_filename()
+        dirname = op.dirname(dirname)
+        dirname = op.abspath(op.join(dirname, '..'))
+        ppath.append(dirname)
 
         env['PYTHONPATH'] = op.pathsep.join(ppath)
 
@@ -80,7 +83,7 @@ setup(
     description='Python event programming framework, using wxPython',
     long_description=readme,
 
-    url='https://git.fmrib.ox.ac.uk/paulmc/fsleyes-props',
+    url='https://git.fmrib.ox.ac.uk/fsl/fsleyes/props',
 
     author='Paul McCarthy',
 
@@ -93,7 +96,7 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules'],
 
     packages=packages,
