@@ -72,3 +72,11 @@ Example usage
 # Remove a previously added listener
 >>> myPropObj.removeListener('myListener')
 ```
+
+
+Contributing
+------------
+
+If you would like to contribute to `fsleyes-props`, take a look at the
+`fslpy` [contributing
+guide](https://git.fmrib.ox.ac.uk/fsl/fslpy/blob/master/doc/contributing.rst).
