@@ -21,7 +21,7 @@ Documentation
 
 `fsleyes-props` is documented using
 [sphinx](http://http://sphinx-doc.org/). You can build the API documentation
-by installing `sphinx` and `sphinx-rtd-theme`, and running:
+by running:
 
     python setup.py doc
 
