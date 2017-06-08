@@ -15,9 +15,8 @@ def test_assign():
 
     obj = MyObj()
 
-    testcases = [
-        None : 'None'
-    ]
+
+    # TODO
 
 
 def test_length():
