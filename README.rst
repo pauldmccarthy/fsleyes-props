@@ -1,6 +1,14 @@
 fsleyes-props
 =============
 
+
+.. image:: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/badges/master/build.svg
+   :target: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/commits/master/
+
+.. image:: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/badges/master/coverage.svg
+   :target: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/commits/master/
+
+
 The ``fsleyes-props`` project is an event programming framework, which
 includes the ability for automatic CLI generation and, optionally, automatic
 GUI generation (if `wxPython <http://www.wxpython.org>`_ is present). It is
