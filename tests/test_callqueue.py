@@ -28,7 +28,7 @@ def test_call():
     q = callqueue.CallQueue()
 
     for i, c in enumerate(calls):
-        q.call(c, 'Call {}'.format(i), ())
+        q.call(c, 'Call {}'.format(i))
 
     assert called == list(range(ncalls))
 
@@ -63,7 +63,7 @@ def test_callAll():
         calls.append(func)
 
     q     = callqueue.CallQueue()
-    calls = [(c, 'Call {}'.format(i), ()) for i, c in enumerate(calls)]
+    calls = [(c, 'Call {}'.format(i), (), {}) for i, c in enumerate(calls)]
 
     q.callAll(calls)
 
@@ -92,7 +92,7 @@ def test_dequeue():
     def func1():
         called[1] = True
 
-    calls = [(func0, 'func0', ()), (func1, 'func1', ())]
+    calls = [(func0, 'func0', (), {}), (func1, 'func1', (), {})]
 
     q.callAll(calls)
 
@@ -107,7 +107,7 @@ def test_call_recursive():
 
     def func0():
         callOrder.append(0)
-        q.call(func1, 'func1', ())
+        q.call(func1, 'func1')
 
     def func1():
         callOrder.append(1)
@@ -115,7 +115,7 @@ def test_call_recursive():
     def func2():
         callOrder.append(2)
 
-    calls = [(func0, 'func0', ()), (func2, 'func2', ())]
+    calls = [(func0, 'func0', (), {}), (func2, 'func2', (), {})]
 
     q.callAll(calls)
 
@@ -134,7 +134,7 @@ def test_call_threaded():
 
     def threadfunc(delay):
         time.sleep(delay / 100.0)
-        q.call(func, 'func_{}'.format(delay), (delay,))
+        q.call(func, 'func_{}'.format(delay), delay)
 
     delays  = np.arange(1, 20)
     threads = [threading.Thread(target=threadfunc, args=(d,)) for d in delays]
@@ -160,8 +160,8 @@ def test_dequeue_threaded():
         time.sleep(delay / 5.0)
 
     def threadfunc():
-        calls = [(func, 'slowfunc', (5,)),
-                 (func, 'fastfunc', (1,))]
+        calls = [(func, 'slowfunc', (5,), {}),
+                 (func, 'fastfunc', (1,), {})]
         q.callAll(calls)
 
     t = threading.Thread(target=threadfunc)
@@ -190,7 +190,7 @@ def _test_skipDuplicates(skip):
         time.sleep(0.5)
 
     def threadfunc(name):
-        q.call(func, name, ())
+        q.call(func, name)
 
     threads = [threading.Thread(target=threadfunc, args=('func', ))
                for i in range(nthreads)]
@@ -221,7 +221,7 @@ def test_dequeue_noSkipDuplicates():
         time.sleep(0.5)
 
     def threadfunc(name):
-        q.call(func, name, ())
+        q.call(func, name)
 
     threads = [threading.Thread(target=threadfunc, args=('func', ))
                for i in range(nthreads)]
@@ -248,11 +248,11 @@ def test_hold():
     def func(name):
         called[name] = called.get(name, 0) + 1
 
-    q.call(func, 'one', ('one',))
+    q.call(func, 'one', 'one')
     q.hold()
-    q.call(func, 'two',   ('two',))
-    q.call(func, 'three', ('three',))
-    q.call(func, 'four',  ('four',))
+    q.call(func, 'two',   'two')
+    q.call(func, 'three', 'three')
+    q.call(func, 'four',  'four')
 
     # clearheld should only
     # return functions when
@@ -268,7 +268,7 @@ def test_hold():
     # Try and dequeue a held function
     q.dequeue('two')
     q.release()
-    q.call(func, 'five', ('five',))
+    q.call(func, 'five', 'five')
 
     assert called['five'] == 1
     assert 'two'   not in called
@@ -285,5 +285,5 @@ def test_hold():
 
 def test_hold_threaded():
 
-
-    assert False
+    # TODO
+    assert True

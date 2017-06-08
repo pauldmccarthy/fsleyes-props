@@ -34,7 +34,7 @@ with open(op.join(basedir, "fsleyes_props", "__init__.py"), 'rt') as f:
             break
 version = version.get('__version__')
 
-with open(op.join(basedir, 'README.md'), 'rt') as f:
+with open(op.join(basedir, 'README.rst'), 'rt') as f:
     readme = f.read()
 
 
