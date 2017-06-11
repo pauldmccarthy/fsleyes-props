@@ -284,6 +284,7 @@ build-doc:
     - python setup.py doc
     - mv doc/html doc/"$CI_COMMIT_REF_NAME"
   artifacts:
+    expire_in: 1 day
     paths:
       - doc/$CI_COMMIT_REF_NAME
 
@@ -310,6 +311,7 @@ build-dist:
    - python setup.py bdist_wheel
 
   artifacts:
+    expire_in: 1 day
     paths:
       - dist/*
 
