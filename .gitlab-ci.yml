@@ -222,7 +222,7 @@ variables:
 
     # Linux builds for wxPython are currently not
     # on pypi, but are available at this url.
-    - pip install -f https://wxpython.org/Phoenix/release-extras/linux/gtk3/debian-8/ wxpython
+    - pip install --only-binary wxpython -f https://wxpython.org/Phoenix/snapshot-builds/linux/gtk3/debian-8/ wxpython
 
     # All other deps can be installed as
     # normal. scipy is required by nibabel,
@@ -284,6 +284,7 @@ build-doc:
     - python setup.py doc
     - mv doc/html doc/"$CI_COMMIT_REF_NAME"
   artifacts:
+    expire_in: 1 day
     paths:
       - doc/$CI_COMMIT_REF_NAME
 
@@ -310,6 +311,7 @@ build-dist:
    - python setup.py bdist_wheel
 
   artifacts:
+    expire_in: 1 day
     paths:
       - dist/*
 
