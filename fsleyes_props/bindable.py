@@ -906,6 +906,11 @@ def _callAllListeners(propVals, att, name=None, value=None):
               for l, a in queued
               if l.enabled]
 
+    # Some listeners referred to by weakrefs
+    # may have been GC-d, in which case the
+    # function reference will be None
+    queued = [(f, n, a, kw) for f, n, a, kw in queued if f is not None]
+
     # Append any held functions on to the
     # end of the call list, so they are
     # executed after all of the listeners
