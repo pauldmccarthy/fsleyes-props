@@ -323,16 +323,22 @@ class Widget(ViewItem):
     """Represents a widget which is used to modify a property value. """
 
 
-    def __init__(self, propName, **kwargs):
+    def __init__(self, propName, index=None, **kwargs):
         """Define a :class:`Widget`.
 
         :param str propName: The name of the property which this widget can
                              modify.
 
+        :param int index:    If provided, it is assumed that the property
+                             is a :class:`.List`, and the index specifies
+                             the list item that this widget will be bound
+                             to.
+
         :param kwargs:       Passed to the :class:`ViewItem` constructor.
         """
 
         kwargs['key'] = propName
+        self.index    = index
         ViewItem.__init__(self, **kwargs)
 
 
