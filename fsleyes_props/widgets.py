@@ -18,6 +18,7 @@ intended to be called by application code:
     :nosignatures:
 
     makeWidget
+    makeListWidget
     makeListWidgets
     makeSyncWidget
     bindWidget
@@ -766,6 +767,24 @@ def makeWidget(parent, hasProps, propName, **kwargs):
     if propObj is None:
         raise ValueError('Could not find property {}.{}'.format(
             hasProps.__class__.__name__, propName))
+
+    makeFunc = getattr(
+        sys.modules[__name__],
+        '_{}'.format(propObj.__class__.__name__), None)
+
+    if makeFunc is None:
+        raise ValueError(
+            'Unknown property type: {}'.format(propObj.__class__.__name__))
+
+    return makeFunc(parent, hasProps, propObj, propVal, **kwargs)
+
+
+def makeListWidget(parent, hasProps, propName, index, **kwargs):
+    """Creeates a widget for a specific value in the specified list property.
+    """
+    propObj     = hasProps.getProp(propName)._listType
+    propValList = getattr(hasProps, propName).getPropertyValueList()
+    propVal     = propValList[index]
 
     makeFunc = getattr(
         sys.modules[__name__],

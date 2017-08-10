@@ -271,6 +271,7 @@ will be made available in the ``fsleyes_props`` package namespace:
    :nosignatures:
 
    ~fsleyes_props.widgets.makeWidget
+   ~fsleyes_props.widgets.makeListWidget
    ~fsleyes_props.widgets.makeListWidgets
    ~fsleyes_props.widgets.makeSyncWidget
    ~fsleyes_props.widgets.bindWidget
@@ -390,6 +391,7 @@ def initGUI():
 
     from .widgets import (
         makeWidget,
+        makeListWidget,
         makeListWidgets,
         makeSyncWidget,
         bindWidget,
@@ -401,6 +403,7 @@ def initGUI():
         buildDialog)
 
     mod.makeWidget      = makeWidget
+    mod.makeListWidget  = makeListWidget
     mod.makeListWidgets = makeListWidgets
     mod.makeSyncWidget  = makeSyncWidget
     mod.bindWidget      = bindWidget

@@ -465,8 +465,18 @@ def _createWidget(parent, viewItem, hasProps, propGui):
     details).
     """
 
-    widget = widgets.makeWidget(
-        parent, hasProps, viewItem.key, **viewItem.kwargs)
+    if viewItem.index is not None:
+        widget = widgets.makeListWidget(parent,
+                                        hasProps,
+                                        viewItem.key,
+                                        viewItem.index,
+                                        **viewItem.kwargs)
+    else:
+        widget = widgets.makeWidget(    parent,
+                                        hasProps,
+                                        viewItem.key,
+                                        **viewItem.kwargs)
+
     return widget
 
 
