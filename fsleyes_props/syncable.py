@@ -142,7 +142,7 @@ class SyncableHasProperties(props.HasProperties):
                         is bound, the parent will inherit this instance's
                         value.
 
-        :arg kwargs:    Other arguments are passed to the
+        :arg kwargs:    All other arguments are passed to the
                         :meth:`.HasProperties.__init__` method.
         """
 

@@ -562,11 +562,25 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         return instance
 
 
-    def __init__(self, validateOnChange=False):
+    def __init__(self, validateOnChange=False, **kwargs):
         """Create a ``HasProperties`` instance.
 
-        ``HasProperties.__init__`` does not need to be called if
-        ``validateOnChange=False``.
+        If no arguments need to be passed in, ``HasProperties.__init__`` does
+        not need to be called.
+
+        :arg validateOnChange: Defaults to ``False``. If set to ``True``,
+                               whenever any property value is changed,
+                               the value of *every* property is re-validated.
+                               This functionality is accomplished by using
+                               the *preNotify* listener on all
+                               ``PropertyValue`` instances - see the
+                               :meth:`.PropertyValue.setPreNotifyFunction`
+                               method.
+
+        :arg kwargs:           All other arguments are assumed to be
+                               ``name=value`` pairs, containing initial values
+                               for the properties defined on this
+                               ``HasProperties`` instance.
 
         .. note:: The ``validateOnChange`` argument warrants some explanation.
 
@@ -586,15 +600,6 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
            of a property that should trigger validation, and the value is a
            list of properties that need to be validated when that property
            changes.
-
-        :arg validateOnChange: Defaults to ``False``. If set to ``True``,
-                               whenever any property value is changed,
-                               the value of *every* property is re-validated.
-                               This functionality is accomplished by using
-                               the *preNotify* listener on all
-                               ``PropertyValue`` instances - see the
-                               :meth:`.PropertyValue.setPreNotifyFunction`
-                               method.
         """
 
         self.__validateOnChange = validateOnChange
@@ -612,6 +617,10 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
             for prop, propName in zip(propNames, props):
                 propVal = prop.getPropVal(self)
                 propVal.setPreNotifyFunction(self.__valueChanged)
+
+        # Initial values
+        for name, value in kwargs.items():
+            setattr(self, name, value)
 
 
     def __copy__(self):
