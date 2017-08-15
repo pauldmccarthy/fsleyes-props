@@ -431,7 +431,28 @@ class SyncableHasProperties(props.HasProperties):
             self.unsyncFromParent(propName)
 
 
-    def detachFromParent(self):
+    def detachFromParent(self, propName):
+        """If this is a child ``SyncableHasProperties`` instance, it
+        detaches the specified property from its parent. This is an
+        irreversible operation.
+        """
+
+        if self.__parent is None:     return
+        if propName in self.__nobind: return
+
+        self.unsyncFromParent(propName)
+
+        if propName     in self.__nounbind: self.__nounbind.remove(propName)
+        if propName not in self.__nobind:   self.__nobind  .append(propName)
+
+        syncPropName = self.__saltSyncPropertyName(propName)
+        lName        = self.__saltSyncListenerName(propName)
+
+        if self.hasListener(syncPropName, lName):
+            self.removeListener(syncPropName, lName)
+
+
+    def detachAllFromParent(self):
         """If this is a child ``SyncableHasProperties`` instance, it
         detaches itself from its parent. This is an irreversible operation.
 
