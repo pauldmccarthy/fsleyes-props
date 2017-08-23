@@ -90,21 +90,27 @@ def suppressAll(hasProps):
 
 
 @contextlib.contextmanager
-def skip(hasProps, propName, listenerName):
+def skip(hasProps, propName, listenerName, ignoreInvalid=False):
     """Skip the listener with the specified listener name, if/when
     changes to the specified property occur.
 
-    :arg hasProps:     A :class:`.HasProperties` instance.
-    :arg propName:     Name of a property on ``hasProps``.
-    :arg listenerName: Name of the listener to skip.
+    :arg hasProps:      A :class:`.HasProperties` instance.
+    :arg propName:      Name of a property on ``hasProps``.
+    :arg listenerName:  Name of the listener to skip.
+    :arg ignoreInvalid: Defaults to ``False``. If ``True``, passing a
+                        non-existent listener will not result in an error.
     """
 
-    state = hasProps.getListenerState(propName, listenerName)
+    exists = (not ignoreInvalid) or hasProps.hasListener(propName,
+                                                         listenerName)
 
-    hasProps.disableListener(propName, listenerName)
+    if exists:
+        state = hasProps.getListenerState(propName, listenerName)
+        hasProps.disableListener(propName, listenerName)
 
     try:
         yield
 
     finally:
-        hasProps.setListenerState(propName, listenerName, state)
+        if exists:
+            hasProps.setListenerState(propName, listenerName, state)

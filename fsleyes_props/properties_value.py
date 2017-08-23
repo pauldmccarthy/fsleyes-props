@@ -812,9 +812,6 @@ class PropertyValue(object):
 
         bindable.syncAndNotify(self)
 
-        if not self.__notification:
-            return
-
         # If this PV is a member of a PV list,
         # tell the list that this PV has
         # changed, so that it can notify its own
@@ -1075,7 +1072,10 @@ class PropertyValueList(PropertyValue):
         """Overrides :meth:`PropertyValue.getLast`. Returns the most
         recent list values.
         """
-        return [pv.get() for pv in PropertyValue.getLast(self)]
+        lastVal = PropertyValue.getLast(self)
+
+        if lastVal is None: return None
+        else:               return [pv.get() for pv in lastVal]
 
 
     def _listPVChanged(self, pv):
@@ -1084,14 +1084,14 @@ class PropertyValueList(PropertyValue):
         :meth:`PropertyValue.propNotify` method.
         """
 
-        if self.getNotificationState():
-            log.debug('List item {}.{} changed ({}) - nofiying '
-                      'list-level listeners ({})'.format(
-                          self._context().__class__.__name__,
-                          self._name,
-                          pv,
-                          self[:]))
-            self.propNotify()
+
+        log.debug('List item {}.{} changed ({}) - nofiying '
+                  'list-level listeners ({})'.format(
+                      self._context().__class__.__name__,
+                      self._name,
+                      pv,
+                      self[:]))
+        self.propNotify()
 
 
     def __getitem__(self, key):

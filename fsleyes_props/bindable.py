@@ -888,6 +888,8 @@ def _callAllListeners(propVals, att, name=None, value=None):
 
                     # Call the listener function directly
                     if l.immediate:
+
+                        log.debug('Calling immediate mode listener {}'.format(l.name))
                         getFunc(l)(*args)
 
                     # Or add it to the queue
