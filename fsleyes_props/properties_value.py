@@ -1072,7 +1072,10 @@ class PropertyValueList(PropertyValue):
         """Overrides :meth:`PropertyValue.getLast`. Returns the most
         recent list values.
         """
-        return [pv.get() for pv in PropertyValue.getLast(self)]
+        lastVal = PropertyValue.getLast(self)
+
+        if lastVal is None: return None
+        else:               return [pv.get() for pv in lastVal]
 
 
     def _listPVChanged(self, pv):
