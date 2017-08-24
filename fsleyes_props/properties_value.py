@@ -991,6 +991,12 @@ class PropertyValueList(PropertyValue):
         self._itemAllowInvalid = itemAllowInvalid
         self._itemAttributes   = itemAttributes
 
+        # Internal flag used in the __setitem__
+        # and _listPVChanged methods indicating
+        # that notifications from list items
+        # should be temporarily ignored.
+        self.__ignoreListItems  = False
+
         # The list of PropertyValue objects.
         if values is not None: values = [self.__newItem(v) for v in values]
         else:                  values = []
@@ -1084,6 +1090,8 @@ class PropertyValueList(PropertyValue):
         :meth:`PropertyValue.propNotify` method.
         """
 
+        if self.__ignoreListItems:
+            return
 
         log.debug('List item {}.{} changed ({}) - nofiying '
                   'list-level listeners ({})'.format(
@@ -1240,46 +1248,44 @@ class PropertyValueList(PropertyValue):
         # Update the PV instances that
         # correspond to the new values,
         # but suppress notification on them
-        for idx, val in zip(indices, values):
 
-            propVal    = propVals[idx]
-            notifState = propVal.getNotificationState()
+        self.__ignoreListItems = True
 
-            propVal.disableNotification()
-            propVal.set(val)
-            propVal.setNotificationState(notifState)
+        try:
+            for idx, val in zip(indices, values):
 
-            changedVals[idx] = not self._itemEqualityFunc(
-                propVal.get(), oldVals[idx])
+                propVal    = propVals[idx]
+                notifState = propVal.getNotificationState()
 
-        # Notify list-level and item-level listeners
-        # if any values in the list were changed
-        if any(changedVals):
+                propVal.disableNotification()
+                propVal.set(val)
+                propVal.setNotificationState(notifState)
 
-            log.debug('Notifying list-level listeners ({}.{} {})'.format(
-                self._context().__class__.__name__,
-                self._name,
-                id(self._context())))
-            self.propNotify()
+                changedVals[idx] = not self._itemEqualityFunc(
+                    propVal.get(), oldVals[idx])
 
-            log.debug('Notifying item-level listeners ({}.{} {})'.format(
-                self._context().__class__.__name__,
-                self._name,
-                id(self._context())))
+            # Notify list-level and item-level listeners
+            # if any values in the list were changed
+            if any(changedVals):
 
-            # The PV items will inevitably call
-            # _listPVChanged, which will trigger
-            # list-level notification - we just
-            # performed list-level notification
-            # above, so we want this suppressed.
-            notifState = self.getNotificationState()
-            self.disableNotification()
+                log.debug('Notifying list-level listeners ({}.{} {})'.format(
+                    self._context().__class__.__name__,
+                    self._name,
+                    id(self._context())))
 
-            for idx in indices:
-                if changedVals[idx]:
-                    propVals[idx].propNotify()
+                self.propNotify()
 
-            self.setNotificationState(notifState)
+                log.debug('Notifying item-level listeners ({}.{} {})'.format(
+                    self._context().__class__.__name__,
+                    self._name,
+                    id(self._context())))
+
+                for idx in indices:
+                    if changedVals[idx]:
+                        propVals[idx].propNotify()
+
+        finally:
+            self.__ignoreListItems = False
 
 
     def __delitem__(self, key):
