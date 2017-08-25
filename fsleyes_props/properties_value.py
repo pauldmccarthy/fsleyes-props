@@ -994,8 +994,10 @@ class PropertyValueList(PropertyValue):
         # Internal flag used in the __setitem__
         # and _listPVChanged methods indicating
         # that notifications from list items
-        # should be temporarily ignored.
-        self.__ignoreListItems  = False
+        # should be temporarily ignored. This
+        # is intended for internal use only, and
+        # may change in the future.
+        self._ignoreListItems  = False
 
         # The list of PropertyValue objects.
         if values is not None: values = [self.__newItem(v) for v in values]
@@ -1090,13 +1092,14 @@ class PropertyValueList(PropertyValue):
         :meth:`PropertyValue.propNotify` method.
         """
 
-        if self.__ignoreListItems:
+        if self._ignoreListItems:
             return
 
-        log.debug('List item {}.{} changed ({}) - nofiying '
+        log.debug('List item {}.{} changed ({}) - notifying '
                   'list-level listeners ({})'.format(
                       self._context().__class__.__name__,
                       self._name,
+                      id(self._context()),
                       pv,
                       self[:]))
         self.propNotify()
@@ -1248,8 +1251,7 @@ class PropertyValueList(PropertyValue):
         # Update the PV instances that
         # correspond to the new values,
         # but suppress notification on them
-
-        self.__ignoreListItems = True
+        self._ignoreListItems = True
 
         try:
             for idx, val in zip(indices, values):
@@ -1285,7 +1287,7 @@ class PropertyValueList(PropertyValue):
                         propVals[idx].propNotify()
 
         finally:
-            self.__ignoreListItems = False
+            self._ignoreListItems = False
 
 
     def __delitem__(self, key):
