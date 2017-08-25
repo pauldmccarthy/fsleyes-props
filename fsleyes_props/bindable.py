@@ -658,17 +658,24 @@ def _syncPropValLists(masterList, slaveList):
                 slaveVal.allowInvalid(True)
 
                 log.debug('Syncing bound PV list item '
-                          '[{}] {}.{}({}) -> {}.{}({})'.format(
+                          '[{}] {}.{}[{}]({}) -> {}.{}[{}]({})'.format(
                               i,
-                              masterList._context.__class__.__name__,
+                              masterList._context().__class__.__name__,
                               masterList._name,
+                              id(masterList._context()),
                               masterVal.get(),
-                              slaveList._context.__class__.__name__,
+                              slaveList._context().__class__.__name__,
                               slaveList._name,
+                              id(slaveList._context()),
                               slaveList.get()))
 
-                slaveVal.set(masterVal.get())
-                changed.append(slaveVal)
+                slaveList._ignoreListItems = True
+
+                try:
+                    slaveVal.set(masterVal.get())
+                    changed.append(slaveVal)
+                finally:
+                    slaveList._ignoreListItems = False
 
                 slaveVal.allowInvalid(validState)
                 slaveVal.setNotificationState(notifState)
@@ -763,67 +770,76 @@ def _sync(self, atts=False, attName=None, attValue=None):
     # a ref to each PV which was synced, but not
     # to PVs which already had the same value.
     changedPropVals = []
-    for i, bpv in enumerate(boundPropVals):
 
-        # Don't bother if the values are already equal
-        if atts:
-            try:
-                if bpv.getAttribute(attName) == attValue: continue
-            except KeyError:
-                pass
-        elif self == bpv:
-            continue
-
-        # Set the syncing flag to prevent
-        # recursive syncs back to this PV
+    # Set the syncing flag on all
+    # slave PVs to prevent recursive
+    # syncs back to this PV
+    for bpv in boundPropVals:
         bpv._syncing = True
 
-        # Disable notification on the PV, as we
-        # manually trigger notifications in the
-        # _notify function below.
-        notifState = bpv.getNotificationState()
-        bpv.disableNotification()
+    try:
+        for i, bpv in enumerate(boundPropVals):
 
-        log.debug('Syncing bound property values ({}) '
-                  '{}.{} ({}) - {}.{} ({})'.format(
-                      'attributes' if atts else 'values',
-                      self._context.__class__.__name__,
-                      self._name,
-                      id(self._context),
-                      bpv._context.__class__.__name__,
-                      bpv._name,
-                      id(bpv._context)))
+            # Don't bother if the values are already equal
+            if atts:
+                try:
+                    if bpv.getAttribute(attName) == attValue: continue
+                except KeyError:
+                    pass
+            elif self == bpv:
+                continue
 
-        # Normal PropertyValue object (i.e. not a PropertyValueList)
-        if atts or not isinstance(self, properties_value.PropertyValueList):
+            # Disable notification on the PV, as we
+            # manually trigger notifications in the
+            # _notify function below.
+            notifState = bpv.getNotificationState()
+            bpv.disableNotification()
 
-            # Store a reference to this PV
-            changedPropVals.append((bpv, None))
+            log.debug('Syncing bound property values ({}) '
+                      '{}.{} ({}) - {}.{} ({})'.format(
+                          'attributes' if atts else 'values',
+                          self._context.__class__.__name__,
+                          self._name,
+                          id(self._context()),
+                          bpv._context.__class__.__name__,
+                          bpv._name,
+                          id(bpv._context())))
 
-            # Allow invalid values, as otherwise
-            # an error may be raised.
-            validState = bpv.allowInvalid()
-            bpv.allowInvalid(True)
+            # Normal PropertyValue object (i.e. not a PropertyValueList)
+            if atts or \
+               not isinstance(self, properties_value.PropertyValueList):
 
-            # Sync the attribute value
-            if atts: bpv.setAttribute(attName, attValue)
+                # Store a reference to this PV
+                changedPropVals.append((bpv, None))
 
-            # Or sync the property value
-            else:    bpv.set(self.get())
+                # Allow invalid values, as otherwise
+                # an error may be raised.
+                validState = bpv.allowInvalid()
+                bpv.allowInvalid(True)
 
-            bpv.allowInvalid(validState)
+                # Sync the attribute value
+                if atts: bpv.setAttribute(attName, attValue)
 
-        # PropertyValueList instances -
-        # store a reference ot the PV list,
-        # and to all list items that changed
-        else:
-            listItems = _syncPropValLists(bpvParents[i], bpv)
-            changedPropVals.append((bpv, listItems))
+                # Or sync the property value
+                else:    bpv.set(self.get())
 
-        # Restore the notification state,
-        # and remove the syncing flag
-        bpv.setNotificationState(notifState)
-        bpv._syncing = False
+                bpv.allowInvalid(validState)
+
+            # PropertyValueList instances -
+            # store a reference ot the PV list,
+            # and to all list items that changed
+            else:
+                listItems = _syncPropValLists(bpvParents[i], bpv)
+                changedPropVals.append((bpv, listItems))
+
+            # Restore the notification state
+            bpv.setNotificationState(notifState)
+
+    finally:
+        # Clear the syncing flag
+        # on all slave PVs
+        for bpv in boundPropVals:
+            bpv._syncing = False
 
     # Return a list of all changed PVs back
     # to the _notify function, so it can
@@ -889,7 +905,8 @@ def _callAllListeners(propVals, att, name=None, value=None):
                     # Call the listener function directly
                     if l.immediate:
 
-                        log.debug('Calling immediate mode listener {}'.format(l.name))
+                        log.debug('Calling immediate mode '
+                                  'listener {}'.format(l.name))
                         getFunc(l)(*args)
 
                     # Or add it to the queue
