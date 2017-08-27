@@ -96,8 +96,8 @@ def _editListDialog(parent, hasProps, propObj):
 
     # min/max values for a spin box which allows the
     # user to select the number of items in the list
-    minval = propObj.getConstraint(hasProps, 'minlen')
-    maxval = propObj.getConstraint(hasProps, 'maxlen')
+    minval = propObj.getAttribute(hasProps, 'minlen')
+    maxval = propObj.getAttribute(hasProps, 'maxlen')
 
     if minval is None: minval = 0
     if maxval is None: maxval = 2 ** 31 - 1
@@ -154,7 +154,7 @@ def _editListDialog(parent, hasProps, propObj):
         newLen   = numRowsCtrl.GetValue()
 
         # add rows
-        default = listType.getConstraint(hasProps, 'default')
+        default = listType.getAttribute(hasProps, 'default')
         while oldLen < newLen:
 
             # add a new element to the list

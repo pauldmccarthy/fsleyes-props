@@ -256,7 +256,7 @@ def _makeSlider(parent,
     widgets._propBind(hasProps, propObj, propVal, slider, evt)
 
     # Update slider min/max bounds and labels
-    # whenever the property constraints change.
+    # whenever the property attributes change.
     def updateSliderRange(*a):
         minval = propVal.getAttribute('minval')
         maxval = propVal.getAttribute('maxval')
@@ -284,7 +284,7 @@ def _makeSlider(parent,
     if editLimits:
 
         # When the user edits the slider bounds,
-        # update the property constraints
+        # update the property attributes
         def updatePropRange(ev):
             propVal.setAttribute('minval', ev.min)
             propVal.setAttribute('maxval', ev.max)

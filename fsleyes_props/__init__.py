@@ -155,15 +155,15 @@ set.
 
 
 The default validation logic of most ``PropertyBase`` objects can be
-configured via *constraints*. For example, the :class:`.Number` property
-allows ``minval`` and ``maxval`` constraints to be set.  These may be set via
+configured via *attributes*. For example, the :class:`.Number` property
+allows ``minval`` and ``maxval`` attributes to be set.  These may be set via
 ``PropertyBase`` constructors, (i.e. when it is defined as a class attribute
 of a ``HasProperties`` definition), and may be queried and changed on
 individual ``HasProperties`` instances via the
-:meth:`.HasProperties.getConstraint`/:meth:`.HasProperties.setConstraint`
+:meth:`.HasProperties.getAttribute`/:meth:`.HasProperties.setAttribute`
 methods; similarly named methods are also available on ``PropertyBase``
 instances. Some ``PropertyBase`` classes provide additional convenience
-methods for accessing their constraints (e.g. :meth`.Choice.addChoice`).
+methods for accessing their attributes (e.g. :meth`.Choice.addChoice`).
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -290,7 +290,7 @@ notification of properties to be suppressed in a ``with`` statement.
 """
 
 
-__version__ = '1.1.3.dev'
+__version__ = '1.2.0.dev'
 
 
 import sys

@@ -86,7 +86,7 @@ class PropertyBase(object):
                  equalityFunc=None,
                  required=False,
                  allowInvalid=True,
-                 **constraints):
+                 **atts):
         """Define a ``PropertyBase`` property.
 
         :param default:       Default/initial value.
@@ -100,7 +100,7 @@ class PropertyBase(object):
         :param validateFunc:  Custom validation function. Must accept three
                               parameters: a reference to the ``HasProperties``
                               instance, the owner of this property; a
-                              dictionary containing the constraints for this
+                              dictionary containing the attributes for this
                               property; and the new property value. Should
                               return ``True`` if the property value is valid,
                               ``False`` otherwise.
@@ -114,25 +114,25 @@ class PropertyBase(object):
                               invalid - see caveats in the
                               :class:`.PropertyValue` documentation.
 
-        :param constraints:   Type specific constraints used to test
+        :param atts:          Type specific attributes used to test
                               validity - passed to the
                               :meth:`.PropertyValue.__init__` method as
                               its ``attributes``.
         """
 
-        constraints['default'] = default
-        constraints['enabled'] = constraints.get('enabled', True)
+        atts['default'] = default
+        atts['enabled'] = atts.get('enabled', True)
 
         # A _label is added to this dict by the
         # PropertyOwner metaclass for each new
         # HasProperties class that is defined
         self._label              = {}
 
-        self._required           = required
-        self._validateFunc       = validateFunc
-        self._equalityFunc       = equalityFunc
-        self._allowInvalid       = allowInvalid
-        self._defaultConstraints = constraints
+        self._required          = required
+        self._validateFunc      = validateFunc
+        self._equalityFunc      = equalityFunc
+        self._allowInvalid      = allowInvalid
+        self._defaultAttributes = atts
 
 
     def __copy__(self):
@@ -149,8 +149,8 @@ class PropertyBase(object):
         newProp._label = {}
 
         # Give the new object an independent
-        # defaultConstraint dictionary
-        newProp._defaultConstraints = dict(newProp._defaultConstraints)
+        # defaultAttributes dictionary
+        newProp._defaultAttributes = dict(newProp._defaultAttributes)
 
         return newProp
 
@@ -319,7 +319,7 @@ class PropertyBase(object):
         """Creates and returns a ``PropertyValue`` object for the given
         ``HasProperties`` instance.
         """
-        default = self._defaultConstraints.get('default', None)
+        default = self._defaultAttributes.get('default', None)
         return properties_value.PropertyValue(instance,
                                               name=self.getLabel(instance),
                                               value=default,
@@ -327,7 +327,7 @@ class PropertyBase(object):
                                               validateFunc=self.validate,
                                               equalityFunc=self._equalityFunc,
                                               allowInvalid=self._allowInvalid,
-                                              **self._defaultConstraints)
+                                              **self._defaultAttributes)
 
 
     def validate(self, instance, attributes, value):
@@ -360,8 +360,7 @@ class PropertyBase(object):
 
         :param dict attributes: Attributes of the ``PropertyValue`` object,
                                 which are used to store type-specific
-                                constraints for ``PropertyBase``
-                                subclasses.
+                                attributes for ``PropertyBase`` subclasses.
 
         :param value:           The value to be validated.
         """
@@ -469,7 +468,7 @@ class ListPropertyBase(PropertyBase):
             itemValidateFunc = self._listType.validate
             itemEqualityFunc = self._listType._equalityFunc
             itemAllowInvalid = self._listType._allowInvalid
-            itemAttributes   = self._listType._defaultConstraints
+            itemAttributes   = self._listType._defaultAttributes
         else:
             itemCastFunc     = None
             itemValidateFunc = None
@@ -477,7 +476,7 @@ class ListPropertyBase(PropertyBase):
             itemAllowInvalid = True
             itemAttributes   = None
 
-        default = self._defaultConstraints.get('default', None)
+        default = self._defaultAttributes.get('default', None)
 
         return properties_value.PropertyValueList(
             instance,
@@ -488,7 +487,7 @@ class ListPropertyBase(PropertyBase):
             itemEqualityFunc=itemEqualityFunc,
             listValidateFunc=self.validate,
             itemAllowInvalid=itemAllowInvalid,
-            listAttributes=self._defaultConstraints,
+            listAttributes=self._defaultAttributes,
             itemAttributes=itemAttributes)
 
 
@@ -912,7 +911,7 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
                             details='Use getAttribute instead')
     def getConstraint(self, propName, constraint):
         """See :meth:`getAttribute`. """
-        return self.getProp(propName).getConstraint(self, constraint)
+        return self.getAttribute(propName, constraint)
 
 
     @deprecation.deprecated(deprecated_in='1.2.0',
@@ -920,7 +919,7 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
                             details='Use setAttribute instead')
     def setConstraint(self, propName, constraint, value):
         """See :meth:`setAttribute`. """
-        return self.getProp(propName).setConstraint(self, constraint, value)
+        return self.setAttribute(propName, constraint, value)
 
 
     def getAttribute(self, propName, *args):

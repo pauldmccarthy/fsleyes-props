@@ -177,7 +177,7 @@ class PropertyValue(object):
                                classes, however they are used by the
                                :class:`.PropertyBase` and
                                :class:`.ListPropertyBase` classes to store
-                               per-instance property constraints. Listeners
+                               per-instance property attributes. Listeners
                                may register to be notified when attribute
                                values change.
         """

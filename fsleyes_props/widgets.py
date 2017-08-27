@@ -416,8 +416,8 @@ def _FilePath(parent, hasProps, propObj, propVal, **kwargs):
     panel.SetAutoLayout(1)
     sizer.Fit(panel)
 
-    exists = propObj.getConstraint(hasProps, 'exists')
-    isFile = propObj.getConstraint(hasProps, 'isFile')
+    exists = propObj.getAttribute(hasProps, 'exists')
+    isFile = propObj.getAttribute(hasProps, 'isFile')
 
     def _choosePath(ev):
         global _lastFilePathDir
