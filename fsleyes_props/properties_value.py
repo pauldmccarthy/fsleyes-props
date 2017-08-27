@@ -450,9 +450,18 @@ class PropertyValue(object):
             self.setAttribute(name, value)
 
 
-    def getAttribute(self, name):
-        """Returns the value of the named attribute."""
-        return self._attributes[name]
+    def getAttribute(self, name, *arg):
+        """Returns the value of the named attribute.
+
+        :arg default: If provided, the default value to use if ``name`` is not
+                      an attribute. If not provided, and ``name`` is not an
+                      attribute, a ``KeyError`` is raised.
+        """
+
+        nodefault = len(arg) == 0
+
+        if nodefault: return self._attributes[name]
+        else:         return self._attributes.get(name, arg[0])
 
 
     def setAttribute(self, name, value):

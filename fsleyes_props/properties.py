@@ -23,6 +23,7 @@ import weakref
 import logging
 
 import six
+import deprecation
 
 from . import properties_value
 from . import bindable
@@ -62,7 +63,7 @@ class PropertyBase(object):
     without being bound to a ``HasProperties`` instance (in which case it will
     not create or manage any ``PropertyValue`` instances). This is useful
     if you just want validation functionality via the :meth:`validate`,
-    :meth:`getConstraint` and :meth:`setConstraint` methods, passing in
+    :meth:`getAttribute` and :meth:`setAttribute` methods, passing in
     ``None`` for the instance parameter. Nothing else will work properly
     though.
 
@@ -239,38 +240,56 @@ class PropertyBase(object):
         else:                instData.propVal.removeListener(name)
 
 
+    @deprecation.deprecated(deprecated_in='1.2.0',
+                            removed_in='2.0.0',
+                            details='Use getAttribute instead')
     def getConstraint(self, instance, constraint):
-        """Returns the value of the named constraint for the specified
-        ``HasProperties`` instance, or the default constraint value if
-        instance is ``None``.
-        """
-        instData = self._getInstanceData(instance)
-
-        if instData is None: return self._defaultConstraints[constraint]
-        else:                return instData.propVal.getAttribute(constraint)
+        """See :meth:`getAttribute`. """
+        return self.getAttribute(instance, constraint)
 
 
+    @deprecation.deprecated(deprecated_in='1.2.0',
+                            removed_in='2.0.0',
+                            details='Use setAttribute instead')
     def setConstraint(self, instance, constraint, value):
-        """Sets the value of the named constraint for the specified
-        ``HasProperties`` instance, or the default value if instance
-        is ``None``.
+        """See :meth:`setAttribute`. """
+        return self.setAttribute(instance, constraint, value)
+
+
+    def getAttribute(self, instance, att, *arg):
+        """Returns the value of the named attribute for the specified
+        ``HasProperties`` instance, or the default attribute value if
+        instance is ``None``. See :meth:`.PropertiesValue.getAttribute`.
+        """
+        instData  = self._getInstanceData(instance)
+        nodefault = len(arg) == 0
+
+        if instData is None:
+            if nodefault: return self._defaultAttributes[att]
+            else:         return self._defaultAttributes.get(att, arg[0])
+        else:
+            return instData.propVal.getAttribute(att, *arg)
+
+
+    def setAttribute(self, instance, att, value):
+        """Sets the value of the named attribute for the specified
+        ``HasProperties`` instance,or  the default value if instance
+        is ``None``. See :meth:`.PropertiesValue.setAttribute`.
         """
 
         instData = self._getInstanceData(instance)
-
-        if instData is None: oldVal = self._defaultConstraints[constraint]
-        else:                oldVal = instData.propVal.getAttribute(constraint)
+        oldVal   = self.getAttribute(instance, att, None)
 
         if value == oldVal: return
 
-        log.debug('Changing {} constraint on {}: {} = {}'.format(
+        log.debug('Changing {} attribute on {}: {} = {}'.format(
             ''        if instance is None else self.getLabel(instance),
             'default' if instance is None else 'instance',
-            constraint,
+            att,
             value))
 
-        if instData is None: self._defaultConstraints[constraint] = value
-        else:                instData.propVal.setAttribute(constraint, value)
+        if instData is None: self._defaultAttributes[att] = value
+        else:                instData.propVal.setAttribute(att, value)
 
 
     def getPropVal(self, instance):
@@ -888,18 +907,34 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         self.getPropVal(propName).propNotify()
 
 
+    @deprecation.deprecated(deprecated_in='1.2.0',
+                            removed_in='2.0.0',
+                            details='Use getAttribute instead')
     def getConstraint(self, propName, constraint):
-        """Convenience method, returns the value of the named constraint for
-        the named property. See :meth:`PropertyBase.getConstraint`.
-        """
+        """See :meth:`getAttribute`. """
         return self.getProp(propName).getConstraint(self, constraint)
 
 
+    @deprecation.deprecated(deprecated_in='1.2.0',
+                            removed_in='2.0.0',
+                            details='Use setAttribute instead')
     def setConstraint(self, propName, constraint, value):
-        """Convenience method, sets the value of the named constraint for
-        the named property. See :meth:`PropertyBase.setConstraint`.
-        """
+        """See :meth:`setAttribute`. """
         return self.getProp(propName).setConstraint(self, constraint, value)
+
+
+    def getAttribute(self, propName, *args):
+        """Convenience method, returns the value of the named attributes for
+        the named property. See :meth:`PropertyBase.getAttribute`.
+        """
+        return self.getProp(propName).getAttribute(self, *args)
+
+
+    def setAttribute(self, propName, *args):
+        """Convenience method, sets the value of the named attribute for
+        the named property. See :meth:`PropertyBase.setAttribute`.
+        """
+        return self.getProp(propName).setAttribute(self, *args)
 
 
     def addListener(self, propName, *args, **kwargs):
