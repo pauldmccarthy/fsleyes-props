@@ -797,7 +797,8 @@ def _sync(self, atts=False, attName=None, attValue=None):
 
             log.debug('Syncing bound property values ({}) '
                       '{}.{} ({}) - {}.{} ({})'.format(
-                          'attributes' if atts else 'values',
+                          'attributes: {} = {}'.format(attName, attValue)
+                          if atts else 'values',
                           self._context.__class__.__name__,
                           self._name,
                           id(self._context()),

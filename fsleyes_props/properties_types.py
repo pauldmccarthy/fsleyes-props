@@ -137,7 +137,7 @@ class Number(props.PropertyBase):
         :param instance:   The owning :class:`.HasProperties` instance (or
                            ``None`` for unbound property values).
 
-        :param attributes: Dictionary containing property constraints.
+        :param attributes: Dictionary containing property attributes.
 
         :param value:      The value to validate.
         """
@@ -157,7 +157,7 @@ class Number(props.PropertyBase):
     def cast(self, instance, attributes, value):
         """Overrides :meth:`.PropertyBase.cast`.
 
-        If the ``clamped`` constraint is ``True`` and the ``minval`` and/or
+        If the ``clamped`` attribute is ``True`` and the ``minval`` and/or
         ``maxval`` have been set, this function ensures that the given value
         lies within the ``minval`` and ``maxval`` limits. Otherwise the value
         is returned unchanged.
@@ -273,7 +273,7 @@ class String(props.PropertyBase):
 
         Passes the given value to
         :meth:`.PropertyBase.validate`. Then, if either the
-        ``minlen`` or ``maxlen`` constraints have been set, and the given
+        ``minlen`` or ``maxlen`` attributes have been set, and the given
         value has length less than ``minlen`` or greater than ``maxlen``,
         raises a :exc:`ValueError`.
         """
@@ -399,43 +399,43 @@ class Choice(props.PropertyBase):
         if default not in self.getChoices(instance):
             raise ValueError('{} is not a choice'.format(default))
 
-        self.setConstraint(instance, 'default', default)
+        self.setAttribute(instance, 'default', default)
 
 
     def enableChoice(self, choice, instance=None):
         """Enables the given choice. """
-        choiceEnabled = dict(self.getConstraint(instance, 'choiceEnabled'))
+        choiceEnabled = dict(self.getAttribute(instance, 'choiceEnabled'))
         choiceEnabled[choice] = True
-        self.setConstraint(instance, 'choiceEnabled', choiceEnabled)
+        self.setAttribute(instance, 'choiceEnabled', choiceEnabled)
 
 
     def disableChoice(self, choice, instance=None):
         """Disables the given choice. An attempt to set the property to
         a disabled value will result in a :exc:`ValueError`.
         """
-        choiceEnabled = dict(self.getConstraint(instance, 'choiceEnabled'))
+        choiceEnabled = dict(self.getAttribute(instance, 'choiceEnabled'))
         choiceEnabled[choice] = False
-        self.setConstraint(instance, 'choiceEnabled', choiceEnabled)
+        self.setAttribute(instance, 'choiceEnabled', choiceEnabled)
 
 
     def choiceEnabled(self, choice, instance=None):
         """Returns ``True`` if the given choice is enabled, ``False``
         otherwise.
         """
-        return self.getConstraint(instance, 'choiceEnabled')[choice]
+        return self.getAttribute(instance, 'choiceEnabled')[choice]
 
 
     def getChoices(self, instance=None):
         """Returns a list of the current choices. """
-        return list(self.getConstraint(instance, 'choices'))
+        return list(self.getAttribute(instance, 'choices'))
 
 
     def getAlternates(self, instance=None):
         """Returns a list of the current acceptable alternate values for each
         choice.
         """
-        choices  = self.getConstraint(instance, 'choices')
-        altLists = self.getConstraint(instance, 'altLists')
+        choices  = self.getAttribute(instance, 'choices')
+        altLists = self.getAttribute(instance, 'altLists')
 
         return [altLists[c] for c in choices]
 
@@ -448,8 +448,8 @@ class Choice(props.PropertyBase):
         """Updates the choice value and/or alternates for the specified choice.
         """
 
-        choices    = list(self.getConstraint(instance, 'choices'))
-        altLists   = dict(self.getConstraint(instance, 'altLists'))
+        choices    = list(self.getAttribute(instance, 'choices'))
+        altLists   = dict(self.getAttribute(instance, 'altLists'))
         idx        = choices.index(choice)
 
         if newChoice is not None:
@@ -479,7 +479,7 @@ class Choice(props.PropertyBase):
 
         # Add stringified versions of all
         # choices if allowStr is True
-        if self.getConstraint(instance, 'allowStr'):
+        if self.getAttribute(instance, 'allowStr'):
             for c in choices:
                 strc = str(c)
                 alts = alternates[c]
@@ -498,10 +498,10 @@ class Choice(props.PropertyBase):
         if alternate is None: alternate = []
         else:                 alternate = list(alternate)
 
-        choices  = list(self.getConstraint(instance, 'choices'))
-        altLists = dict(self.getConstraint(instance, 'altLists'))
+        choices  = list(self.getAttribute(instance, 'choices'))
+        altLists = dict(self.getAttribute(instance, 'altLists'))
 
-        if self.getConstraint(instance, 'allowStr'):
+        if self.getAttribute(instance, 'allowStr'):
             strc = str(choice)
             if strc not in alternate:
                 alternate.append(strc)
@@ -515,8 +515,8 @@ class Choice(props.PropertyBase):
     def removeChoice(self, choice, instance=None):
         """Removes the specified choice from the list of possible choices. """
 
-        choices   = list(self.getConstraint(instance, 'choices'))
-        altLists  = dict(self.getConstraint(instance, 'altLists'))
+        choices   = list(self.getAttribute(instance, 'choices'))
+        altLists  = dict(self.getAttribute(instance, 'altLists'))
 
         choices .remove(choice)
         altLists.pop(   choice)
@@ -553,9 +553,9 @@ class Choice(props.PropertyBase):
         :param alternates: A dict of ``{choice :  [alternates]}`` mappings.
         """
 
-        propVal    = self.getPropVal(   instance)
-        default    = self.getConstraint(instance, 'default')
-        oldEnabled = self.getConstraint(instance, 'choiceEnabled')
+        propVal    = self.getPropVal(  instance)
+        default    = self.getAttribute(instance, 'default')
+        oldEnabled = self.getAttribute(instance, 'choiceEnabled')
         newEnabled = {}
 
         # Prevent notification while
@@ -577,11 +577,11 @@ class Choice(props.PropertyBase):
         altLists   = alternates
         alternates = self.__generateAlternatesDict(altLists)
 
-        self.setConstraint(instance, 'choiceEnabled', newEnabled)
-        self.setConstraint(instance, 'altLists',      altLists)
-        self.setConstraint(instance, 'alternates',    alternates)
-        self.setConstraint(instance, 'choices',       choices)
-        self.setConstraint(instance, 'default',       default)
+        self.setAttribute(instance, 'choiceEnabled', newEnabled)
+        self.setAttribute(instance, 'altLists',      altLists)
+        self.setAttribute(instance, 'alternates',    alternates)
+        self.setAttribute(instance, 'choices',       choices)
+        self.setAttribute(instance, 'default',       default)
 
         if propVal is not None:
 
@@ -608,9 +608,9 @@ class Choice(props.PropertyBase):
         """
         props.PropertyBase.validate(self, instance, attributes, value)
 
-        choices    = self.getConstraint(instance, 'choices')
-        enabled    = self.getConstraint(instance, 'choiceEnabled')
-        alternates = self.getConstraint(instance, 'alternates')
+        choices    = self.getAttribute(instance, 'choices')
+        enabled    = self.getAttribute(instance, 'choiceEnabled')
+        alternates = self.getAttribute(instance, 'alternates')
 
         if len(choices) == 0: return
 
@@ -631,7 +631,7 @@ class Choice(props.PropertyBase):
         Checks to see if the given value is a valid alternate value for a
         choice. If so, the alternate value is replaced with the choice value.
         """
-        alternates = self.getConstraint(instance, 'alternates')
+        alternates = self.getAttribute(instance, 'alternates')
         return alternates.get(value, value)
 
 
@@ -667,7 +667,7 @@ class FilePath(String):
     def validate(self, instance, attributes, value):
         """Overrides :meth:`.PropertyBase.validate`.
 
-        If the ``exists`` constraint is not ``True``, does nothing. Otherwise,
+        If the ``exists`` attribute is not ``True``, does nothing. Otherwise,
         if ``isFile`` is ``False`` and the given value is not a path to an
         existing directory, a :exc:`ValueError` is raised.
 
@@ -748,7 +748,7 @@ class List(props.ListPropertyBase):
         """Overrides :meth:`.PropertyBase.validate`.
 
         Checks that the given value (which should be a list) meets the
-        ``minlen``/``maxlen`` constraints. Raises a :exc:`ValueError` if it
+        ``minlen``/``maxlen`` attribute. Raises a :exc:`ValueError` if it
         does not.
         """
 
@@ -816,7 +816,7 @@ class Colour(props.PropertyBase):
         pv = self.getPropVal(instance)
 
         if pv is not None: currentVal = pv.get()
-        else:              currentVal = self._defaultConstraints['default']
+        else:              currentVal = self.getAttribute(None, 'default')
 
         value = [float(v) for v in value]
 
@@ -871,13 +871,13 @@ class ColourMap(props.PropertyBase):
         :arg cmaps: a list of registered colour map names.
         """
 
-        default = self.getConstraint(instance, 'default')
+        default = self.getAttribute(instance, 'default')
 
         if default not in cmaps:
             default = cmaps[0]
 
-        self.setConstraint(instance, 'cmaps'  , cmaps)
-        self.setConstraint(instance, 'default', default)
+        self.setAttribute(instance, 'cmaps'  , cmaps)
+        self.setAttribute(instance, 'default', default)
 
 
     def addColourMap(self, cmap, instance=None):
@@ -897,7 +897,7 @@ class ColourMap(props.PropertyBase):
         """Returns a list containing the names of registered colour maps
         available for this property.
         """
-        return list(self.getConstraint(instance, 'cmaps'))
+        return list(self.getAttribute(instance, 'cmaps'))
 
 
     def validate(self, instance, attributes, value):
@@ -958,12 +958,12 @@ class BoundsValueList(propvals.PropertyValueList):
     ``PropertyValueList`` base class.  For a single dimension, a bound
     object has a ``lo`` value and a ``hi`` value, specifying the bounds along
     that dimension. To make things confusing, each dimension also has ``min``
-    and ``max`` constraints, which define the minimum/maximum values that the
+    and ``max`` attributes, which define the minimum/maximum values that the
     ``lo`` and ``high`` values may take for that dimension.
 
     Some dynamic attributes are available on ``BoundsValueList`` objects,
     allowing access to and assignment of bound values and
-    constraints. Dimensions ``0, 1, 2, 3`` respectively map to identifiers
+    attributes. Dimensions ``0, 1, 2, 3`` respectively map to identifiers
     ``x, y, z, t``. If an attempt is made to access/assign an attribute
     corresponding to a dimension which does not exist on a particular
     ``BoundsValueList`` instance (e.g. attribute ``t`` on a 3-dimensional
@@ -1200,7 +1200,7 @@ class Bounds(List):
     and :meth:`BoundsValueList.setMax` methods. The advantage to using these
     methods, instead of using, for example,
     :meth:`.PropertyValue.setAttribute`, is that if you use the latter you will
-    have to set the constraints on both the low and the high values.
+    have to set the attributes on both the low and the high values.
     """
 
     def __init__(self,
@@ -1212,7 +1212,7 @@ class Bounds(List):
         """Create a ``Bounds`` property.
 
         :arg ndims:        Number of dimensions. This is (currently)
-                           not a property constraint, hence it cannot
+                           not a property attribute, hence it cannot
                            be changed.
 
         :arg real:         If ``True`` (the default), the bound values are
@@ -1266,7 +1266,7 @@ class Bounds(List):
         methods/attributes defined in the BVL class.
         """
 
-        default = self._defaultConstraints.get('default', None)
+        default = self.getAttribute(None, 'default', None)
 
         bvl = BoundsValueList(
             instance,
@@ -1276,8 +1276,8 @@ class Bounds(List):
             itemEqualityFunc=self._listType._equalityFunc,
             itemValidateFunc=self._listType.validate,
             listValidateFunc=self.validate,
-            listAttributes=self._defaultConstraints,
-            itemAttributes=self._listType._defaultConstraints)
+            listAttributes=self._defaultAttributes,
+            itemAttributes=self._listType._defaultAttributes)
 
         return bvl
 
@@ -1499,7 +1499,7 @@ class Point(List):
         methods/attributes defined in the PVL class.
         """
 
-        default = self._defaultConstraints.get('default', None)
+        default = self.getAttribute(None, 'default', None)
 
         pvl = PointValueList(
             instance,
@@ -1509,8 +1509,8 @@ class Point(List):
             itemEqualityFunc=self._listType._equalityFunc,
             itemValidateFunc=self._listType.validate,
             listValidateFunc=self.validate,
-            listAttributes=self._defaultConstraints,
-            itemAttributes=self._listType._defaultConstraints)
+            listAttributes=self._defaultAttributes,
+            itemAttributes=self._listType._defaultAttributes)
 
         return pvl
 
@@ -1638,7 +1638,7 @@ class Array(props.PropertyBase):
         an :class:`.ArrayProxy` for the given ``instance``.
         """
 
-        default = self._defaultConstraints.get('default', None)
+        default = self.getAttribute(None, 'default', None)
         ap      = ArrayProxy(
             instance,
             name=self.getLabel(instance),
@@ -1646,7 +1646,7 @@ class Array(props.PropertyBase):
             castFunc=self.cast,
             validateFunc=self.validate,
             allowInvalid=self._allowInvalid,
-            **self._defaultConstraints)
+            **self._defaultAttributes)
 
         return ap
 

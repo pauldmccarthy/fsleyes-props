@@ -257,7 +257,7 @@ def _Choice(parser,
                   will be configured to accept any value.
 
     :arg default: If not ``None``, gives the default value. Otherwise,
-                  the ``default`` constraint of the :class:`.Choice`
+                  the ``default`` attribute of the :class:`.Choice`
                   object is used.
 
     :arg useAlts: If ``True`` (the default), alternate values for the
@@ -285,7 +285,7 @@ def _Choice(parser,
             choices += [a for a in altList]
 
     if default is None:
-        default = propObj.getConstraint(None, 'default')
+        default = propObj.getAttribute(None, 'default')
 
     # Make sure that only unique
     # choices are set as options.

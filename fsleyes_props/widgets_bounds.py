@@ -70,7 +70,7 @@ def _Bounds(parent,
 
     ndims   = propObj._ndims
     real    = propObj._real
-    clamped = propObj.getListType().getConstraint(None, 'clamped')
+    clamped = propObj.getListType().getAttribute(None, 'clamped')
 
     panel = wx.Panel(parent)
     sizer = wx.BoxSizer(wx.VERTICAL)
@@ -80,7 +80,7 @@ def _Bounds(parent,
         labels = [None] * 2 * ndims
 
     for i in range(ndims):
-        minDistance = propObj.getConstraint(hasProps, 'minDistance')
+        minDistance = propObj.getAttribute(hasProps, 'minDistance')
         minval      = propVal.getMin(i)
         maxval      = propVal.getMax(i)
         loval       = propVal.getLo(i)
