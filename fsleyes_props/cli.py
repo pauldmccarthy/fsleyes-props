@@ -722,8 +722,8 @@ def addParserArguments(
             '_{}'.format(propType), None)
 
         if parserFunc is None:
-            log.warn('No CLI parser function for property {} '
-                     '(type {})'.format(propName, propType))
+            log.warning('No CLI parser function for property {} '
+                        '(type {})'.format(propName, propType))
             continue
 
         shortArg  =  '-{}'.format(shortArgs[propName])
@@ -810,6 +810,9 @@ def generateArguments(hasProps,
 
         elif isinstance(propObj, ptypes.ColourMap):
             values = [propVal.name]
+
+        elif isinstance(propObj, ptypes.String):
+            values = ['"{}"'.format(propVal)]
 
         elif isinstance(propObj, ptypes.Boolean):
             values = None
