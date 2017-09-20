@@ -746,7 +746,8 @@ def generateArguments(hasProps,
                       cliProps=None,
                       shortArgs=None,
                       longArgs=None,
-                      exclude=''):
+                      exclude='',
+                      **kwargs):
     """Given a ``HasProperties`` instance, generates a list of arguments which
     could be used to configure another instance in the same way.
 
@@ -758,6 +759,10 @@ def generateArguments(hasProps,
     :param xformFuncs:   A dictionary of ``{property name -> function}``
                          mappings, which can be used to perform some arbitrary
                          transformation of property values.
+
+
+    All other keyword arguments are passed through to the ``xformFuncs``
+    functions.
 
     See the :func:`addParserArguments` function for descriptions of the other
     parameters.
@@ -786,8 +791,8 @@ def generateArguments(hasProps,
 
     for propName in cliProps:
         propObj = hasProps.getProp(propName)
-        xform   = xformFuncs.get(propName, lambda v: v)
-        propVal = xform(getattr(hasProps, propName))
+        xform   = xformFuncs.get(propName, lambda v, **kwa: v)
+        propVal = xform(getattr(hasProps, propName), **kwargs)
 
         # TODO Should I skip a property
         #      if its value is None?
