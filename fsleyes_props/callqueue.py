@@ -223,7 +223,7 @@ class CallQueue(object):
 
                 except Exception as e:
                     import traceback
-                    log.warn('Function {} raised exception: {}'.format(
+                    log.warning('Function {} raised exception: {}'.format(
                         call.name, e), exc_info=True)
                     traceback.print_stack()
 
