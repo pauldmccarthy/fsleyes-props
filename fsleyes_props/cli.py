@@ -200,6 +200,14 @@ from . import properties_types as ptypes
 log = logging.getLogger(__name__)
 
 
+class SkipArgument(Exception):
+    """This exception may be raised by transform functions which are called
+    by :func:`applyArguments` and :func:`generateArguments` to indicate
+    that the arguemnt should be skipped (i.e. not applied, or not generated).
+    """
+    pass
+
+
 def _String(parser,
             propObj,
             propCls,
@@ -617,7 +625,10 @@ def applyArguments(hasProps,
         if argVal is None:
             continue
 
-        argVal = xform(argVal, **kwargs)
+        try:
+            argVal = xform(argVal, **kwargs)
+        except SkipArgument:
+            continue
 
         log.debug('Setting {}.{} = {}'.format(
             type(hasProps).__name__,
@@ -792,7 +803,11 @@ def generateArguments(hasProps,
     for propName in cliProps:
         propObj = hasProps.getProp(propName)
         xform   = xformFuncs.get(propName, lambda v, **kwa: v)
-        propVal = xform(getattr(hasProps, propName), **kwargs)
+
+        try:
+            propVal = xform(getattr(hasProps, propName), **kwargs)
+        except SkipArgument:
+            continue
 
         # TODO Should I skip a property
         #      if its value is None?
