@@ -290,7 +290,7 @@ notification of properties to be suppressed in a ``with`` statement.
 """
 
 
-__version__ = '1.2.1'
+__version__ = '1.2.2'
 
 
 import sys
@@ -334,6 +334,7 @@ from .syncable import (
     SyncableHasProperties,)
 
 from .cli import (
+    SkipArgument,
     applyArguments,
     addParserArguments,
     generateArguments)
