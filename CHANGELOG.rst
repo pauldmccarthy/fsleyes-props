@@ -2,8 +2,8 @@
 ===================================
 
 
-1.2.2 (under development)
--------------------------
+1.2.2 (Saturday October 21st 2017)
+----------------------------------
 
 
 * ``cli`` custom transform functions can now raise a ``SkipArgument``
