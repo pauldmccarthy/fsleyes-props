@@ -334,6 +334,7 @@ from .syncable import (
     SyncableHasProperties,)
 
 from .cli import (
+    SkipArgument,
     applyArguments,
     addParserArguments,
     generateArguments)
