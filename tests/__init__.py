@@ -11,6 +11,8 @@ import time
 
 import wx
 
+from  fsl.utils.platform import platform as fslplatform
+
 
 def run_with_wx(func, *args, **kwargs):
 
@@ -103,10 +105,22 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
     realYield()
 
 
+
 def simtext(sim, target, text, enter=True):
     target.SetFocus()
     target.SetValue(text)
-    if enter: sim.KeyDown(wx.WXK_RETURN)
+
+    # KeyDown doesn't seem to work
+    # under docker/GTK so we have
+    # to hack
+    if enter and fslplatform.wxPlatform == fslplatform.WX_GTK:
+        parent = target.GetParent()
+        if type(parent).__name__ == 'FloatSpinCtrl':
+            parent._FloatSpinCtrl__onText(None)
+        else:
+            sim.KeyDown(wx.WXK_RETURN)
+    elif enter:
+        sim.KeyDown(wx.WXK_RETURN)
     realYield()
 
 
