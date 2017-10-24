@@ -4,6 +4,7 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+# flake8: noqa
 """``fsleyes_props`` is a framework for event-driven programming using python
 descriptors, similar in functionality to, and influenced by `Enthought Traits
 <http://code.enthought.com/projects/traits/>`_.

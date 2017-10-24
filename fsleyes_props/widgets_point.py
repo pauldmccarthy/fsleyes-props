@@ -69,7 +69,7 @@ def _Point(parent,
 
         sizer.Add(slider, flag=wx.EXPAND)
 
-        _pointBind(hasProps, propObj, propVal, slider, dim)
+        _pointBind(hasProps, propObj, propVal, slider, dim, editLimits)
 
     panel.Layout()
 
