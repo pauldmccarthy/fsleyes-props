@@ -32,8 +32,6 @@ def  test_widget_number(): run_with_wx(_test_widget_number)
 def _test_widget_number(parent):
 
     sim = wx.UIActionSimulator()
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    parent.SetSizer(sizer)
 
     obj = MyObj()
 
@@ -47,7 +45,7 @@ def _test_widget_number(parent):
     assert isinstance(myintc,  floatslider.SliderSpinPanel)
     assert isinstance(myrealc, floatslider.FloatSlider)
 
-    addall(parent, sizer, [myinto, myrealo, myintc, myrealc])
+    addall(parent, [myinto, myrealo, myintc, myrealc])
 
     obj.myinto  = 50
     obj.myrealo = 10

@@ -29,9 +29,6 @@ def  test_widget_point(): run_with_wx(_test_widget_point)
 def _test_widget_point(parent):
 
     sim = wx.UIActionSimulator()
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    parent.SetSizer(sizer)
-
     obj = MyObj()
 
     obj.mypointi.setLimits(0, 0, 100)
@@ -58,7 +55,7 @@ def _test_widget_point(parent):
     assert xf.GetValue() == 20
     assert yf.GetValue() == 80
 
-    addall(parent, sizer, [mypointi, mypointf])
+    addall(parent, [mypointi, mypointf])
 
     tests = [
         (xi, 'mypointi', 'x'),

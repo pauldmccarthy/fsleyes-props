@@ -33,9 +33,6 @@ def _test_widget_boolean(parent):
     falseicon = op.join(datadir, 'false.png')
 
     sim = wx.UIActionSimulator()
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    parent.SetSizer(sizer)
-
     obj = MyObj()
 
     # ch
@@ -50,7 +47,7 @@ def _test_widget_boolean(parent):
     assert isinstance(mybooltog, bmptoggle.BitmapToggleButton)
     assert isinstance(myboolrad, bmpradio .BitmapRadioBox)
 
-    addall(parent, sizer, (myboolcb, mybooltog, myboolrad))
+    addall(parent, (myboolcb, mybooltog, myboolrad))
 
     obj.mybool = False
 

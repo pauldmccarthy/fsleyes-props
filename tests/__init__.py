@@ -63,7 +63,9 @@ def run_with_wx(func, *args, **kwargs):
     return result[0]
 
 
-def addall(parent, sizer, widgets):
+def addall(parent, widgets):
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    parent.SetSizer(sizer)
     for w in widgets:
         sizer.Add(w, flag=wx.EXPAND, proportion=1)
     parent.Layout()

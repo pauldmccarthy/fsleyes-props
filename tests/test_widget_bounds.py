@@ -33,8 +33,6 @@ def  test_widget_bounds(): run_with_wx(_test_widget_bounds)
 def _test_widget_bounds(parent):
 
     sim = wx.UIActionSimulator()
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    parent.SetSizer(sizer)
 
     obj = MyObj()
 
@@ -45,8 +43,7 @@ def _test_widget_bounds(parent):
     sli     = props.makeWidget(parent, obj, 'mybounds', showLimits=False,
                                spin=False, slider=True)
 
-    addall(parent, sizer, [slispin, sli])
-
+    addall(parent, [slispin, sli])
 
     slispin = slispin.GetChildren()[0]
     sli     = sli    .GetChildren()[0]
