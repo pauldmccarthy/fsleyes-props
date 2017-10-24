@@ -9,10 +9,20 @@ fsleyes-props
    :target: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/commits/master/
 
 
-The ``fsleyes-props`` project is an event programming framework, which
-includes the ability for automatic CLI generation and, optionally, automatic
-GUI generation (if `wxPython <http://www.wxpython.org>`_ is present). It is
-used by `FSLeyes <https://git.fmrib.ox.ac.uk/fsl/fsleyes/fsleyes>`_.
+``fsleyes-props`` is a library which is used by used by `FSLeyes
+<https://git.fmrib.ox.ac.uk/fsl/fsleyes/fsleyes>`_, and which allows you to:
+
+  - Listen for change to attributes on a python object,
+
+  - Automatically generate ``wxpython`` widgets which are bound
+    to attributes of a python object
+
+  - Automatically generate a command line interface to set
+    values of the attributes of a python object.
+
+
+To do this, you just need to subclass the :class:`.HasProperties` class,
+and add some :class:`.PropertyBase` types as class attributes.
 
 
 Dependencies

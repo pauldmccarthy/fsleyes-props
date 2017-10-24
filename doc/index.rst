@@ -1,13 +1,29 @@
-
 ``fsleyes-props``
 =================
 
 .. toctree::
-   :hidden:   
-              
-   fsleyes_props
+   :hidden:
 
-   
+   self
+   fsleyes_props
+   changelog
+
+
+``fsleyes-props`` is a library which allows you to:
+
+  - Listen for change to attributes on a python object,
+
+  - Automatically generate ``wxpython`` widgets which are bound
+    to attributes of a python object
+
+  - Automatically generate a command line interface to set
+    values of the attributes of a python object.
+
+
+To do this, you just need to subclass the :class:`.HasProperties` class,
+and add some :class:`.PropertyBase` types as class attributes.
+
+
 The ``fsleyes-props`` package uses `python descriptors
 <http://nbviewer.ipython.org/gist/ChrisBeaumont/5758381/descriptor_writeup.ipynb>`_
 to implement an event programming framework. It also includes the ability for
