@@ -1033,7 +1033,7 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
                 prop.validate(self, propVal.getAttributes(), propVal.get())
 
             except ValueError as e:
-                errors.append((name, e.message))
+                errors.append((name, e))
 
         return errors
 

@@ -967,7 +967,6 @@ class PropertyValueList(PropertyValue):
             if itemEqualityFunc is not None: return itemEqualityFunc(a, b)
             else:                            return a == b
 
-        listValid = None
         if listValidateFunc is not None:
             def listValid(ctx, atts, value):
                 value = list(value)
@@ -975,6 +974,8 @@ class PropertyValueList(PropertyValue):
                     if isinstance(v, PropertyValue):
                         value[i] = v.get()
                 return listValidateFunc(ctx, atts, value)
+        else:
+            listValid = None
 
         # The list as a whole must be allowed to contain
         # invalid values because, if an individual
@@ -1109,8 +1110,7 @@ class PropertyValueList(PropertyValue):
                       self._context().__class__.__name__,
                       self._name,
                       id(self._context()),
-                      pv,
-                      self[:]))
+                      pv))
         self.propNotify()
 
 

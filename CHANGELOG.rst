@@ -1,38 +1,38 @@
- ``fsleyes-props`` release history
-===================================
+This document contains the ``fsleyes-props`` release history in reverse
+chronological order.
 
 
 1.2.2 (Saturday October 21st 2017)
 ----------------------------------
 
 
-* ``cli`` custom transform functions can now raise a ``SkipArgument``
-  exception to indicate that the argument shouid be skipped, either
-  when applying or generating arguments.
+* :mod:`.cli` custom transform functions can now raise a :exc:`.SkipArgument`
+  exception to indicate that the argument shouid be skipped, either when
+  applying or generating arguments.
 
 
 1.2.1 (Thursday September 21st 2017)
 ------------------------------------
 
 
-* ``cli.generateArguments`` function wraps string values in quotes.
-* ``cli.generateArguments`` allows extra arguments to be passed through to
-  custom transform functions.
+* :func:`.cli.generateArguments` function wraps string values in quotes.
+* :func:`.cli.generateArguments` allows extra arguments to be passed through
+  to custom transform functions.
 
 
 1.2.0 (Monday September 11th 2017)
 ----------------------------------
 
 
-* Deprecated ``get``/``setConstraint`` in favour of ``get``/``setAttribute``
-
+* Deprecated ``get``/``setConstraint`` in favour of ``get``/``setAttribute``,
+  on :class:`.HasProperties` and :class:`.PropertyBase` classes.
 
 
 1.1.2 (Friday August 25th 2017)
 -------------------------------
 
 
-* Even more adjustement to ``PropertyValueList`` item notification/
+* Even more adjustement to :class:`.PropertyValueList` item notification/
   synchronisation.
 
 
@@ -40,7 +40,7 @@
 ---------------------------------
 
 
-* Further adjustement to ``PropertyValueList`` item notification/
+* Further adjustement to :class:`.PropertyValueList` item notification/
   synchronisation.
 
 
@@ -48,15 +48,15 @@
 ----------------------------------
 
 
-* ``HasProperties.__init__`` now accepts ``kwargs`` which allow initial
+* :meth:`.HasProperties.__init__` now accepts ``kwargs`` which allow initial
   property values to be set.
-* ``SyncableHasProperties`` has new/renamed methods ``detachFromParent`` and
-  ``detachAllFromParent``, allowing individual properties to be permanently
-  un-synchronised.
-* Bugfix to ``PropertyValueList.getLast``
-* ``suppress.skip`` function has option to ignore non-existent/deleted
+* :class:`.SyncableHasProperties` has new/renamed methods ``detachFromParent``
+  and ``detachAllFromParent``, allowing individual properties to be
+  permanently un-synchronised.
+* Bugfix to :class:`.PropertyValueList.getLast`
+* :func:`.suppress.skip` function has option to ignore non-existent/deleted
   listeners.
-* Fix to ``PropertyValueList`` item notification.
+* Fix to :class:`.PropertyValueList` item notification.
 
 
 
@@ -64,16 +64,16 @@
 ---------------------------------
 
 
-* New function ``makeListWidget``, which creates a widget for a specific item
-  in a property value list.
+* New function :func:`.makeListWidget`, which creates a widget for a specific
+  item in a property value list.
 
 
 1.0.3 (Friday July 14th 2017)
 -----------------------------
 
 
-* Bug fix to ``fsleyes_props.bindable`` - could potentially pass GC'd functions
-  to the ``callqueue``.
+* Bug fix to :mod:`fsleyes_props.bindable` - could potentially pass GC'd
+  functions to the :mod:`.callqueue`.
 * Tweaks to CI build process
 
 
@@ -96,12 +96,13 @@
 ------------------------------
 
 
-* ``props`` renamed to ``fsleyes_props``
+* ``props`` renamed to :mod:`fsleyes_props`
 * ``pwidgets`` removed (moved to separate project ``fsleyes-widgets``)
-* Removed ``WeakFunctionRef`` - this is now defined in the ``fslpy`` project.
-* Removed ``Bounds`` centering logic
-* Adjusted ``CallQueue`` interface to allow arbitrary arguments to be passed
-  through to queued functions.
+* Removed :class:`.WeakFunctionRef` - this is now defined in the ``fslpy``
+  project.
+* Removed :class:`.Bounds` centering logic
+* Adjusted :class:`.CallQueue` interface to allow arbitrary arguments to be
+  passed through to queued functions.
 
 
 0.10.1 (Thursday April 20th 2017)

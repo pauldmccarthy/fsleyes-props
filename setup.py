@@ -66,31 +66,17 @@ class doc(Command):
         except:
             import mock
 
-        mockedModules = [
-            'fsl',
-            'fsl.utils',
-            'fsl.utils.async',
-            'fsl.utils.weakfuncref',
-            'fsleyes_widgets',
-            'fsleyes_widgets.bitmapradio',
-            'fsleyes_widgets.bitmaptoggle',
-            'fsleyes_widgets.colourbutton',
-            'fsleyes_widgets.elistbox',
-            'fsleyes_widgets.floatslider',
-            'fsleyes_widgets.floatspin',
-            'fsleyes_widgets.notebook',
-            'fsleyes_widgets.rangeslider',
-            'numpy',
-            'numpy.linalg',
-            'wx',
-            'wx.adv',
-        ]
-
         mockobj       = mock.MagicMock()
-        mockedModules = { m : mockobj for m in mockedModules}
+        mockedModules = open(op.join(docdir, 'mock_modules.txt')).readlines()
 
-        with mock.patch.dict('sys.modules', **mockedModules):
-            sphinx.main(['sphinx-build', docdir, destdir])
+        mockedModules = [l.strip()   for l in mockedModules]
+        mockedModules = {m : mockobj for m in mockedModules}
+
+        patches = [mock.patch.dict('sys.modules', **mockedModules)]
+
+        [p.start() for p in patches]
+        sphinx.main(['sphinx-build', docdir, destdir])
+        [p.stop() for p in patches]
 
 
 setup(
@@ -109,7 +95,9 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules'],
 
     packages=packages,

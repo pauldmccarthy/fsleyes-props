@@ -643,7 +643,7 @@ class FilePath(String):
     file or a directory - only one or the other.
     """
 
-    def __init__(self, exists=False, isFile=True, suffixes=[], **kwargs):
+    def __init__(self, exists=False, isFile=True, suffixes=None, **kwargs):
         """Create a ``FilePath`` property.
 
         :param bool exists:   If ``True``, the path must exist.
@@ -656,10 +656,12 @@ class FilePath(String):
         :param list suffixes: List of acceptable file suffixes (only relevant
                               if ``isFile`` is ``True``).
         """
+        if suffixes is None:
+            suffixes = []
 
         kwargs['exists']   = exists
         kwargs['isFile']   = isFile
-        kwargs['suffixes'] = suffixes
+        kwargs['suffixes'] = list(suffixes)
 
         String.__init__(self, **kwargs)
 
