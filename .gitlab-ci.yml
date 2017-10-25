@@ -248,7 +248,6 @@ variables:
 
     # Run the tests
     - xvfb-run python setup.py test
-    - python -m coverage report
 
 
 test:2.7:
