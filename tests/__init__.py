@@ -27,7 +27,7 @@ def run_with_wx(func, *args, **kwargs):
     result = [None]
     raised = [None]
 
-    app    = wx.App()
+    app    = [wx.App()]
     frame  = wx.Frame(None)
     panel  = wx.Panel(frame)
     sizer  = wx.BoxSizer(wx.VERTICAL)
@@ -51,19 +51,16 @@ def run_with_wx(func, *args, **kwargs):
         finally:
             def finish():
                 frame.Destroy()
-                app.ExitMainLoop()
+                app[0].ExitMainLoop()
+                del app[0]
+
             wx.CallLater(finishingDelay, finish)
 
     frame.Show()
 
     wx.CallLater(startingDelay, wrap)
 
-    app.MainLoop()
-
-    del sizer
-    del panel
-    del frame
-    del app
+    app[0].MainLoop()
 
     if raised[0] and propagateRaise:
         raise raised[0]
