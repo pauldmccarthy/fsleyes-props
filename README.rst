@@ -8,6 +8,9 @@ fsleyes-props
 .. image:: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/badges/master/coverage.svg
    :target: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/commits/master/
 
+.. image:: https://img.shields.io/pypi/v/fsleyes-props.svg
+   :target: https://pypi.python.org/pypi/fsleyes-props/)
+
 
 ``fsleyes-props`` is a library which is used by used by `FSLeyes
 <https://git.fmrib.ox.ac.uk/fsl/fsleyes/fsleyes>`_, and which allows you to:
