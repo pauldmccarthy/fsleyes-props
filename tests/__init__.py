@@ -7,6 +7,7 @@
 
 from __future__ import print_function
 
+import gc
 import time
 
 import wx
@@ -15,6 +16,8 @@ from  fsl.utils.platform import platform as fslplatform
 
 
 def run_with_wx(func, *args, **kwargs):
+
+    gc.collect()
 
     propagateRaise = kwargs.pop('propagateRaise', True)
     startingDelay  = kwargs.pop('startingDelay',  500)
@@ -56,6 +59,11 @@ def run_with_wx(func, *args, **kwargs):
     wx.CallLater(startingDelay, wrap)
 
     app.MainLoop()
+
+    del sizer
+    del panel
+    del frame
+    del app
 
     if raised[0] and propagateRaise:
         raise raised[0]
