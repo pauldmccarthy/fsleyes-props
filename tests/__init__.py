@@ -52,7 +52,6 @@ def run_with_wx(func, *args, **kwargs):
             def finish():
                 frame.Destroy()
                 app[0].ExitMainLoop()
-                del app[0]
 
             wx.CallLater(finishingDelay, finish)
 
@@ -65,6 +64,7 @@ def run_with_wx(func, *args, **kwargs):
     if raised[0] and propagateRaise:
         raise raised[0]
 
+    del app[0]
     return result[0]
 
 
