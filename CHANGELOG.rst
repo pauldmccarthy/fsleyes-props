@@ -2,6 +2,11 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.2.3 (Thursday October 26th 2017)
+-----------------------------------
+
+* Fixed a problem with the API documentation build failing.
+
 1.2.2 (Saturday October 21st 2017)
 ----------------------------------
 
