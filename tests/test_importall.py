@@ -7,10 +7,23 @@
 
 
 import pkgutil
+import importlib
+import fsleyes_props as props
 
 
 def test_importall():
-    import fsleyes_props as props
 
-    for _, module, _ in pkgutil.iter_modules(props.__path__, 'fsleyes_props.'):
-        __import__(module)
+    def recurse(module):
+
+        path    = module.__path__
+        name    = module.__name__
+        submods = list(pkgutil.iter_modules(path, '{}.'.format(name)))
+
+        for i, (spath, smodname, ispkg) in enumerate(submods):
+
+            submod = importlib.import_module(smodname)
+
+            if ispkg:
+                recurse(submod)
+
+    recurse(props)
