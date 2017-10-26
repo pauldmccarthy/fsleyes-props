@@ -11,6 +11,7 @@ fsleyes_widgets.floatslider
 fsleyes_widgets.floatspin
 fsleyes_widgets.notebook
 fsleyes_widgets.rangeslider
+deprecation
 numpy
 numpy.linalg
 wx
