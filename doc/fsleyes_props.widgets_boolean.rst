@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_props.widgets_boolean module
-====================================
+``fsleyes_props.widgets_boolean``
+=================================
 
 .. automodule:: fsleyes_props.widgets_boolean
     :members:

@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_props.callqueue module
-==============================
+``fsleyes_props.callqueue``
+===========================
 
 .. automodule:: fsleyes_props.callqueue
     :members:

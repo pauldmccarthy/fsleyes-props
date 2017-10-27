@@ -1,5 +1,5 @@
-fsleyes_props.trace module
-==========================
+``fsleyes_props.trace``
+=======================
 
 .. automodule:: fsleyes_props.trace
     :members:

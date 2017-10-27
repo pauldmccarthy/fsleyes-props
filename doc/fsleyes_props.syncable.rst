@@ -1,5 +1,5 @@
-fsleyes_props.syncable module
-=============================
+``fsleyes_props.syncable``
+==========================
 
 .. automodule:: fsleyes_props.syncable
     :members:

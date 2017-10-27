@@ -1,5 +1,5 @@
-fsleyes_props.suppress module
-=============================
+``fsleyes_props.suppress``
+==========================
 
 .. automodule:: fsleyes_props.suppress
     :members:
