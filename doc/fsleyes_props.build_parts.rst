@@ -1,5 +1,5 @@
-fsleyes_props.build_parts module
-================================
+``fsleyes_props.build_parts``
+=============================
 
 .. automodule:: fsleyes_props.build_parts
     :members:

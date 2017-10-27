@@ -1,5 +1,5 @@
-fsleyes_props.bindable module
-=============================
+``fsleyes_props.bindable``
+==========================
 
 .. automodule:: fsleyes_props.bindable
     :members:

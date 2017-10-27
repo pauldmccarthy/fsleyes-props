@@ -1,5 +1,5 @@
-fsleyes_props.cli module
-========================
+``fsleyes_props.cli``
+=====================
 
 .. automodule:: fsleyes_props.cli
     :members:

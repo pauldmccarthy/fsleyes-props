@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_props.widgets_point module
-==================================
+``fsleyes_props.widgets_point``
+===============================
 
 .. automodule:: fsleyes_props.widgets_point
     :members:

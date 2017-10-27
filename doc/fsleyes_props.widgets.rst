@@ -1,5 +1,5 @@
-fsleyes_props.widgets module
-============================
+``fsleyes_props.widgets``
+=========================
 
 .. automodule:: fsleyes_props.widgets
     :members:

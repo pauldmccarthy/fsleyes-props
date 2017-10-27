@@ -1,5 +1,5 @@
-``fsleyes_props`` package
-=========================
+``fsleyes_props``
+=================
 
 .. toctree::
    :hidden:

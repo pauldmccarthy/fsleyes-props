@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_props.widgets_bounds module
-===================================
+``fsleyes_props.widgets_bounds``
+================================
 
 .. automodule:: fsleyes_props.widgets_bounds
     :members:

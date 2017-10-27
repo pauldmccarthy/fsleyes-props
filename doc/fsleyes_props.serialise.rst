@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_props.serialise module
-==============================
+``fsleyes_props.serialise``
+===========================
 
 .. automodule:: fsleyes_props.serialise
     :members:

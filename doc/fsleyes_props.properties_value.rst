@@ -1,5 +1,5 @@
-fsleyes_props.properties_value module
-=====================================
+``fsleyes_props.properties_value``
+==================================
 
 .. automodule:: fsleyes_props.properties_value
     :members:
