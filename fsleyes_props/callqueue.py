@@ -14,7 +14,7 @@ import logging
 
 import six.moves.queue as queue
 
-import fsl.utils.async as async
+import fsl.utils.idle  as idle
 
 
 log = logging.getLogger(__name__)
@@ -111,7 +111,7 @@ class CallQueue(object):
         self.__held           = []
 
 
-    @async.mutex
+    @idle.mutex
     def dequeue(self, name):
         """If the specified function is on the queue, it is (effectively)
         dequeued, and not executed.
@@ -170,7 +170,7 @@ class CallQueue(object):
             self.__call()
 
 
-    @async.mutex
+    @idle.mutex
     def hold(self):
         """Holds the queue. For every call to ``hold``, the :meth:`release`
         method must be called once before the queue will be truly released.
@@ -178,13 +178,13 @@ class CallQueue(object):
         self.__holding += 1
 
 
-    @async.mutex
+    @idle.mutex
     def release(self):
         """Releases the queue. """
         self.__holding -= 1
 
 
-    @async.mutex
+    @idle.mutex
     def clearHeld(self):
         """Clears and returns the list of held functions. """
 
@@ -233,7 +233,7 @@ class CallQueue(object):
         self.__calling = False
 
 
-    @async.mutex
+    @idle.mutex
     def __push(self, call):
         """Enqueues the given ``Call`` instance.
 
@@ -268,7 +268,7 @@ class CallQueue(object):
         return True
 
 
-    @async.mutex
+    @idle.mutex
     def __pop(self):
         """Pops the next function from the queue and returns the ``Call``
         instance which encapsulates it.
