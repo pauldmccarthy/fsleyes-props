@@ -2,10 +2,21 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.2.4 (Friday October 27th 2017)
+--------------------------------
+
+
+* Fixed use of deprecated ``fsl.utils.async`` module from the ``fslpy``
+  library.
+
+
+
 1.2.3 (Thursday October 26th 2017)
 -----------------------------------
 
+
 * Fixed a problem with the API documentation build failing.
+
 
 1.2.2 (Saturday October 21st 2017)
 ----------------------------------
