@@ -1,6 +1,7 @@
 fsl
 fsl.utils
 fsl.utils.async
+fsl.utils.idle
 fsl.utils.weakfuncref
 fsleyes_widgets
 fsleyes_widgets.bitmapradio
