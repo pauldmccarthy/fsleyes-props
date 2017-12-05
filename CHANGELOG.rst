@@ -2,6 +2,14 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.2.5 (Wednesday 6th December 2017)
+-----------------------------------
+
+
+* Fixed a problem with the API documentation build failing again.
+* Unit tests are now run against wxPython 3.0.2.0.
+
+
 1.2.4 (Thursday November 9th 2017)
 ----------------------------------
 
