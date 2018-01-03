@@ -2,6 +2,15 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.3.1 (Wednesday January 3rd 2017)
+----------------------------------
+
+
+* Fixed issue in :mod:`.syncable` where sync property change listeners were
+  not being called after calls to :meth:`.syncToParent` or
+  :meth:`.unsyncFromParent`.
+
+
 1.3.0 (Wednesday January 3rd 2017)
 ----------------------------------
 
