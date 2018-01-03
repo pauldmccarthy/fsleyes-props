@@ -72,6 +72,14 @@ _SYNC_SALT_ = '_sync_'
 """Constant string added to sync-related property names and listeners."""
 
 
+class SyncError(Exception):
+    """Exception type raised when an illegal attempt is made to synchronise
+    or unsynchronise a property. See the ``nobind`` and ``nounbind`` parameters
+    to :meth:`SyncableHasProperties.__init__`.
+    """
+    pass
+
+
 class SyncableHasProperties(props.HasProperties):
     """An extension to the ``HasProperties`` class which supports parent-child
     relationships between instances.
@@ -310,12 +318,12 @@ class SyncableHasProperties(props.HasProperties):
         direction   = self.__bindDirections[propName]
 
         if bindPropVal and (propName in self.__nobind):
-            raise RuntimeError('{} cannot be bound to '
-                               'parent'.format(propName))
+            raise SyncError('{} cannot be bound to '
+                            'parent'.format(propName))
 
         if (not bindPropVal) and (propName in self.__nounbind):
-            raise RuntimeError('{} cannot be unbound from '
-                               'parent'.format(propName))
+            raise SyncError('{} cannot be unbound from '
+                            'parent'.format(propName))
 
         log.debug('Sync property changed for {} - '
                   'changing binding state'.format(propName))
@@ -361,8 +369,8 @@ class SyncableHasProperties(props.HasProperties):
                  :func:`.bindable.bindProps` directly. But don't do that.
         """
         if propName in self.__nobind:
-            raise RuntimeError('{} cannot be bound to '
-                               'parent'.format(propName))
+            raise SyncError('{} cannot be bound to '
+                            'parent'.format(propName))
 
         bindPropName = self.__saltSyncPropertyName(propName)
 
@@ -387,8 +395,8 @@ class SyncableHasProperties(props.HasProperties):
                  :func:`bindable.bindProps` directly. But don't do that.
         """
         if propName in self.__nounbind:
-            raise RuntimeError('{} cannot be unbound from '
-                               'parent'.format(propName))
+            raise SyncError('{} cannot be unbound from '
+                            'parent'.format(propName))
 
         bindPropName = self.__saltSyncPropertyName(propName)
 

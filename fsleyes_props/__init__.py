@@ -332,6 +332,7 @@ from .properties_types import (
     Array)
 
 from .syncable import (
+    SyncError,
     SyncableHasProperties,)
 
 from .cli import (
