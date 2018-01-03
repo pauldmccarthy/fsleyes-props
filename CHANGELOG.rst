@@ -2,7 +2,16 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
-1.2.5 (Wednesday 6th December 2017)
+1.3.0 (Wednesday January 3rd 2017)
+----------------------------------
+
+
+* The :class:`SyncableHasProperties` raises a custom error type, instead of a
+  ``RuntimeError``, when an illegal attempt is made to synchronise or
+  unsynchronise a property.
+
+
+1.2.5 (Wednesday December 6th 2017)
 -----------------------------------
 
 
