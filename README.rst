@@ -9,7 +9,7 @@ fsleyes-props
    :target: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/commits/master/
 
 .. image:: https://img.shields.io/pypi/v/fsleyes-props.svg
-   :target: https://pypi.python.org/pypi/fsleyes-props/)
+   :target: https://pypi.python.org/pypi/fsleyes-props/
 
 
 ``fsleyes-props`` is a library which is used by used by `FSLeyes
