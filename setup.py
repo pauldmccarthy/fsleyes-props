@@ -11,6 +11,7 @@ from __future__ import print_function
 
 import os.path as op
 import            shutil
+from io import    open
 
 from setuptools import setup
 from setuptools import find_packages
