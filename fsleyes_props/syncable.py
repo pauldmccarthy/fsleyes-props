@@ -61,7 +61,6 @@ import weakref
 import logging
 
 from . import properties       as props
-from . import suppress         as suppress
 from . import properties_types as types
 
 
@@ -297,8 +296,9 @@ class SyncableHasProperties(props.HasProperties):
         bindPropVal.set(initState)
 
         if self.canBeUnsyncedFromParent(propName):
-            lName = self.__saltSyncListenerName(propName)
-            bindPropVal.addListener(lName, self.__syncPropChanged)
+            bindPropVal.addListener(self.__saltSyncListenerName(propName),
+                                    self.__syncPropChanged,
+                                    immediate=True)
 
         if initState:
             if direction: slave, master = self, self.__parent()
@@ -362,7 +362,7 @@ class SyncableHasProperties(props.HasProperties):
 
         If this ``SyncableHasProperties`` instance has no parent, a
         :exc:`RuntimeError` is raised. If the specified property is in the
-        ``nobind`` list (see :meth:`__init__`), a :exc:`RuntimeError` is
+        ``nobind`` list (see :meth:`__init__`), a :exc:`SyncError` is
         raised.
 
         ..note:: The ``nobind`` check can be avoided by calling
@@ -377,10 +377,7 @@ class SyncableHasProperties(props.HasProperties):
         if getattr(self, bindPropName):
             return
 
-        with suppress.suppress(self, bindPropName):
-            setattr(self, bindPropName, True)
-
-        self.__syncPropChanged(None, None, None, bindPropName)
+        setattr(self, bindPropName, True)
 
 
     def unsyncFromParent(self, propName):
@@ -388,7 +385,7 @@ class SyncableHasProperties(props.HasProperties):
 
         If this :class:`SyncableHasProperties` instance has no parent, a
         :exc:`RuntimeError` is raised. If the specified property is in the
-        `nounbind` list (see :meth:`__init__`), a :exc:`RuntimeError` is
+        `nounbind` list (see :meth:`__init__`), a :exc:`SyncError` is
         raised.
 
         ..note:: The ``nounbind`` check can be avoided by calling
@@ -403,10 +400,7 @@ class SyncableHasProperties(props.HasProperties):
         if not getattr(self, bindPropName):
             return
 
-        with suppress.suppress(self, bindPropName):
-            setattr(self, bindPropName, False)
-
-        self.__syncPropChanged(None, None, None, bindPropName)
+        setattr(self, bindPropName, False)
 
 
     def syncAllToParent(self):
