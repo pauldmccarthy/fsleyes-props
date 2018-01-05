@@ -2,7 +2,7 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
-1.3.2 (Under development)
+1.4.0 (Under development)
 -------------------------
 
 
