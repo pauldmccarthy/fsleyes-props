@@ -8,7 +8,10 @@ chronological order.
 
 * The :class:`.ColourMap` widget no longer complains when its property is
   set to a colour map that is registered with ``matplotlib``, but not with
-  the property.
+  the property. The error message when an unknown colour map is specified
+  has also been improved.
+* The :func:`.cli._Choice` function allows additional arguments to be
+  passed through to the ``ArgumentParser.add_argument`` method.
 
 
 1.3.1 (Wednesday January 3rd 2017)
