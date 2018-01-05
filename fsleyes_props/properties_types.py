@@ -937,8 +937,19 @@ class ColourMap(props.PropertyBase):
 
             value = value.lower()
 
-            try:    idx = lCmapKeys .index(value)
-            except: idx = lCmapNames.index(value)
+            try:
+                idx = lCmapKeys .index(value)
+            except ValueError:
+                idx = None
+
+            try:
+                idx = lCmapNames.index(value)
+            except ValueError:
+                idx = None
+
+            if idx is None:
+                raise ValueError('Unknown colour map - valid choices '
+                                 'are: {}'.format(','.join(cmapKeys)))
 
             value = cmapKeys[idx]
             value = mplcm.get_cmap(value)
