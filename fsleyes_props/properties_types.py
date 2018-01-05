@@ -948,8 +948,8 @@ class ColourMap(props.PropertyBase):
                 idx = None
 
             if idx is None:
-                raise ValueError('Unknown colour map - valid choices '
-                                 'are: {}'.format(','.join(cmapKeys)))
+                raise ValueError('Unknown colour map ({}) - valid choices '
+                                 'are: {}'.format(value, ','.join(cmapKeys)))
 
             value = cmapKeys[idx]
             value = mplcm.get_cmap(value)

@@ -257,6 +257,8 @@ def _Choice(parser,
     for :class:`.Choice` instances.
 
     All of the described arguments must be speified as keyword arguments.
+    Any additional arguments will be passed to the
+    ``ArgumentParser.add_argument`` method.
 
     :arg choices: If not ``None``, assumed to be list of possible
                   choices for the property. If not provided, the possible
@@ -315,7 +317,8 @@ def _Choice(parser,
                         longArg,
                         help=propHelp,
                         choices=choices,
-                        metavar=metavar)
+                        metavar=metavar,
+                        **kwargs)
 
 
 def _Boolean(parser, propObj, propCls, propName, propHelp, shortArg, longArg):
