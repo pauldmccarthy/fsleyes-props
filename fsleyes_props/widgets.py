@@ -595,10 +595,16 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
         return cmapObjs[0][sel]
 
     def widgetSet(value):
-        if value is not None:
-            cbox.SetSelection(cmapObjs[0].index(value))
-        else:
+        if value is None:
             cbox.SetSelection(0)
+        else:
+            # ignore invalid selections - this allows
+            # the ColourMap property to accept *any*
+            # registered matplotlib colour map, not
+            # just the ones that the ColourMap property
+            # is aware of.
+            try:               cbox.SetSelection(cmapObjs[0].index(value))
+            except ValueError: pass
 
     # Called when the list of available
     # colour maps changes - updates the
