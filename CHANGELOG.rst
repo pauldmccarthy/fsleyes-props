@@ -2,8 +2,8 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
-1.4.0 (Under development)
--------------------------
+1.4.0 (Monday January 8th 2017)
+-------------------------------
 
 
 * The :class:`.ColourMap` widget no longer complains when its property is
