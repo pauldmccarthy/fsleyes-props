@@ -2,6 +2,15 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.5.0 (Under development)
+-------------------------
+
+
+* A new class, the :class:`.PropCache`, has been added. This class will
+  automatically cache property values based on changes to other property
+  values.
+
+
 1.4.0 (Monday January 8th 2017)
 -------------------------------
 
