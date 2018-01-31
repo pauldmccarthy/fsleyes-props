@@ -362,6 +362,11 @@ from .suppress import (
     skip)
 
 
+from .cache import (
+    PropCache,
+    CacheError)
+
+
 def initGUI():
     """If you wish to use GUI generation functionality, calling this function
     will add the relevant functions to the ``fsleyes_props`` package namespace.
