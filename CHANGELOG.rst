@@ -9,9 +9,11 @@ chronological order.
 * A new class, the :class:`.PropCache`, has been added. This class will
   automatically cache property values based on changes to other property
   values.
+* Small adjustments to layout of :class:`.Group` classes in the :mod:`.build`
+  module.
 
 
-1.4.0 (Monday January 8th 2017)
+1.4.0 (Monday January 8th 2018)
 -------------------------------
 
 
@@ -23,7 +25,7 @@ chronological order.
   passed through to the ``ArgumentParser.add_argument`` method.
 
 
-1.3.1 (Wednesday January 3rd 2017)
+1.3.1 (Wednesday January 3rd 2018)
 ----------------------------------
 
 
@@ -32,7 +34,7 @@ chronological order.
   :meth:`.unsyncFromParent`.
 
 
-1.3.0 (Wednesday January 3rd 2017)
+1.3.0 (Wednesday January 3rd 2018)
 ----------------------------------
 
 
