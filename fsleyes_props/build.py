@@ -538,7 +538,7 @@ def _createNotebookGroup(parent, group, hasProps, propGui):
         borderPanel, notebook = _makeGroupBorder(
             parent, group, nb.Notebook)
     else:
-        notebook = nb.Notebook(parent)
+        notebook = nb.Notebook(parent, style=wx.TOP | wx.HORIZONTAL)
 
     for i, child in enumerate(group.children):
 
@@ -621,12 +621,16 @@ def _layoutVGroup(group, parent, children, labels):
     sizer = wx.GridBagSizer(1, 1)
     sizer.SetEmptyCellSize((0, 0))
 
-    for cidx in range(len(children)):
+    growableRows = []
+
+    for cidx, child in enumerate(children):
 
         vItem       = group.children[cidx]
-        child       = children[cidx]
         label       = labels[cidx]
         childParams = {}
+
+        if isinstance(vItem, parts.Group) and vItem.grow:
+            growableRows.append(cidx)
 
         # Groups within VGroups, which don't have a border, are
         # laid out the same as any other widget, which probably
@@ -670,6 +674,8 @@ def _layoutVGroup(group, parent, children, labels):
         sizer.Add(child, **childParams)
 
     sizer.AddGrowableCol(1)
+    for row in growableRows:
+        sizer.AddGrowableRow(row)
 
     parent.SetSizer(sizer)
 

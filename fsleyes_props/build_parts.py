@@ -352,7 +352,12 @@ class Group(ViewItem):
     """
 
 
-    def __init__(self, children, showLabels=True, border=False, **kwargs):
+    def __init__(self,
+                 children,
+                 showLabels=True,
+                 border=False,
+                 grow=True,
+                 **kwargs):
         """Define a :class:`Group`.
 
         Parameters:
@@ -372,11 +377,15 @@ class Group(ViewItem):
                                 another :class:`VGroup`, it will be laid out
                                 a bit differently, too.
 
+        :param bool grow:       If ``True``, this group will be resized if its
+                                parent window is resized.
+
         :param kwargs:          Passed to the :class:`ViewItem` constructor.
         """
         ViewItem.__init__(self, **kwargs)
         self.children   = children
         self.border     = border
+        self.grow       = grow
         self.showLabels = showLabels
 
     def __str__(self):
