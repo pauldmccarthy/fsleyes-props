@@ -2,8 +2,8 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
-1.5.0 (Under development)
--------------------------
+1.5.0 (Tuesday February 27th 2018)
+----------------------------------
 
 
 * A new class, the :class:`.PropCache`, has been added. This class will
