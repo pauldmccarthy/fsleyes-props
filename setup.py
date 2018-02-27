@@ -21,7 +21,12 @@ from setuptools import Command
 basedir = op.dirname(__file__)
 
 # Dependencies are listed in requirements.txt
-install_requires = open(op.join(basedir, 'requirements.txt'), 'rt').readlines()
+with open(op.join(basedir, 'requirements.txt'), 'rt') as f:
+    install_requires = [l.strip() for l in f.readlines()]
+
+# Dev-dependencies in requirements-dev.txt
+with open(op.join(basedir, 'requirements-dev.txt'), 'rt') as f:
+    dev_requires = [l.strip() for l in f.readlines()]
 
 packages = find_packages(
     exclude=('doc', 'tests', 'dist', 'build', 'fsleyes_props.egg-info'))
@@ -103,13 +108,7 @@ setup(
 
     packages=packages,
     install_requires=install_requires,
-    setup_requires=['pytest-runner', 'sphinx', 'sphinx-rtd-theme', 'mock'],
-    tests_require=['pytest',
-                   'mock',
-                   'coverage',
-                   'pytest-cov',
-                   'pytest-html',
-                   'pytest-runner'],
+    setup_requires=dev_requires,
     test_suite='tests',
 
     cmdclass={
