@@ -2,6 +2,17 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.5.1 (Tuesday March 6th 2018)
+------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Adjustments to the ``conda`` package build and deployment process.
+
+
 1.5.0 (Tuesday February 27th 2018)
 ----------------------------------
 
