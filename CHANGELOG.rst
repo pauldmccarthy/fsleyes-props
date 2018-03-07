@@ -2,8 +2,8 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
-1.5.1 (Tuesday March 6th 2018)
-------------------------------
+1.5.1 (Wednesday March 7th 2018)
+--------------------------------
 
 
 Changed
