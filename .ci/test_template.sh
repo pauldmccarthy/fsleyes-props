@@ -13,14 +13,8 @@ if [[ "$CI_PROJECT_PATH" != "$UPSTREAM_PROJECT" ]]; then
 fi;
 
 
-# All other deps can be installed as normal.
-# We install test dependenciesd through pip,
-# because if we let setuptools do it, it
-# will build/install everything from source,
-# rather than using wheels.
 pip install -r requirements.txt
-pip install sphinx sphinx-rtd-theme
-pip install pytest pytest-cov pytest-html pytest-runner mock coverage
+pip install -r requirements-dev.txt
 
 # style stage
 if [ "$TEST_STYLE"x != "x" ]; then pip install pylint flake8; fi;
