@@ -209,7 +209,7 @@ def _Choice(parent,
 
                 widget.AddChoice(selBmp, deselBmp)
                 if not propObj.choiceEnabled(choice, hasProps):
-                    widget.Disable(ci)
+                    widget.DisableChoice(ci)
 
         # Make sure the widget
         # selection is up to date
