@@ -2,6 +2,18 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.6.0 (Under development)
+-------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Adjustment to the :mod:`.widgets_choice` module needed due to changes
+  in the :class:`.BitmapRadioBox` API.
+
+
 1.5.1 (Wednesday March 7th 2018)
 --------------------------------
 
