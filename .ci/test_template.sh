@@ -12,9 +12,12 @@ if [[ "$CI_PROJECT_PATH" != "$UPSTREAM_PROJECT" ]]; then
   git merge --no-commit --no-ff upstream/master;
 fi;
 
-
-pip install -r requirements.txt
 pip install -r requirements-dev.txt
+pip install git+https://git.fmrib.ox.ac.uk/fsl/fslpy.git
+pip install git+https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets.git
+cat requirements.txt | grep -v "fsl" > ci-requirements.txt
+pip install -r ci-requirements.txt
+
 
 # style stage
 if [ "$TEST_STYLE"x != "x" ]; then pip install pylint flake8; fi;
