@@ -2,6 +2,25 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.7.0 (Under development)
+-------------------------
+
+
+Fixed
+^^^^^
+
+
+* Fixed an issue in the behaviour of the :meth:`.HasProperties.addProperty`
+  method and the :mod:`.syncable` module, with handling of class hierarchies.
+
+
+Deprecated
+^^^^^^^^^^
+
+* Deprecated the :class:`.PropertyOwner` metaclass - property initialisation
+  now occurs at the instance level within :meth:`.HasProperties.__new__`.
+
+
 1.6.0 (Thursday May 3rd 2018)
 -----------------------------
 

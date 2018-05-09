@@ -22,7 +22,6 @@ application code.
 import weakref
 import logging
 
-import six
 import deprecation
 
 from . import properties_value
@@ -123,11 +122,11 @@ class PropertyBase(object):
         atts['default'] = default
         atts['enabled'] = atts.get('enabled', True)
 
-        # A _label is added to this dict by the
-        # PropertyOwner metaclass for each new
-        # HasProperties class that is defined
-        self._label              = {}
-
+        # A _label is added to this dict by
+        # HasProperties.__new__ class when
+        # the first instance of that class
+        # is created
+        self._label             = {}
         self._required          = required
         self._validateFunc      = validateFunc
         self._equalityFunc      = equalityFunc
@@ -521,31 +520,16 @@ class ListPropertyBase(PropertyBase):
         else:                   return None
 
 
-class PropertyOwner(type):
-    """Metaclass for the ``HasProperties`` class. Sets ``PropertyBase``
-    labels from the corresponding class attribute names.
-    """
+class PropertyOwner(type):  # noqa
+    """Deprecated. """
+    @deprecation.deprecated(deprecated_in='1.7.0',
+                            removed_in='2.0.0',
+                            details='PropertyOwner is no longer used')
     def __new__(cls, name, bases, attrs):
-
-        newCls = super(PropertyOwner, cls).__new__(cls, name, bases, attrs)
-
-        # Return *all* attributes of the new class,
-        # including those of its super classes
-        def allAttrs(cls):
-            atts = list(cls.__dict__.items())
-            if hasattr(cls, '__bases__'):
-                for base in cls.__bases__:
-                    atts += list(allAttrs(base))
-            return atts
-
-        for n, v in allAttrs(newCls):
-            if isinstance(v, PropertyBase):
-                v._setLabel(newCls, n)
-
-        return newCls
+        return super(PropertyOwner, cls).__new__(cls, name, bases, attrs)
 
 
-class HasProperties(six.with_metaclass(PropertyOwner, object)):
+class HasProperties(object):
     """Base class for classes which contain ``PropertyBase`` instances.  All
     classes which contain ``PropertyBase`` objects must subclass this
     class.
@@ -558,8 +542,7 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         they are initialised.
         """
 
-        instance  = super(HasProperties, cls).__new__(cls)
-        propNames = dir(instance.__class__)
+        instance = super(HasProperties, cls).__new__(cls)
 
         # By default, when a property changes,
         # all other properties are not validated.
@@ -567,15 +550,31 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         # validateOnChange=True to __init__.
         instance.__validateOnChange = False
 
-        for propName in propNames:
+        # Helper to return *all* attributes of a
+        # class, including those of its base classes
+        def allAttrs(cls):
+            atts = list(cls.__dict__.items())
+            if hasattr(cls, '__bases__'):
+                for base in cls.__bases__:
+                    atts += list(allAttrs(base))
+            return atts
 
-            prop = getattr(instance.__class__, propName)
-            if not isinstance(prop, PropertyBase): continue
+        # Add each class level PropertyBase
+        # object as a property of the new
+        # HasProperties instance
+        for propName, propObj in allAttrs(cls):
 
-            # Add each class level PropertyBase
-            # object as a property of the new
-            # HasProperties instance
-            instance.addProperty(propName, prop)
+            if not isinstance(propObj, PropertyBase):
+                continue
+
+            # A PropertyBase instance maintains labels
+            # for each class, so this will only need to
+            # be done for the first instance that gets
+            # created.
+            if propObj.getLabel(instance) is None:
+                propObj._setLabel(cls, propName)
+
+            instance.addProperty(propName, propObj)
 
         return instance
 
@@ -698,15 +697,6 @@ class HasProperties(six.with_metaclass(PropertyOwner, object)):
         if not hasattr(self.__class__, propName):
             setattr(          self.__class__, propName, propObj)
             propObj._setLabel(self.__class__, propName)
-
-        # Continuing on from the above hack, if
-        # the property has already been added to
-        # the class, it will have already been
-        # added by the meta class (by a call to
-        # this method). So we don't need to add
-        # it again. Hacky.
-        if propName in self.__dict__:
-            return
 
         # Create a PropertyValue and an _InstanceData
         # object, which bind the PropertyBase object
