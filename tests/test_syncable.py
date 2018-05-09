@@ -66,3 +66,36 @@ def _test_syncabe_list_link(nchildren):
     for i in [parent] + children:
         assert i.crange == [5, 20]
         assert i.drange == [5, 10]
+
+
+def test_syncable_class_hierarchy():
+
+    class Boo(props.SyncableHasProperties):
+        mybool = props.Boolean()
+
+    class Foo(Boo):
+        myint = props.Int()
+
+    bp = Boo()
+    bc = Boo(parent=bp)
+
+    bp.mybool = False
+    assert(not bc.mybool)
+    bp.mybool = True
+    assert(bc.mybool)
+    bc.mybool = False
+    assert(not bp.mybool)
+    bc.mybool = True
+    assert(bp.mybool)
+
+    fp = Foo()
+    fc = Foo(parent=fp)
+
+    fp.mybool = False
+    assert(not fc.mybool)
+    fp.mybool = True
+    assert(fc.mybool)
+    fc.mybool = False
+    assert(not fp.mybool)
+    fc.mybool = True
+    assert(fp.mybool)
