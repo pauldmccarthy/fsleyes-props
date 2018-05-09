@@ -7,6 +7,163 @@
 
 import fsleyes_props as props
 
+
+def test_basic_usage():
+    class Foo(props.SyncableHasProperties):
+        myint = props.Int(default=0)
+
+    p = Foo()
+    c = Foo(parent=p)
+
+    assert c.isSyncedToParent('myint')
+    assert c.anySyncedToParent()
+    assert c.allSyncedToParent()
+    assert c.canBeSyncedToParent('myint')
+    assert c.canBeUnsyncedFromParent('myint')
+
+    assert list(p.getChildren()) == [c]
+    assert c.getParent()         ==  p
+
+    assert p.myint == 0
+    assert c.myint == 0
+
+    p.myint = 10
+
+    assert p.myint == 10
+    assert c.myint == 10
+
+    c.myint = 20
+
+    assert p.myint == 20
+    assert c.myint == 20
+
+
+def test_unsync():
+    class Foo(props.SyncableHasProperties):
+        myint = props.Int(default=0)
+
+    changeCalled = [False]
+
+    def syncChange(*a):
+        changeCalled[0] = True
+
+    p = Foo()
+    c = Foo(parent=p)
+
+    p.myint = 10
+    assert p.myint == 10
+    assert c.myint == 10
+
+    c.addSyncChangeListener('myint', 'syncChange', syncChange)
+
+    c.unsyncFromParent('myint')
+
+    assert changeCalled[0]
+    changeCalled[0] = False
+
+    p.myint = 20
+    assert p.myint == 20
+    assert c.myint == 10
+
+    c.syncToParent('myint')
+
+    assert changeCalled[0]
+    assert c.myint == 20
+
+    changeCalled[0] = False
+    c.removeSyncChangeListener('myint', 'syncChange')
+
+    p.myint = 30
+    assert not changeCalled[0]
+    assert p.myint == 30
+    assert c.myint == 30
+
+
+def test_unsync_all():
+    class Foo(props.SyncableHasProperties):
+        int1 = props.Int(default=0)
+        int2 = props.Int(default=0)
+
+    p = Foo()
+    c = Foo(parent=p)
+
+    p.int1, p.int2 = 10, 20
+
+    assert (c.int1, c.int2) == (10, 20)
+
+    c.unsyncAllFromParent()
+
+    p.int1, p.int2 = 30, 40
+
+    assert c.int1, c.int2 == (10, 20)
+
+    p.int1, p.int2 = 50, 60
+
+    c.syncAllToParent()
+    assert (c.int1, c.int2) == (50, 60)
+
+
+
+def test_bindingDirection():
+
+    class Foo(props.SyncableHasProperties):
+        myint = props.Int(default=0)
+
+    p = Foo()
+    c = Foo(parent=p, direction=False)
+    assert not c.getBindingDirection('myint')
+
+    p.myint = 10
+
+    c.unsyncFromParent('myint')
+    p.myint = 20
+    c.myint = 40
+
+    assert p.myint == 20
+    assert c.myint == 40
+
+    c.syncToParent('myint')
+
+    assert p.myint == 40
+    assert c.myint == 40
+
+    c.unsyncFromParent('myint')
+    c.setBindingDirection(True, 'myint')
+
+    p.myint = 75
+
+    c.syncToParent('myint')
+    assert p.myint == 75
+    assert c.myint == 75
+
+
+def test_detach():
+    class Foo(props.SyncableHasProperties):
+        myint = props.Int(default=0)
+
+    p = Foo()
+    c = Foo(parent=p)
+
+    p.myint = 25
+    assert c.myint == 25
+
+    c.detachFromParent('myint')
+
+    p.myint = 75
+    assert c.myint == 25
+
+    c = Foo(parent=p)
+
+    p.myint = 15
+    assert c.myint == 15
+
+    c.detachAllFromParent()
+
+    p.myint = 23
+    assert c.myint == 15
+
+
+
 def test_syncabe_list_link1():  _test_syncabe_list_link(1)
 def test_syncabe_list_link2():  _test_syncabe_list_link(2)
 def test_syncabe_list_link3():  _test_syncabe_list_link(3)
