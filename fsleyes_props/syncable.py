@@ -33,10 +33,10 @@ The ``myint`` properties of both instances are now bound to each other - when
 it changes in one instance, that change is propagated to the other instance::
 
     >>> def parentPropChanged(*a):
-            print 'myParent.myint changed: {}'.format(myParent.myint)
+            print('myParent.myint changed: {}'.format(myParent.myint))
     >>>
     >>> def childPropChanged(*a):
-            print 'myChild.myint changed: {}'.format(myChild.myint)
+            print('myChild.myint changed: {}'.format(myChild.myint))
 
     >>> myParent.addListener('myint', 'parentPropChanged', parentPropChanged)
     >>> myChild.addListener( 'myint', 'childPropChanged',  childPropChanged)
@@ -218,8 +218,14 @@ class SyncableHasProperties(props.HasProperties):
             # Add a boolean sync property
             # for this regular property.
             bindProp = types.Boolean(default=True)
+            saltpn   = self.__saltSyncPropertyName(pn)
 
-            self.addProperty(self.__saltSyncPropertyName(pn), bindProp)
+            # the sync property may have already
+            # been added by a previous instance,
+            # so only add it if needed. See the
+            # HP.addProperty method.
+            if not hasattr(self, saltpn):
+                self.addProperty(saltpn, bindProp)
 
             # Initialise the binding direction
             # and initial state
@@ -471,15 +477,7 @@ class SyncableHasProperties(props.HasProperties):
         propNames = self.getAllProperties()[0]
 
         for propName in propNames:
-            if propName not in self.__nounbind:
-                syncPropName = self.__saltSyncPropertyName(propName)
-                lName        = self.__saltSyncListenerName(propName)
-
-                self.removeListener(syncPropName, lName)
-
-                # The parent may have been GC'd
-                if parent is not None:
-                    self.unsyncFromParent(propName)
+            self.detachFromParent(propName)
 
         if parent is not None:
             for c in list(parent.__children):
