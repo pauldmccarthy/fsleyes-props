@@ -126,17 +126,21 @@ def test_call_threaded():
 
     q = callqueue.CallQueue()
 
+    nthreads = 1000
     calltime = {}
+    flags    = [threading.Event() for i in range(nthreads)]
 
     def func(delay):
         calltime[delay] = time.time()
-        time.sleep(delay / 50.0)
+        time.sleep(np.random.random() * 0.1)
 
     def threadfunc(delay):
-        time.sleep(delay / 100.0)
+        if delay > 0:
+            flags[delay - 1].wait()
         q.call(func, 'func_{}'.format(delay), delay)
+        flags[delay].set()
 
-    delays  = np.arange(1, 20)
+    delays  = np.arange(20)
     threads = [threading.Thread(target=threadfunc, args=(d,)) for d in delays]
 
     for t in threads:
