@@ -5,6 +5,9 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
+
+import pytest
+
 import fsleyes_props as props
 
 
@@ -256,3 +259,51 @@ def test_syncable_class_hierarchy():
     assert(not fp.mybool)
     fc.mybool = True
     assert(fp.mybool)
+
+
+def test_nobind_nounbind():
+    class Foo(props.SyncableHasProperties):
+        int1 = props.Int()
+        int2 = props.Int()
+        int3 = props.Int()
+
+    p = Foo(nobind=['int1'], nounbind=['int2'])
+    c = Foo(nobind=['int1'], nounbind=['int2'], parent=p)
+
+    assert not c.canBeSyncedToParent('int1')
+    assert     c.canBeSyncedToParent('int2')
+    assert     c.canBeSyncedToParent('int3')
+    assert     c.canBeUnsyncedFromParent('int1')
+    assert not c.canBeUnsyncedFromParent('int2')
+    assert     c.canBeUnsyncedFromParent('int3')
+    assert not c.isSyncedToParent('int1')
+    assert     c.isSyncedToParent('int2')
+    assert     c.isSyncedToParent('int3')
+    assert     c.anySyncedToParent()
+    assert not c.allSyncedToParent()
+
+    p.int1 = 123
+    c.int1 = 456
+    assert (p.int1, c.int1) == (123, 456)
+
+    p.int2 = 123
+    c.int2 = 456
+    assert (p.int2, c.int2) == (456, 456)
+
+    p.int3 = 123
+    c.int3 = 456
+    assert (p.int3, c.int3) == (456, 456)
+
+    with pytest.raises(props.SyncError):
+        c.syncToParent('int1')
+
+    with pytest.raises(props.SyncError):
+        c.unsyncFromParent('int2')
+
+    c.detachAllFromParent()
+
+    c.int1, c.int2, c.int3 = 10, 20, 30
+    p.int1, p.int2, p.int3 = 40, 50, 60
+
+    assert (c.int1, c.int2, c.int3) == (10, 20, 30)
+    assert (p.int1, p.int2, p.int3) == (40, 50, 60)

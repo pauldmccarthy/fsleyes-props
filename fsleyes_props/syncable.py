@@ -313,15 +313,25 @@ class SyncableHasProperties(props.HasProperties):
 
 
     def __syncPropChanged(self, value, valid, ctx, bindPropName):
-        """Called when a hidden boolean property controlling the sync
-        state of the specified real property changes.
-
-        Changes the sync state of the property accordingly.
+        """Called when a hidden boolean property controlling the sync state of
+        the specified real property changes. Calls :meth:`__changeSyncState`
         """
 
         propName    = self.__unsaltSyncPropertyName(bindPropName)
         bindPropVal = getattr(self, bindPropName)
-        direction   = self.__bindDirections[propName]
+
+        log.debug('Sync property changed for {} - '
+                  'changing binding state'.format(propName))
+
+        self.__changeSyncState(propName, bindPropVal)
+
+
+    def __changeSyncState(self, propName, sync):
+        """Changes the sync state of ``propName``to ``sync``. """
+
+        bindPropName = self.__saltSyncPropertyName(propName)
+        bindPropVal  = getattr(self, bindPropName)
+        direction    = self.__bindDirections[propName]
 
         if bindPropVal and (propName in self.__nobind):
             raise SyncError('{} cannot be bound to '
@@ -330,9 +340,6 @@ class SyncableHasProperties(props.HasProperties):
         if (not bindPropVal) and (propName in self.__nounbind):
             raise SyncError('{} cannot be unbound from '
                             'parent'.format(propName))
-
-        log.debug('Sync property changed for {} - '
-                  'changing binding state'.format(propName))
 
         if direction: slave, master = self, self.__parent()
         else:         slave, master = self.__parent(), self
@@ -448,8 +455,6 @@ class SyncableHasProperties(props.HasProperties):
         if self.__parent is None:     return
         if propName in self.__nobind: return
 
-        self.unsyncFromParent(propName)
-
         if propName     in self.__nounbind: self.__nounbind.remove(propName)
         if propName not in self.__nobind:   self.__nobind  .append(propName)
 
@@ -458,6 +463,10 @@ class SyncableHasProperties(props.HasProperties):
 
         if self.hasListener(syncPropName, lName):
             self.removeListener(syncPropName, lName)
+
+        if self.isSyncedToParent(propName):
+            self.unsyncFromParent(propName)
+            self.__changeSyncState(propName, False)
 
 
     def detachAllFromParent(self):
