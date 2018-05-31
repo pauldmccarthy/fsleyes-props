@@ -341,10 +341,15 @@ class SyncableHasProperties(props.HasProperties):
             raise SyncError('{} cannot be unbound from '
                             'parent'.format(propName))
 
-        if direction: slave, master = self, self.__parent()
-        else:         slave, master = self.__parent(), self
+        parent = self.__parent()
 
-        slave.bindProps(propName, master, unbind=(not bindPropVal))
+        # parent may have already been GC'd
+        if parent is not None:
+
+            if direction: slave, master = self,   parent
+            else:         slave, master = parent, self
+
+            slave.bindProps(propName, master, unbind=(not bindPropVal))
 
 
     def getBindingDirection(self, propName):
