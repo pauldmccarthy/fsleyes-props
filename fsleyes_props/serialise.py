@@ -32,6 +32,8 @@ import logging
 
 import six
 
+import numpy as np
+
 
 log = logging.getLogger(__name__)
 
@@ -129,7 +131,7 @@ def _deserialise_Choice(value, hasProps, propObj):
     choices = propObj.getChoices(hasProps)
 
     # This is a bit hacky - Choice properties can store
-    # any type, so we can't figure out prcecisely how
+    # any type, so we can't figure out precisely how
     # to serialise/deserialise those types. So we check
     # to see if all the choices are numeric and, if not,
     # fall back to using str for deserialisation.
@@ -190,3 +192,18 @@ def _serialise_Point(value, *a):
 def _deserialise_Point(value, *a):
     value = value.split(DELIMITER)
     return map(float, value)
+
+
+def _serialise_Array(value, *a):
+    ndim  = str(value.ndim)
+    shape = [str(s) for s in value.shape]
+    value = [str(v) for v in value.flat[:]]
+    return DELIMITER.join([ndim] + shape + value)
+
+
+def _deserialise_Array(value, *a):
+    value = value.split(DELIMITER)
+    ndim  = int(value[0])
+    shape = [int(  v) for v in value[1:ndim + 1]]
+    value = [float(v) for v in value[  ndim + 1:]]
+    return np.array(value).reshape(shape)
