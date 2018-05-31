@@ -17,8 +17,8 @@ pip install --retries 10 -r requirements-dev.txt
 wget https://git.fmrib.ox.ac.uk/fsl/fslpy/-/archive/master/fslpy-master.tar.bz2
 wget https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets/-/archive/master/widgets-master.tar.bz2
 
-tar xf fslpy-master.tgz   && pushd fslpy-master   && pip install . && popd
-tar xf widgets-master.tgz && pushd widgets-master && pip install . && popd
+tar xf fslpy-master.tar.bz2   && pushd fslpy-master   && pip install . && popd
+tar xf widgets-master.tar.bz2 && pushd widgets-master && pip install . && popd
 
 cat requirements.txt | grep -v "fsl" > requirements-ci.txt
 pip install --retries 10 -r requirements-ci.txt
