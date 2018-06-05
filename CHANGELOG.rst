@@ -2,6 +2,25 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.6.2 (Tuesday June 5th 2018)
+-----------------------------
+
+
+Added
+^^^^^
+
+
+* The :mod:`.serialise` module now has support for :class:`.Array` property
+  types.
+
+
+Fixed
+^^^^^
+
+
+* Fixed a regression in the :class:`.SyncableHasProperties` class.
+
+
 1.6.1 (Friday May 11th 2018)
 ----------------------------
 
