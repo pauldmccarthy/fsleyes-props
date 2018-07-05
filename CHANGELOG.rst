@@ -2,6 +2,17 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.6.3 (Thursday July 5th 2018)
+------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Removed ``pytest-runner`` as a dependency.
+
+
 1.6.2 (Tuesday June 5th 2018)
 -----------------------------
 
