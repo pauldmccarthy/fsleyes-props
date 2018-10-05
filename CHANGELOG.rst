@@ -2,6 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.6.4 (Friday October 5th 2018)
+-------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Development (test and documentation dependencies) are no longer listed
+  in ``setup.py`` - they now need to be installed manually.
+* Removed conda build infrastructure.
+
+
 1.6.3 (Thursday July 5th 2018)
 ------------------------------
 
