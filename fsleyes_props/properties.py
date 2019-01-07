@@ -21,8 +21,7 @@ application code.
 
 import weakref
 import logging
-
-import deprecation
+import warnings
 
 from . import properties_value
 from . import bindable
@@ -239,19 +238,19 @@ class PropertyBase(object):
         else:                instData.propVal.removeListener(name)
 
 
-    @deprecation.deprecated(deprecated_in='1.2.0',
-                            removed_in='2.0.0',
-                            details='Use getAttribute instead')
     def getConstraint(self, instance, constraint):
         """See :meth:`getAttribute`. """
+        warnings.warn('getConstraint is deprecated - use getAttribute instead',
+                      category=DeprecationWarning,
+                      stacklevel=2)
         return self.getAttribute(instance, constraint)
 
 
-    @deprecation.deprecated(deprecated_in='1.2.0',
-                            removed_in='2.0.0',
-                            details='Use setAttribute instead')
     def setConstraint(self, instance, constraint, value):
         """See :meth:`setAttribute`. """
+        warnings.warn('setConstraint is deprecated - use setAttribute instead',
+                      category=DeprecationWarning,
+                      stacklevel=2)
         return self.setAttribute(instance, constraint, value)
 
 
@@ -520,12 +519,12 @@ class ListPropertyBase(PropertyBase):
         else:                   return None
 
 
-class PropertyOwner(type):  # noqa
+class PropertyOwner(type):
     """Deprecated. """
-    @deprecation.deprecated(deprecated_in='1.7.0',
-                            removed_in='2.0.0',
-                            details='PropertyOwner is no longer used')
     def __new__(cls, name, bases, attrs):
+        warnings.warn('PropertyOwner is deprecated and is no longer used',
+                      category=DeprecationWarning,
+                      stacklevel=2)
         return super(PropertyOwner, cls).__new__(cls, name, bases, attrs)
 
 
@@ -896,19 +895,19 @@ class HasProperties(object):
         self.getPropVal(propName).propNotify()
 
 
-    @deprecation.deprecated(deprecated_in='1.2.0',
-                            removed_in='2.0.0',
-                            details='Use getAttribute instead')
     def getConstraint(self, propName, constraint):
         """See :meth:`getAttribute`. """
+        warnings.warn('getConstraint is deprecated - use getAttribute instead',
+                      category=DeprecationWarning,
+                      stacklevel=2)
         return self.getAttribute(propName, constraint)
 
 
-    @deprecation.deprecated(deprecated_in='1.2.0',
-                            removed_in='2.0.0',
-                            details='Use setAttribute instead')
     def setConstraint(self, propName, constraint, value):
         """See :meth:`setAttribute`. """
+        warnings.warn('setConstraint is deprecated - use setAttribute instead',
+                      category=DeprecationWarning,
+                      stacklevel=2)
         return self.setAttribute(propName, constraint, value)
 
 
