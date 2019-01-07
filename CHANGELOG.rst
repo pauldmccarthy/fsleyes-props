@@ -2,6 +2,17 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.6.5 (Monday January 7th 2019)
+-------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Removed the ``deprecation`` library as a dependency.
+
+
 1.6.4 (Friday October 5th 2018)
 -------------------------------
 
