@@ -30,9 +30,7 @@ if [[ -f /.dockerenv ]]; then
   echo "$SSH_PRIVATE_KEY_GIT" > $HOME/.ssh/id_git;
 
   if [[ "$CI_PROJECT_PATH" == "$UPSTREAM_PROJECT" ]]; then
-    echo "$SSH_PRIVATE_KEY_DOC_DEPLOY"   > $HOME/.ssh/id_doc_deploy;
-    echo "$SSH_PRIVATE_KEY_CONDA_DEPLOY" > $HOME/.ssh/id_conda_deploy;
-    echo "$SSH_PRIVATE_KEY_CONDA_INDEX"  > $HOME/.ssh/id_conda_index;
+    echo "$SSH_PRIVATE_KEY_DOC_DEPLOY" > $HOME/.ssh/id_doc_deploy;
   fi;
 
   chmod go-rwx $HOME/.ssh/id_*;
@@ -41,7 +39,6 @@ if [[ -f /.dockerenv ]]; then
 
   if [[ "$CI_PROJECT_PATH" == "$UPSTREAM_PROJECT" ]]; then
     ssh-add $HOME/.ssh/id_doc_deploy;
-    ssh-add $HOME/.ssh/id_conda_deploy;
   fi
 
   echo "$SSH_SERVER_HOSTKEYS" > $HOME/.ssh/known_hosts;
@@ -56,16 +53,6 @@ if [[ -f /.dockerenv ]]; then
   echo "    HostName ${DOC_HOST##*@}"                >> $HOME/.ssh/config;
   echo "    User ${DOC_HOST%@*}"                     >> $HOME/.ssh/config;
   echo "    IdentityFile $HOME/.ssh/id_doc_deploy"   >> $HOME/.ssh/config;
-
-  echo "Host condadeploy"                            >> $HOME/.ssh/config;
-  echo "    HostName ${CONDA_HOST##*@}"              >> $HOME/.ssh/config;
-  echo "    User ${CONDA_HOST%@*}"                   >> $HOME/.ssh/config;
-  echo "    IdentityFile $HOME/.ssh/id_conda_deploy" >> $HOME/.ssh/config;
-
-  echo "Host condaindex"                             >> $HOME/.ssh/config;
-  echo "    HostName ${CONDA_HOST##*@}"              >> $HOME/.ssh/config;
-  echo "    User ${CONDA_HOST%@*}"                   >> $HOME/.ssh/config;
-  echo "    IdentityFile $HOME/.ssh/id_conda_index"  >> $HOME/.ssh/config;
 
   echo "Host *"                                      >> $HOME/.ssh/config;
   echo "    IdentitiesOnly yes"                      >> $HOME/.ssh/config;

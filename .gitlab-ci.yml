@@ -146,6 +146,17 @@ test:3.8:
   image: pauldmccarthy/fsleyes-py38-wxpy4-gtk3
   <<: *test_template
 
+test:build-pypi-dist:
+  stage: test
+  image: pauldmccarthy/fsleyes-py36-wxpy4-gtk3
+  <<: *except_releases
+
+  tags:
+    - docker
+
+  script:
+   - bash ./.ci/build_pypi_dist.sh
+
 
 #############
 # Style stage
@@ -192,7 +203,7 @@ build-pypi-dist:
   <<: *check_version
 
   stage: build
-  image: python:3.6
+  image: image: pauldmccarthy/fsleyes-py36-wxpy4-gtk3
 
   tags:
     - docker
