@@ -2,6 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.6.6 (Wednesday September 18th 2019)
+-------------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* ``fsleyes-props`` is no longer tested against Python 2.7-3.5, but is now
+  tested against Python 3.6-3.8, and GTK3.
+
+
+
 1.6.5 (Monday January 7th 2019)
 -------------------------------
 
