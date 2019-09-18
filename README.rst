@@ -27,8 +27,8 @@ fsleyes-props
     values of the attributes of a python object.
 
 
-To do this, you just need to subclass the :class:`.HasProperties` class,
-and add some :class:`.PropertyBase` types as class attributes.
+To do this, you just need to subclass the ``HasProperties`` class,
+and add some ``PropertyBase`` types as class attributes.
 
 
 Installation
