@@ -61,7 +61,7 @@ class doc(Command):
 
         print('Building documentation [{}]'.format(destdir))
 
-        import sphinx
+        import sphinx.cmd.build as sphinx_build
 
         try:
             import unittest.mock as mock
@@ -77,7 +77,7 @@ class doc(Command):
         patches = [mock.patch.dict('sys.modules', **mockedModules)]
 
         [p.start() for p in patches]
-        sphinx.main(['sphinx-build', docdir, destdir])
+        sphinx_build.main([docdir, destdir])
         [p.stop() for p in patches]
 
 
