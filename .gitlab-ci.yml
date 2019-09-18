@@ -203,7 +203,7 @@ build-pypi-dist:
   <<: *check_version
 
   stage: build
-  image: image: pauldmccarthy/fsleyes-py36-wxpy4-gtk3
+  image: pauldmccarthy/fsleyes-py36-wxpy4-gtk3
 
   tags:
     - docker
