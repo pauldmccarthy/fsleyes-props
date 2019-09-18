@@ -61,7 +61,7 @@ class doc(Command):
 
         print('Building documentation [{}]'.format(destdir))
 
-        import sphinx
+        import sphinx.cmd.build as sphinx_build
 
         try:
             import unittest.mock as mock
@@ -77,7 +77,7 @@ class doc(Command):
         patches = [mock.patch.dict('sys.modules', **mockedModules)]
 
         [p.start() for p in patches]
-        sphinx.main(['sphinx-build', docdir, destdir])
+        sphinx_build.main([docdir, destdir])
         [p.stop() for p in patches]
 
 
@@ -87,6 +87,7 @@ setup(
     version=version,
     description='[wx]Python event programming framework',
     long_description=readme,
+    long_description_content_type='text/x-rst',
     url='https://git.fmrib.ox.ac.uk/fsl/fsleyes/props',
     author='Paul McCarthy',
     author_email='pauldmccarthy@gmail.com',
@@ -96,10 +97,9 @@ setup(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Software Development :: Libraries :: Python Modules'],
 
     packages=packages,
