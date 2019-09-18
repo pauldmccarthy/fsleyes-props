@@ -12,7 +12,7 @@ import fsleyes_props                as props
 import fsleyes_widgets.bitmaptoggle as bmptoggle
 import fsleyes_widgets.bitmapradio  as bmpradio
 
-from . import (run_with_wx, simclick, addall)
+from . import run_with_wx, simclick, addall, realYield
 
 
 datadir = op.join(op.dirname(__file__), 'testdata')
@@ -60,13 +60,17 @@ def _test_widget_boolean(parent):
     assert mybooltog.GetValue()
     assert myboolrad.GetSelection() == 0
 
-    simclick(sim, myboolcb)
+    myboolcb.SetValue(False)
+    wx.PostEvent(myboolcb, wx.CommandEvent(wx.EVT_CHECKBOX.evtType[0]))
+    realYield()
     assert not obj.mybool
     assert not myboolcb .GetValue()
     assert not mybooltog.GetValue()
     assert myboolrad.GetSelection() == 1
 
-    simclick(sim, mybooltog)
+    myboolcb.SetValue(True)
+    wx.PostEvent(myboolcb, wx.CommandEvent(wx.EVT_CHECKBOX.evtType[0]))
+    realYield()
     assert obj.mybool
     assert myboolcb .GetValue()
     assert mybooltog.GetValue()
