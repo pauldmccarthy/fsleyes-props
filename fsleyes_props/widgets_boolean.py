@@ -85,7 +85,7 @@ def _booleanCheckBox(parent):
     """Create a ``wx.CheckBox`` to link to the :class:`.Boolean` property. """
     widget = wx.CheckBox(parent)
     event  = wx.EVT_CHECKBOX
-
+    widget.SetMinSize(widget.GetBestSize())
     return widget, event, None, None
 
 
@@ -106,6 +106,7 @@ def _booleanToggle(parent, icons):
         falseBmp=falseBmp,
         style=style)
     event  = bmptoggle.EVT_BITMAP_TOGGLE
+    widget.SetMinSize(widget.GetBestSize())
 
     return widget, event, None, None
 
@@ -117,6 +118,7 @@ def _booleanRadio(parent, icons, style):
 
     widget = bmpradio.BitmapRadioBox(parent, style)
     event  = bmpradio.EVT_BITMAP_RADIO_EVENT
+    widget.SetMinSize(widget.GetBestSize())
 
     if len(icons) == 2:
         icons = [icons[0], None, icons[1], None]
