@@ -2,6 +2,17 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.6.7 (Friday October 4th 2019)
+-------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Minor GTK3 compatibility fixes.
+
+
 1.6.6 (Wednesday September 18th 2019)
 -------------------------------------
 

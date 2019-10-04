@@ -98,7 +98,7 @@ import sys
 import os
 import os.path as op
 
-from collections import Iterable
+from collections.abc import Iterable
 
 import six
 

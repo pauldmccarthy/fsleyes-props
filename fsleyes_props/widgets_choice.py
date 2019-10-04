@@ -222,6 +222,7 @@ def _Choice(parent,
     # Initialise the widget
     choicesChanged(None, 'choices')
     widgetSet(propVal.get())
+    widget.SetMinSize(widget.GetBestSize())
 
     def onDestroy(ev):
         log.debug('Removing attribute listener {}'.format(listenerName))
