@@ -1178,7 +1178,7 @@ class PropertyValueList(PropertyValue):
 
 
     def move(self, from_, to):
-        """Move the item from 'from\_' to 'to'."""
+        """Move the item from ``from_`` to ``to``."""
 
         propVals = self.getPropertyValueList()
         propVals.insert(to, propVals.pop(from_))

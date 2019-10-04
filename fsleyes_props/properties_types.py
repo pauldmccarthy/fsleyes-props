@@ -33,7 +33,7 @@ added as attributes of a :class:`.HasProperties` class definition.
 
 import os.path as op
 
-import collections
+from collections import abc
 
 import six
 
@@ -798,7 +798,7 @@ class Colour(props.PropertyBase):
         """
         props.PropertyBase.validate(self, instance, attributes, value)
 
-        if (not isinstance(value, collections.Sequence)) or \
+        if (not isinstance(value, abc.Sequence)) or \
            (len(value) not in (3, 4)):
             raise ValueError('Colour must be a sequence of three/four values')
 
