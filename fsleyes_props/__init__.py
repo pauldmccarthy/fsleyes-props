@@ -291,7 +291,7 @@ notification of properties to be suppressed in a ``with`` statement.
 """
 
 
-__version__ = '1.6.6'
+__version__ = '1.6.7'
 
 
 import sys
