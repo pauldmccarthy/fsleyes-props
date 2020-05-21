@@ -532,6 +532,9 @@ class HasProperties(object):
     """Base class for classes which contain ``PropertyBase`` instances.  All
     classes which contain ``PropertyBase`` objects must subclass this
     class.
+
+    .. note:: ``HasProperties`` is also available via an alias called
+              :attr:`HasProps`.
     """
 
 
@@ -1051,3 +1054,7 @@ class HasProperties(object):
             lines.append(fmtStr.format(propName, propVal))
 
         return '\n'.join(lines)
+
+
+HasProps = HasProperties
+"""``HasProps`` is simply an alias for :class:`HasProperties`. """

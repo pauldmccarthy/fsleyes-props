@@ -304,6 +304,7 @@ log = logging.getLogger(__name__)
 from .properties import (
     PropertyOwner,
     HasProperties,
+    HasProps,
     DisabledError)
 
 from .properties_value import (
