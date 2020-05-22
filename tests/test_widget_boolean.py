@@ -12,7 +12,7 @@ import fsleyes_props                as props
 import fsleyes_widgets.bitmaptoggle as bmptoggle
 import fsleyes_widgets.bitmapradio  as bmpradio
 
-from . import run_with_wx, simclick, addall, realYield
+from . import run_with_wx, addall, realYield
 
 
 datadir = op.join(op.dirname(__file__), 'testdata')
@@ -32,7 +32,6 @@ def _test_widget_boolean(parent):
     trueicon  = op.join(datadir, 'true.png')
     falseicon = op.join(datadir, 'false.png')
 
-    sim = wx.UIActionSimulator()
     obj = MyObj()
 
     # ch
