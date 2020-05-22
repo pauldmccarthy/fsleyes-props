@@ -112,6 +112,27 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
     realYield()
 
 
+class MockMouseEvent:
+
+    def __init__(self, target, pos=None):
+        w, h = target.GetClientSize().Get()
+
+        if pos is None:
+            pos = [0.5, 0.5]
+
+        self.x = w * pos[0]
+        self.y = h * pos[1]
+
+    def GetX(self):
+        return self.x
+
+    def GetY(self):
+        return self.y
+
+
+
+
+
 
 def simtext(sim, target, text, enter=True):
     target.SetFocus()
