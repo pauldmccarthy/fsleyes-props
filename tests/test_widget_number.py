@@ -8,7 +8,7 @@
 import wx
 import numpy as np
 
-from . import (run_with_wx, simtext, simclick, addall)
+from . import (run_with_wx, addall, MockMouseEvent, realYield)
 
 import fsleyes_props               as props
 import fsleyes_widgets.floatspin   as floatspin
@@ -30,8 +30,6 @@ class MyObj(props.HasProperties):
 
 def  test_widget_number(): run_with_wx(_test_widget_number)
 def _test_widget_number(parent):
-
-    sim = wx.UIActionSimulator()
 
     obj = MyObj()
 
@@ -57,10 +55,21 @@ def _test_widget_number(parent):
     assert myintc .GetValue() == 25
     assert np.isclose(myrealc.GetValue(), 0.5)
 
-    simtext( sim, myinto .textCtrl,          '10')
-    simtext( sim, myrealo.textCtrl,          '243.56')
-    simtext( sim, myintc.spinCtrl.textCtrl,  '99')
-    simclick(sim, myrealc,                   pos=(0.75, 0.5))
+    # I used to use wx.UIActionSimulator, but
+    # it is too flaky. So am now simulating
+    # user events by directly calling value
+    # setters/event handlers
+    myinto          .textCtrl.SetValue('10')
+    myinto._FloatSpinCtrl__onText(None)
+    myrealo         .textCtrl.SetValue('243.56')
+    myrealo._FloatSpinCtrl__onText(None)
+    myintc .spinCtrl.textCtrl.SetValue('99')
+    myintc .spinCtrl._FloatSpinCtrl__onText(None)
+
+    ev = MockMouseEvent(myrealc, (0.75, 0.5))
+    myrealc._FloatSlider__onMouseDown(ev)
+    myrealc._FloatSlider__onMouseUp(  ev)
+    realYield()
 
     assert obj.myinto == 10
     assert np.isclose(obj.myrealo, 243.56)

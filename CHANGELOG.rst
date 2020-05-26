@@ -2,6 +2,17 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.7.0 (Tuesday May 26th 2020)
+-----------------------------
+
+
+Added
+^^^^^
+
+
+* Added a short-hand alias for :class:`.HasProperties` - ``HasProps``.
+
+
 1.6.7 (Friday October 4th 2019)
 -------------------------------
 

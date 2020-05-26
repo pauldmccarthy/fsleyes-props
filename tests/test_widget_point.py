@@ -12,7 +12,7 @@ import fsleyes_props               as props
 import fsleyes_widgets.floatslider as floatslider
 
 
-from . import (run_with_wx, simtext, simclick, addall, realYield)
+from . import (run_with_wx, MockMouseEvent, addall, realYield)
 
 
 def setup_module():
@@ -72,6 +72,9 @@ def _test_widget_point(parent):
 
         val = np.random.randint(0, 100)
 
-        simclick(sim, widget.slider, pos=(val / 100.0, 0.5))
+        ev = MockMouseEvent(widget.slider, (val / 100.0, 0.5))
+        widget.slider._FloatSlider__onMouseDown(ev)
+        widget.slider._FloatSlider__onMouseUp(ev)
+        realYield()
 
         assert abs(getattr(getattr(obj, prop), att) - val) < 10
