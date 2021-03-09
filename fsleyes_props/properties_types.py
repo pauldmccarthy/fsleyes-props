@@ -35,8 +35,6 @@ import os.path as op
 
 from collections import abc
 
-import six
-
 import numpy as np
 
 from . import properties        as props
@@ -284,7 +282,7 @@ class String(props.PropertyBase):
 
         if value is None: return
 
-        if not isinstance(value, six.string_types):
+        if not isinstance(value, str):
             raise ValueError('Must be a string')
 
         minlen = attributes['minlen']
@@ -924,7 +922,7 @@ class ColourMap(props.PropertyBase):
         ``Colormap.name`` attribute. The match is case-insensitive.
         """
 
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
 
             import matplotlib.cm as mplcm
 
