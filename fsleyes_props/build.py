@@ -115,7 +115,6 @@ import weakref
 import copy
 import sys
 
-import six
 import wx
 
 from . import                          widgets
@@ -343,7 +342,7 @@ def _configureEventCallback(
 
         # Each dependency is either the name of
         # a property on the hasProps instance..
-        if isinstance(dep, six.string_types):
+        if isinstance(dep, str):
             target   = hasProps
             propName = dep
 
@@ -438,7 +437,7 @@ def _createToggle(parent, viewItem, hasProps, propGui):
     # Otherwise, use a BitmapToggleButton
     else:
 
-        if isinstance(icon, six.string_types):
+        if isinstance(icon, str):
             icon = [icon]
 
         for i in range(len(icon)):
