@@ -47,7 +47,7 @@ if log.getEffectiveLevel() == logging.DEBUG:
 
     import fsleyes_props as props
 
-    import six.moves.queue as queue
+    import queue
 
     # The problem that I am addressing here is the
     # fact that, when a property value listener is

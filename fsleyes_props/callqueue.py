@@ -12,7 +12,7 @@ callback functions.
 
 import logging
 
-import six.moves.queue as queue
+import queue
 
 import fsl.utils.idle  as idle
 

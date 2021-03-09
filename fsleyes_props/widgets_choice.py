@@ -13,8 +13,6 @@ import logging
 
 import wx
 
-import six
-
 import fsleyes_widgets.bitmapradio as bmpradio
 from . import                         widgets
 
@@ -192,7 +190,7 @@ def _Choice(parent,
                 # Load the image file for each choice
                 # if they have not already been loaded
                 for cii, icon in enumerate(choiceIcons):
-                    if isinstance(icon, six.string_types):
+                    if isinstance(icon, str):
                         choiceIcons[cii] = wx.Bitmap(icon,
                                                      type=wx.BITMAP_TYPE_PNG)
 

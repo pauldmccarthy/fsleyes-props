@@ -100,8 +100,6 @@ import os.path as op
 
 from collections.abc import Iterable
 
-import six
-
 import wx
 
 try:                from wx.combo import BitmapComboBox
@@ -547,8 +545,7 @@ def _makeColourMapBitmap(cmap):
     # make a wx Bitmap from the colour data
     colours = colours.ravel(order='C')
 
-    if six.PY2: bitmap = wx.BitmapFromBuffer( width, height, colours)
-    else:       bitmap = wx.Bitmap.FromBuffer(width, height, colours)
+    bitmap = wx.Bitmap.FromBuffer(width, height, colours)
     return bitmap
 
 
@@ -702,7 +699,7 @@ def _LinkBox(parent, hasProps, propObj, propVal, **kwargs):
     propName = propObj.getLabel(hasProps)
     value    = hasProps.isSyncedToParent(propName)
     linkBox  = wx.ToggleButton(parent,
-                               label=six.u('\u21cb'),
+                               label='\u21cb',
                                style=wx.BU_EXACTFIT)
     linkBox.SetValue(value)
 
