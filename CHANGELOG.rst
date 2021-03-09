@@ -2,6 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.7.1 (Tuesday March 9th 2021)
+------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* The ``fsleyes-props`` API documentation is now hosted at
+  https://open.win.ox.ac.uk/pages/fsl/fsleyes/props/
+* ``fsleyes-props`` is now tested against Python 3.7, 3.8, and 3.9.
+
+
 1.7.0 (Tuesday May 26th 2020)
 -----------------------------
 
