@@ -13,6 +13,7 @@ Changed
 * The ``fsleyes-props`` API documentation is now hosted at
   https://open.win.ox.ac.uk/pages/fsl/fsleyes/props/
 * ``fsleyes-props`` is now tested against Python 3.7, 3.8, and 3.9.
+* Removed ``six`` as a dependency.
 
 
 1.7.0 (Tuesday May 26th 2020)
