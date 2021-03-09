@@ -30,8 +30,6 @@ other property types for which it is needed, is provided by this module.
 import sys
 import logging
 
-import six
-
 import numpy as np
 
 
@@ -112,7 +110,7 @@ def _deserialise_Boolean(value, *a):
 
     # Special case - a string containig 'false'
     # (case insensitive) evaluates to False.
-    if isinstance(value, six.string_types):
+    if isinstance(value, str):
         value = value.lower()
         if value == 'false':
             value = ''
