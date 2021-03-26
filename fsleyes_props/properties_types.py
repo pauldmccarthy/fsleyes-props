@@ -162,6 +162,9 @@ class Number(props.PropertyBase):
         is returned unchanged.
         """
 
+        if value is None:
+            return value
+
         clamped = attributes['clamped']
 
         if not clamped: return value
@@ -187,6 +190,8 @@ class Int(Number):
         """Overrides :meth:`Number.cast`. Casts the given value to an ``int``,
         and then passes the value to :meth:`Number.cast`.
         """
+        if value is None:
+            return value
         return Number.cast(self, instance, attributes, int(value))
 
 
@@ -222,6 +227,8 @@ class Real(Number):
         """Overrides :meth:`Number.cast`. Casts the given value to a ``float``,
         and then passes the value to :meth:`Number.cast`.
         """
+        if value is None:
+            return value
         return Number.cast(self, instance, attributes, float(value))
 
 
