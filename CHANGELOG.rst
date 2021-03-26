@@ -2,6 +2,21 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.7.2 (Saturday March 26th 2021)
+--------------------------------
+
+
+Changed
+^^^^^^^
+
+* The :class:`.Color` property type now accepts any value that is accepted by
+  the `matplotlib.to_rgba
+  <https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.to_rgba.html>`_
+  function.
+* Properties of type The :class:`.Int` and :class:`.Real` can be set to
+  ``None`` (unless ``allowInvalid=False``).
+
+
 1.7.1 (Tuesday March 9th 2021)
 ------------------------------
 
