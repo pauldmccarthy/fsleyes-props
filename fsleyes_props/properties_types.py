@@ -35,7 +35,8 @@ import os.path as op
 
 from collections import abc
 
-import numpy as np
+import matplotlib.colors as mplcolors
+import numpy             as np
 
 from . import properties        as props
 from . import properties_value  as propvals
@@ -767,8 +768,8 @@ class Colour(props.PropertyBase):
     """A property which represents a RGBA colour, stored as four floating
     point values in the range ``0.0 - 1.0``.
 
-    RGB colours are also accepted - if an RGB colour is provided, the
-    alpha channel is set to 1.0.
+    Any value which can be interpreted by matplotlib as a RGB(A) colour is
+    accepted. If an RGB colour is provided, the alpha channel is set to 1.0.
     """
 
 
@@ -795,14 +796,7 @@ class Colour(props.PropertyBase):
         range ``(0.0 - 1.0)``.
         """
         props.PropertyBase.validate(self, instance, attributes, value)
-
-        if (not isinstance(value, abc.Sequence)) or \
-           (len(value) not in (3, 4)):
-            raise ValueError('Colour must be a sequence of three/four values')
-
-        for v in value:
-            if (v < 0.0) or (v > 1.0):
-                raise ValueError('Colour values must be between 0.0 and 1.0')
+        mplcolors.to_rgba(value)
 
 
     def cast(self, instance, attributes, value):
@@ -812,24 +806,8 @@ class Colour(props.PropertyBase):
         If the alpha channel is not provided, it is set to the current alpha
         value (which defaults to ``1.0``).
         """
-
-        pv = self.getPropVal(instance)
-
-        if pv is not None: currentVal = pv.get()
-        else:              currentVal = self.getAttribute(None, 'default')
-
-        value = [float(v) for v in value]
-
-        if len(value) == 3:
-            value = value + [currentVal[3]]
-
-        value = value[:4]
-
-        for i, v in enumerate(value):
-            if v < 0.0: value[i] = 0.0
-            if v > 1.0: value[i] = 1.0
-
-        return value
+        if value is not None: return mplcolors.to_rgba(value)
+        else:                 return value
 
 
 class ColourMap(props.PropertyBase):
