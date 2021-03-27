@@ -14,7 +14,7 @@ Changed
   <https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.to_rgba.html>`_
   function.
 * Properties of type The :class:`.Int` and :class:`.Real` can be set to
-  ``None`` (unless ``allowInvalid=False``).
+  ``None`` (unless ``required=True and allowInvalid=False``).
 
 
 1.7.1 (Tuesday March 9th 2021)
