@@ -15,6 +15,7 @@ def test_Int():
 
     class MyObj(props.HasProperties):
         unbounded           = props.Int()
+        required            = props.Int(required=True, allowInvalid=False)
         unbounded_default   = props.Int(default=10)
         bounded             = props.Int(minval=0, maxval=10)
         bounded_min         = props.Int(minval=0)
@@ -26,14 +27,17 @@ def test_Int():
 
     obj = MyObj()
 
-    # property, value, expected
 
     assert obj.unbounded_default == 10
 
     with pytest.raises(ValueError): obj.unbounded = ''
     with pytest.raises(ValueError): obj.unbounded = 'abcde'
-    with pytest.raises(TypeError):  obj.unbounded = None
+    with pytest.raises(ValueError): obj.required = None
 
+    obj.unbounded = None
+    obj.required  = 10
+
+    # property, value, expected
     testcases = [
         ('unbounded',         '-999', -999),
         ('unbounded',            '0',    0),
