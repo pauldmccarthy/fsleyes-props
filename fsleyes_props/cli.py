@@ -193,8 +193,11 @@ import logging
 import sys
 import argparse
 
-from . import properties       as props
-from . import properties_types as ptypes
+import matplotlib.pyplot as plt
+import matplotlib.cm     as mplcm
+
+import fsleyes_props.properties       as props
+import fsleyes_props.properties_types as ptypes
 
 
 log = logging.getLogger(__name__)
@@ -205,7 +208,6 @@ class SkipArgument(Exception):
     by :func:`applyArguments` and :func:`generateArguments` to indicate
     that the arguemnt should be skipped (i.e. not applied, or not generated).
     """
-    pass
 
 
 def _String(parser,
@@ -480,24 +482,21 @@ def _ColourMap(parser,
     def parse(cmapName):
         try:
 
-            import matplotlib.cm as mplcm
-
-            cmapKeys   = list(mplcm.cmap_d.keys())
-            cmapNames  = [mplcm.cmap_d[k].name for k in cmapKeys]
+            cmapKeys   = plt.colormaps()
+            cmapNames  = [mplcm.get_cmap(cm).name for cm in cmapKeys]
 
             lCmapNames = [s.lower() for s in cmapNames]
             lCmapKeys  = [s.lower() for s in cmapKeys]
+            cmapName   = cmapName.lower()
 
-            cmapName = cmapName.lower()
-
-            try:    idx = lCmapKeys .index(cmapName)
-            except: idx = lCmapNames.index(cmapName)
+            try:               idx = lCmapKeys .index(cmapName)
+            except ValueError: idx = lCmapNames.index(cmapName)
 
             cmapName = cmapKeys[idx]
 
             return mplcm.get_cmap(cmapName)
 
-        except:
+        except Exception:
             raise argparse.ArgumentTypeError(
                 'Unknown colour map: {}'.format(cmapName))
 

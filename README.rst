@@ -69,6 +69,9 @@ Dependencies for running the tests and building documentation are listed in the
 Documentation
 -------------
 
+The ``fsleyes-props`` API documentation is hosted at
+https://open.win.ox.ac.uk/pages/fsl/fsleyes/props/.
+
 ``fsleyes-props`` is documented using `sphinx
 <http://http://sphinx-doc.org/>`_. You can build the API documentation by
 running::

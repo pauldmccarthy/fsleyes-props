@@ -33,8 +33,8 @@ added as attributes of a :class:`.HasProperties` class definition.
 
 import os.path as op
 
-from collections import abc
-
+import matplotlib.pyplot as plt
+import matplotlib.cm     as mplcm
 import matplotlib.colors as mplcolors
 import numpy             as np
 
@@ -892,7 +892,6 @@ class ColourMap(props.PropertyBase):
         matplotlib :class:`.Colormap` instance.
         """
 
-        import matplotlib.colors as mplcolors
         if not isinstance(value, mplcolors.Colormap):
             raise ValueError('Colour map value is not a '
                              'matplotlib.colors.Colormap instance')
@@ -909,26 +908,19 @@ class ColourMap(props.PropertyBase):
 
         if isinstance(value, str):
 
-            import matplotlib.cm as mplcm
-
-            # Case insensitive match
-            cmapKeys   = list(mplcm.cmap_d.keys())
-            cmapNames  = [cm.name for cm in mplcm.cmap_d.values()]
+            # Case insensitive match against either
+            # the registered colourmap key, or the
+            # colourmap name
+            cmapKeys   = plt.colormaps()
+            cmapNames  = [mplcm.get_cmap(cm).name for cm in cmapKeys]
 
             lCmapNames = [s.lower() for s in cmapNames]
             lCmapKeys  = [s.lower() for s in cmapKeys]
+            value      = value.lower()
+            idx        = None
 
-            value = value.lower()
-
-            try:
-                idx = lCmapKeys .index(value)
-            except ValueError:
-                idx = None
-
-            try:
-                idx = lCmapNames.index(value)
-            except ValueError:
-                idx = None
+            try:               idx = lCmapKeys .index(value)
+            except ValueError: idx = lCmapNames.index(value)
 
             if idx is None:
                 raise ValueError('Unknown colour map ({}) - valid choices '
