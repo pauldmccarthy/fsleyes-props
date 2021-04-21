@@ -2,7 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
-1.7.2 (Saturday March 26th 2021)
+
+1.7.3 (Wednesday April 21st 2021)
+---------------------------------
+
+
+Changed
+^^^^^^^
+
+* Fixed deprecated usage of the ``matplotilb.cm.cmap_d`` colour map
+  dictionary.
+
+
+1.7.2 (Saturday March 27th 2021)
 --------------------------------
 
 
