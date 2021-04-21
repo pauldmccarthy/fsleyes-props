@@ -180,7 +180,7 @@ pages:
    - docker
 
   stage: doc
-  image: python:3.8
+  image: pauldmccarthy/fsleyes-py38-wxpy4-gtk3
 
   script:
     - bash ./.ci/build_doc.sh
