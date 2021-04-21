@@ -2,6 +2,7 @@
 
 set -e
 
+pip install -r requirements.txt
 pip install -r requirements-dev.txt
 python setup.py doc
 mkdir -p public
