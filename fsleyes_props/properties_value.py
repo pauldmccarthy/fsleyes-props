@@ -387,8 +387,9 @@ class PropertyValue:
                           immediately; otherwise, it is called via the
                           :attr:`queue`.
         """
-        log.debug('Adding attribute listener on {}.{} ({}): {}'.format(
-            self._context().__class__.__name__, self._name, id(self), name))
+        log.debug('Adding attribute listener on %s.%s (%s): %s',
+                  self._context().__class__.__name__,
+                  self._name, id(self), name)
 
         if weak:
             listener = weakfuncref.WeakFunctionRef(listener)
@@ -404,23 +405,21 @@ class PropertyValue:
     def disableAttributeListener(self, name):
         """Disables the attribute listener with the specified ``name``. """
         name = self.__saltListenerName(name)
-        log.debug('Disabling attribute listener on {}: {}'.format(self._name,
-                                                                  name))
+        log.debug('Disabling attribute listener on %s: %s', self._name, name)
         self._attributeListeners[name].enabled = False
 
 
     def enableAttributeListener(self, name):
         """Enables the attribute listener with the specified ``name``. """
         name = self.__saltListenerName(name)
-        log.debug('Enabling attribute listener on {}: {}'.format(self._name,
-                                                                 name))
+        log.debug('Enabling attribute listener on %s: %s', self._name, name)
         self._attributeListeners[name].enabled = True
 
 
     def removeAttributeListener(self, name):
         """Removes the attribute listener of the given name."""
-        log.debug('Removing attribute listener on {}.{}: {}'.format(
-            self._context().__class__.__name__, self._name, name))
+        log.debug('Removing attribute listener on %s.%s: %s',
+                  self._context().__class__.__name__, self._name, name)
 
         name     = self.__saltListenerName(name)
         listener = self._attributeListeners.pop(name, None)
@@ -476,12 +475,12 @@ class PropertyValue:
 
         if oldVal == value: return
 
-        log.debug('Attribute on {}.{} ({}) changed: {} = {}'.format(
+        log.debug('Attribute on %s.%s (%s) changed: %s = %s',
             self._context().__class__.__name__,
             self._name,
             id(self),
             name,
-            value))
+            value)
 
         self.notifyAttributeListeners(name, value)
 
@@ -1115,12 +1114,12 @@ class PropertyValueList(PropertyValue):
         if self._ignoreListItems:
             return
 
-        log.debug('List item {}.{} changed ({}) - notifying '
-                  'list-level listeners ({})'.format(
+        log.debug('List item %s.%s changed (%s) - notifying '
+                  'list-level listeners (%s)',
                       self._context().__class__.__name__,
                       self._name,
                       id(self._context()),
-                      pv))
+                      pv)
         self.propNotify()
 
 
@@ -1289,17 +1288,15 @@ class PropertyValueList(PropertyValue):
             # if any values in the list were changed
             if any(changedVals):
 
-                log.debug('Notifying list-level listeners ({}.{} {})'.format(
+                log.debug('Notifying list-level listeners (%s.%s %s)',
                     self._context().__class__.__name__,
-                    self._name,
-                    id(self._context())))
+                    self._name, id(self._context()))
 
                 self.propNotify()
 
-                log.debug('Notifying item-level listeners ({}.{} {})'.format(
+                log.debug('Notifying item-level listeners (%s.%s %s)',
                     self._context().__class__.__name__,
-                    self._name,
-                    id(self._context())))
+                    self._name, id(self._context()))
 
                 for idx in indices:
                     if changedVals[idx]:
