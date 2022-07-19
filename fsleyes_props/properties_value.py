@@ -77,6 +77,21 @@ class Listener:
         return '{} ({}.{})'.format(self.name, ctxName, pvName)
 
 
+    @property
+    def expectsArguments(self):
+        """Returns ``True`` if the listener function needs to be passed
+        arguments, ``False`` otherwise.  Property listener functions can
+        be defined to accept either zero arguments, or a set of
+        positional arguments - see :meth:`PropertyValue.addListener` and
+        :meth:`PropertyValue.addAttributeListener` for more details.
+        """
+        func = self.function
+        if isinstance(func, weakfuncref.WeakFunctionRef):
+            func = func()
+        spec = inspect.getfullargspec(func)
+        return len(spec.args) > 0 or spec.varargs is not None
+
+
 class PropertyValue:
     """An object which encapsulates a value of some sort.
 
@@ -550,13 +565,12 @@ class PropertyValue:
             # no arguments, or to accept (value, valid,
             # context, name) - see the addListener and
             # addAttributeListener methods for details
-            spec  = inspect.getfullargspec(listener.function)
-            nargs = len(spec.args) + len(spec.varargs)
-            ctx   = self._context()
+            noargs = not listener.expectsArguments
+            ctx    = self._context()
 
-            if nargs == 0: args = ()
-            elif att:      args = ctx, name, value, self._name
-            else:          args = (self.get(), self.__valid, ctx, self._name)
+            if   noargs: args = ()
+            elif att:    args = ctx, name, value, self._name
+            else:        args = (self.get(), self.__valid, ctx, self._name)
 
             allArgs.append(args)
 
@@ -660,7 +674,6 @@ class PropertyValue:
         # So to be a bit more informative, we'll examine the stack
         # and extract the (assumed) location of the original call
         if log.getEffectiveLevel() == logging.DEBUG:
-            import inspect
             stack = inspect.stack()
 
             if len(stack) >= 4: frame = stack[ 3]

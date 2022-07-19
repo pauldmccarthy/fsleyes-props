@@ -1276,7 +1276,7 @@ class Bounds(List):
             listAttributes=self._defaultAttributes,
             itemAttributes=self._listType._defaultAttributes)
 
-        for i in range(self._ndim):
+        for i in range(self._ndims):
             bvl.setLimits(i, minval, maxval)
 
         return bvl

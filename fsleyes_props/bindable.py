@@ -912,11 +912,11 @@ def _callAllListeners(propVals, att, name=None, value=None):
 
                         log.debug('Calling immediate mode '
                                   'listener %s', l.name)
-                        getFunc(l)(*args)
+                        getFunc(l)(*a)
 
                     # Or add it to the queue
                     else:
-                        queued.append((l, args))
+                        queued.append((l, a))
 
     # Make sure the queue is freed
     finally:
