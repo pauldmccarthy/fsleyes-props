@@ -2,6 +2,27 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.8.0 (Under development)
+-------------------------
+
+
+Added
+^^^^^
+
+
+* New :attr:`fsleyes_props.Props` and :meth:`.HasProperties.listen` aliases
+  for :class:`.HasProperties` and :meth:`.HasProperties.addListener`.
+
+
+Changed
+^^^^^^^
+
+
+* The :class:`.Bounds` property type now accepts ``minval`` and ``maxval``
+  options, for setting the initial minimum/maximum limits for each axis.
+* The :func:`.suppress` and :func:`.skip` functions now accept one or
+  more property names.
+
 
 1.7.3 (Wednesday April 21st 2021)
 ---------------------------------
