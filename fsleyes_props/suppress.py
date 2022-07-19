@@ -21,23 +21,21 @@ import contextlib
 
 
 @contextlib.contextmanager
-def suppress(hasProps, propName, notify=False):
-    """Suppress notification for the given property on the given
+def suppress(hasProps, *propNames, notify=False):
+    """Suppress notification for the given properties on the given
     :class:`.HasProperties` instance.
 
-    This function saves the current notification state of the
-    property, disables notification, yields to the calling code,
-    and then restores the notification state.
-
+    This function saves the current notification state of the properties,
+    disables notification, yields to the calling code, and then restores the
+    notification state.
 
     :arg hasProps: ``HasProperties`` instance.
 
-    :arg propName: Property to suppress notifications for.
+    :arg propNames: Properties to suppress notifications for.
 
-    :arg notify:   If ``True``, a notification will be triggered
-                   on ``propName`` via :meth:`.HasProperties.propNotify`,
-                   exit. Defaults to ``False``.
-
+    :arg notify:    If ``True``, a notification will be triggered
+                    on ``propNames`` via :meth:`.HasProperties.propNotify`,
+                    exit. Defaults to ``False``.
 
     This function is intended to be used as follows::
 
@@ -46,17 +44,21 @@ def suppress(hasProps, propName, notify=False):
             # property value notifications to occur
     """
 
-    state = hasProps.getNotificationState(propName)
-    hasProps.disableNotification(propName)
+    states = [hasProps.getNotificationState(p) for p in propNames]
+
+    for propName in propNames:
+        hasProps.disableNotification(propName)
 
     try:
         yield
 
     finally:
-        hasProps.setNotificationState(propName, state)
+        for propName, state in zip(propNames, states):
+            hasProps.setNotificationState(propName, state)
 
     if notify:
-        hasProps.propNotify(propName)
+        for propName in propNames:
+            hasProps.propNotify(propName)
 
 
 @contextlib.contextmanager
@@ -90,27 +92,33 @@ def suppressAll(hasProps):
 
 
 @contextlib.contextmanager
-def skip(hasProps, propName, listenerName, ignoreInvalid=False):
+def skip(hasProps, propNames, listenerName, ignoreInvalid=False):
     """Skip the listener with the specified listener name, if/when
-    changes to the specified property occur.
+    changes to the specified property/properties occur.
 
     :arg hasProps:      A :class:`.HasProperties` instance.
-    :arg propName:      Name of a property on ``hasProps``.
+    :arg propNames:     Name of a property on ``hasProps``, or a sequence of
+                        property names.
     :arg listenerName:  Name of the listener to skip.
     :arg ignoreInvalid: Defaults to ``False``. If ``True``, passing a
                         non-existent listener will not result in an error.
     """
 
-    exists = (not ignoreInvalid) or hasProps.hasListener(propName,
-                                                         listenerName)
+    if isinstance(propNames, str):
+        propNames = [propNames]
 
-    if exists:
-        state = hasProps.getListenerState(propName, listenerName)
-        hasProps.disableListener(propName, listenerName)
+    listenerStates = {}
+
+    for propName in propNames:
+        if (not ignoreInvalid) or \
+           hasProps.hasListener(propName, listenerName):
+            listenerStates[propName] = hasProps.getListenerState(
+                propName, listenerName)
+            hasProps.disableListener(propName, listenerName)
 
     try:
         yield
 
     finally:
-        if exists:
+        for propName, state in listenerStates.items():
             hasProps.setListenerState(propName, listenerName, state)
