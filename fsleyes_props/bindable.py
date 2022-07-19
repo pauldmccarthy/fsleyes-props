@@ -6,8 +6,12 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 """This module adds functionality to the :class:`.HasProperties` class to
-allow properties from different instances to be bound to each other.  The
-logic defined in this module is separated purely to keep the
+allow properties from different instances to be bound to each other.  This
+module also contains the core event loop notification logic that forms
+the foundation of the ``fsleyes_props`` library.
+
+
+The logic defined in this module is separated purely to keep the
 :mod:`.properties` and :mod:`.properties_value` module file sizes down.
 
 
@@ -892,11 +896,11 @@ def _callAllListeners(propVals, att, name=None, value=None):
                 pListeners, pArgs = pv.getParent().prepareListeners(False)
             else:
                 pListeners = []
-                pArgs      = None
+                pArgs      = []
 
             for listeners, args in [(cListeners, cArgs), (pListeners, pArgs)]:
 
-                for l in listeners:
+                for l, a in zip(listeners, args):
 
                     # The listener may have been removed/disabled
                     # due to another immediate listener
@@ -907,7 +911,7 @@ def _callAllListeners(propVals, att, name=None, value=None):
                     if l.immediate:
 
                         log.debug('Calling immediate mode '
-                                  'listener {}'.format(l.name))
+                                  'listener %s', l.name)
                         getFunc(l)(*args)
 
                     # Or add it to the queue

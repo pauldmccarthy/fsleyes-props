@@ -1058,3 +1058,7 @@ class HasProperties(object):
 
 HasProps = HasProperties
 """``HasProps`` is simply an alias for :class:`HasProperties`. """
+
+
+Props = HasProperties
+"""``Props`` is simply an alias for :class:`HasProperties`. """
