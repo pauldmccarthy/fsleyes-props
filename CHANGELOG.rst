@@ -10,14 +10,17 @@ Added
 ^^^^^
 
 
-* New :attr:`fsleyes_props.Props` and :meth:`.HasProperties.listen` aliases
-  for :class:`.HasProperties` and :meth:`.HasProperties.addListener`.
+* New :attr:`fsleyes_props.Props`, :meth:`.HasProperties.listen`, and
+  :meth:`.HasProperties.remove` aliases for :class:`.HasProperties`,
+  :meth:`.HasProperties.addListener`, and
+  :meth:`.HasProperties.removeListener`.
 
 
 Changed
 ^^^^^^^
 
-
+* Property value listener functions can be defined to accept no arguments,
+  if none are needed.
 * The :class:`.Bounds` property type now accepts ``minval`` and ``maxval``
   options, for setting the initial minimum/maximum limits for each axis.
 * The :func:`.suppress` and :func:`.skip` functions now accept one or
