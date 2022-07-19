@@ -933,6 +933,11 @@ class HasProperties(object):
         self.addListener(*args, **kwargs)
 
 
+    def remove(self, *args, **kwargs):
+        """Alias for :meth:`removeListener`. """
+        self.removeListener(*args, **kwargs)
+
+
     def addListener(self, propName, *args, **kwargs):
         """Convenience method, adds the specified listener to the specified
         property. See :meth:`PropertyValue.addListener`.
