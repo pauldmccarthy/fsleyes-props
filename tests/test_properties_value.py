@@ -12,7 +12,7 @@ import logging
 logging.basicConfig()
 logging.getLogger('fsleyes_props').setLevel(logging.DEBUG)
 
-class Context():
+class Context:
     pass
 
 
@@ -30,49 +30,66 @@ def test_listener():
     def l2(*a):
         called['l2'] = called.get('l2', 0) + 1
 
+    def l3():
+        called['l3'] = called.get('l3', 0) + 1
+
     def al1(*a):
         called['al1'] = called.get('al1', 0) + 1
 
     def al2(*a):
         called['al2'] = called.get('al2', 0) + 1
 
+    def al3():
+        called['al3'] = called.get('al3', 0) + 1
+
     pv.addListener(         'l1',  l1)
     pv.addListener(         'l2',  l2)
+    pv.addListener(         'l3',  l3)
     pv.addAttributeListener('al1', al1)
     pv.addAttributeListener('al2', al2)
+    pv.addAttributeListener('al3', al3)
 
     assert pv.hasListener('l1')
     assert pv.hasListener('l2')
+    assert pv.hasListener('l3')
 
     pv.set('New value')
 
     assert called['l1']  == 1
     assert called['l2']  == 1
+    assert called['l3']  == 1
 
     pv.set('New value')
 
+    # value unchanged, notification should not take place
     assert called['l1']  == 1
     assert called['l2']  == 1
+    assert called['l3']  == 1
 
     pv.set('New new value')
 
     assert called['l1']  == 2
     assert called['l2']  == 2
+    assert called['l3']  == 2
 
     assert called.get('al1') is None
     assert called.get('al2') is None
+    assert called.get('al3') is None
 
     pv.setAttribute('newAtt', 'value')
 
     assert called['al1'] == 1
     assert called['al2'] == 1
+    assert called['al3'] == 1
 
     pv.setAttribute('newAtt', 'value')
 
     assert called['al1'] == 1
     assert called['al2'] == 1
+    assert called['al3'] == 1
 
     pv.setAttribute('newAtt', 'new value')
 
     assert called['al1'] == 2
     assert called['al2'] == 2
+    assert called['al3'] == 2
