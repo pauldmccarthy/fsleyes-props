@@ -928,6 +928,11 @@ class HasProperties(object):
         return self.getProp(propName).setAttribute(self, *args)
 
 
+    def listen(self, *args, **kwargs):
+        """Alias for :meth:`addListener`. """
+        self.addListener(*args, **kwargs)
+
+
     def addListener(self, propName, *args, **kwargs):
         """Convenience method, adds the specified listener to the specified
         property. See :meth:`PropertyValue.addListener`.
