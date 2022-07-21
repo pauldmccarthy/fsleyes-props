@@ -88,8 +88,18 @@ class Listener:
         func = self.function
         if isinstance(func, weakfuncref.WeakFunctionRef):
             func = func()
-        spec = inspect.getfullargspec(func)
-        return len(spec.args) > 0 or spec.varargs is not None
+        spec     = inspect.signature(func)
+        posargs = 0
+        varargs = 0
+        for param in spec.parameters.values():
+            if param.kind in (inspect.Parameter.POSITIONAL_ONLY,
+                              inspect.Parameter.POSITIONAL_OR_KEYWORD):
+                posargs += 1
+            elif param.kind == inspect.Parameter.VAR_POSITIONAL:
+                varargs += 1
+
+        return  ((varargs == 0) and (posargs == 4) or
+                 (varargs == 1) and (posargs == 0))
 
 
 class PropertyValue:
