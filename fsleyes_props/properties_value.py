@@ -29,6 +29,7 @@ they are separated to keep file sizes down.  However, the
 
 
 import uuid
+import inspect
 import logging
 import weakref
 
@@ -43,7 +44,7 @@ import fsl.utils.weakfuncref as weakfuncref
 log = logging.getLogger(__name__)
 
 
-class Listener(object):
+class Listener:
     """The ``Listener`` class is used by :class:`PropertyValue` instances to
     manage their listeners - see :meth:`PropertyValue.addListener`.
     """
@@ -76,7 +77,31 @@ class Listener(object):
         return '{} ({}.{})'.format(self.name, ctxName, pvName)
 
 
-class PropertyValue(object):
+    @property
+    def expectsArguments(self):
+        """Returns ``True`` if the listener function needs to be passed
+        arguments, ``False`` otherwise.  Property listener functions can
+        be defined to accept either zero arguments, or a set of
+        positional arguments - see :meth:`PropertyValue.addListener` and
+        :meth:`PropertyValue.addAttributeListener` for more details.
+        """
+        func = self.function
+        if isinstance(func, weakfuncref.WeakFunctionRef):
+            func = func()
+        spec     = inspect.signature(func)
+        posargs = 0
+        varargs = False
+        for param in spec.parameters.values():
+            if param.kind in (inspect.Parameter.POSITIONAL_ONLY,
+                              inspect.Parameter.POSITIONAL_OR_KEYWORD):
+                posargs += 1
+            elif param.kind == inspect.Parameter.VAR_POSITIONAL:
+                varargs = True
+
+        return varargs or ((not varargs) and (posargs == 4))
+
+
+class PropertyValue:
     """An object which encapsulates a value of some sort.
 
     The value may be subjected to casting and validation rules, and listeners
@@ -362,7 +387,8 @@ class PropertyValue(object):
 
     def addAttributeListener(self, name, listener, weak=True, immediate=False):
         """Adds an attribute listener for this ``PropertyValue``. The
-        listener callback function must accept the following arguments:
+        listener callback function must accept either no arguments, or the
+        following arguments:
 
           - ``context``:   The context associated with this ``PropertyValue``.
 
@@ -385,8 +411,9 @@ class PropertyValue(object):
                           immediately; otherwise, it is called via the
                           :attr:`queue`.
         """
-        log.debug('Adding attribute listener on {}.{} ({}): {}'.format(
-            self._context().__class__.__name__, self._name, id(self), name))
+        log.debug('Adding attribute listener on %s.%s (%s): %s',
+                  self._context().__class__.__name__,
+                  self._name, id(self), name)
 
         if weak:
             listener = weakfuncref.WeakFunctionRef(listener)
@@ -402,23 +429,21 @@ class PropertyValue(object):
     def disableAttributeListener(self, name):
         """Disables the attribute listener with the specified ``name``. """
         name = self.__saltListenerName(name)
-        log.debug('Disabling attribute listener on {}: {}'.format(self._name,
-                                                                  name))
+        log.debug('Disabling attribute listener on %s: %s', self._name, name)
         self._attributeListeners[name].enabled = False
 
 
     def enableAttributeListener(self, name):
         """Enables the attribute listener with the specified ``name``. """
         name = self.__saltListenerName(name)
-        log.debug('Enabling attribute listener on {}: {}'.format(self._name,
-                                                                 name))
+        log.debug('Enabling attribute listener on %s: %s', self._name, name)
         self._attributeListeners[name].enabled = True
 
 
     def removeAttributeListener(self, name):
         """Removes the attribute listener of the given name."""
-        log.debug('Removing attribute listener on {}.{}: {}'.format(
-            self._context().__class__.__name__, self._name, name))
+        log.debug('Removing attribute listener on %s.%s: %s',
+                  self._context().__class__.__name__, self._name, name)
 
         name     = self.__saltListenerName(name)
         listener = self._attributeListeners.pop(name, None)
@@ -474,12 +499,12 @@ class PropertyValue(object):
 
         if oldVal == value: return
 
-        log.debug('Attribute on {}.{} ({}) changed: {} = {}'.format(
+        log.debug('Attribute on %s.%s (%s) changed: %s = %s',
             self._context().__class__.__name__,
             self._name,
             id(self),
             name,
-            value))
+            value)
 
         self.notifyAttributeListeners(name, value)
 
@@ -503,6 +528,7 @@ class PropertyValue(object):
         else:   lDict = self._changeListeners
 
         allListeners = []
+        allArgs      = []
 
         for lName, listener in list(lDict.items()):
 
@@ -518,7 +544,7 @@ class PropertyValue(object):
             # has been GC'd - remove it
             if cb is None:
 
-                log.debug('Removing dead listener {}'.format(lName))
+                log.debug('Removing dead listener %s', lName)
                 if att:
                     self.removeAttributeListener(
                         self.__unsaltListenerName(lName))
@@ -541,10 +567,23 @@ class PropertyValue(object):
                self._postNotifyListener.enabled:
                 allListeners = allListeners + [self._postNotifyListener]
 
-        if att: args = self._context(), name, value, self._name
-        else:   args = (self.get(), self.__valid, self._context(), self._name)
+        # prepare arguments for each listener function
+        for listener in allListeners:
 
-        return allListeners, args
+            # listener functions can be defined to accept
+            # no arguments, or to accept (value, valid,
+            # context, name) - see the addListener and
+            # addAttributeListener methods for details
+            noargs = not listener.expectsArguments
+            ctx    = self._context()
+
+            if   noargs: args = ()
+            elif att:    args = ctx, name, value, self._name
+            else:        args = (self.get(), self.__valid, ctx, self._name)
+
+            allArgs.append(args)
+
+        return allListeners, allArgs
 
 
     def notifyAttributeListeners(self, name, value):
@@ -564,7 +603,8 @@ class PropertyValue(object):
         """Adds a listener for this value.
 
         When the value changes, the listener callback function is called. The
-        callback function must accept the following arguments:
+        callback function may either be defined to accept no arguments, or
+        to accept the following arguments:
 
           - ``value``:   The property value
           - ``valid``:   Whether the value is valid or invalid
@@ -605,10 +645,9 @@ class PropertyValue(object):
             raise ValueError('Reserved listener name used: {}. '
                              'Use a different name.'.format(name))
 
-        log.debug('Adding listener on {}.{}: {}'.format(
+        log.debug('Adding listener on %s.%s %s',
             self._context().__class__.__name__,
-            self._name,
-            name))
+            self._name, name)
 
         fullName = self.__saltListenerName(name)
         prior    = self._changeListeners.get(fullName, None)
@@ -644,7 +683,6 @@ class PropertyValue(object):
         # So to be a bit more informative, we'll examine the stack
         # and extract the (assumed) location of the original call
         if log.getEffectiveLevel() == logging.DEBUG:
-            import inspect
             stack = inspect.stack()
 
             if len(stack) >= 4: frame = stack[ 3]
@@ -653,12 +691,9 @@ class PropertyValue(object):
             srcMod  = '...{}'.format(frame[1][-20:])
             srcLine = frame[2]
 
-            log.debug('Removing listener on {}.{}: {} ({}:{})'.format(
+            log.debug('Removing listener on %s.%s: %s (%s:%s)',
                 self._context().__class__.__name__,
-                self._name,
-                name,
-                srcMod,
-                srcLine))
+                self._name, name, srcMod, srcLine)
 
         name     = self.__saltListenerName(name)
         listener = self._changeListeners.pop(name, None)
@@ -684,7 +719,7 @@ class PropertyValue(object):
     def enableListener(self, name):
         """(Re-)Enables the listener with the specified ``name``."""
         name = self.__saltListenerName(name)
-        log.debug('Enabling listener on {}: {}'.format(self._name, name))
+        log.debug('Enabling listener on %s: %s', self._name, name)
         self._changeListeners[name].enabled = True
 
 
@@ -693,7 +728,7 @@ class PropertyValue(object):
         remove it from the list of listeners.
         """
         name = self.__saltListenerName(name)
-        log.debug('Disabling listener on {}: {}'.format(self._name, name))
+        log.debug('Disabling listener on %s: %s', self._name, name)
         self._changeListeners[name].enabled = False
 
 
@@ -782,12 +817,10 @@ class PropertyValue(object):
             validStr = str(e)
             if not self._allowInvalid:
                 import traceback
-                log.debug('Attempt to set {}.{} to an invalid value ({}), '
-                          'but allowInvalid is False ({})'.format(
-                              self._context().__class__.__name__,
-                              self._name,
-                              newValue,
-                              e), exc_info=True)
+                log.debug('Attempt to set %s.%s to an invalid value (%s), '
+                          'but allowInvalid is False (%s)',
+                          self._context().__class__.__name__,
+                          self._name, newValue, e, exc_info=True)
                 traceback.print_stack()
                 raise e
 
@@ -803,12 +836,10 @@ class PropertyValue(object):
 
         if not changed: return
 
-        log.debug('Value {}.{} changed: {} -> {} ({})'.format(
+        log.debug('Value %s.%s changed: %s -> %s (%s)',
             self._context().__class__.__name__,
-            self._name,
-            self.__lastValue,
-            self.__value,
-            'valid' if valid else 'invalid - {}'.format(validStr)))
+            self._name, self.__lastValue, self.__value,
+            'valid' if valid else 'invalid - {}'.format(validStr))
 
         # Notify any registered listeners.
         self.propNotify()
@@ -1105,12 +1136,12 @@ class PropertyValueList(PropertyValue):
         if self._ignoreListItems:
             return
 
-        log.debug('List item {}.{} changed ({}) - notifying '
-                  'list-level listeners ({})'.format(
+        log.debug('List item %s.%s changed (%s) - notifying '
+                  'list-level listeners (%s)',
                       self._context().__class__.__name__,
                       self._name,
                       id(self._context()),
-                      pv))
+                      pv)
         self.propNotify()
 
 
@@ -1279,17 +1310,15 @@ class PropertyValueList(PropertyValue):
             # if any values in the list were changed
             if any(changedVals):
 
-                log.debug('Notifying list-level listeners ({}.{} {})'.format(
+                log.debug('Notifying list-level listeners (%s.%s %s)',
                     self._context().__class__.__name__,
-                    self._name,
-                    id(self._context())))
+                    self._name, id(self._context()))
 
                 self.propNotify()
 
-                log.debug('Notifying item-level listeners ({}.{} {})'.format(
+                log.debug('Notifying item-level listeners (%s.%s %s)',
                     self._context().__class__.__name__,
-                    self._name,
-                    id(self._context())))
+                    self._name, id(self._context()))
 
                 for idx in indices:
                     if changedVals[idx]:

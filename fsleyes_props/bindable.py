@@ -6,8 +6,12 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 """This module adds functionality to the :class:`.HasProperties` class to
-allow properties from different instances to be bound to each other.  The
-logic defined in this module is separated purely to keep the
+allow properties from different instances to be bound to each other.  This
+module also contains the core event loop notification logic that forms
+the foundation of the ``fsleyes_props`` library.
+
+
+The logic defined in this module is separated purely to keep the
 :mod:`.properties` and :mod:`.properties_value` module file sizes down.
 
 
@@ -374,13 +378,13 @@ def _bindListProps(self,
     # to the slave list, and save the mapping
     for myItem, otherItem in zip(myPropValList, otherPropValList):
 
-        log.debug('Binding list item {}.{} ({}) <- {}.{} ({})'.format(
+        log.debug('Binding list item %s.%s (%s) <- %s.%s (%s)',
             self.__class__.__name__,
             myProp.getLabel(self),
             myItem.get(),
             other.__class__.__name__,
             otherProp.getLabel(other),
-            otherItem.get()))
+            otherItem.get())
 
         # Disable item notification - we'll
         # manually force a notify after the
@@ -500,17 +504,17 @@ def bindPropVals(myPropVal,
     if unbind: action = 'Unbinding'
     else:      action = 'Binding'
 
-    log.debug('{} property values '
-              '(val={}, att={}) {}.{} ({}) <-> {}.{} ({})'.format(
-                  action,
-                  bindval,
-                  bindatt,
-                  myPropVal._context.__class__.__name__,
-                  myPropVal._name,
-                  id(myPropVal),
-                  otherPropVal._context.__class__.__name__,
-                  otherPropVal._name,
-                  id(otherPropVal)))
+    log.debug('%s property values '
+              '(val=%s, att=%s) %s.%s (%s) <-> %s.%s (%s)',
+              action,
+              bindval,
+              bindatt,
+              myPropVal._context.__class__.__name__,
+              myPropVal._name,
+              id(myPropVal),
+              otherPropVal._context.__class__.__name__,
+              otherPropVal._name,
+              id(otherPropVal))
 
     if bindval:
         if unbind:
@@ -658,16 +662,16 @@ def _syncPropValLists(masterList, slaveList):
                 slaveVal.allowInvalid(True)
 
                 log.debug('Syncing bound PV list item '
-                          '[{}] {}.{}[{}]({}) -> {}.{}[{}]({})'.format(
-                              i,
-                              masterList._context().__class__.__name__,
-                              masterList._name,
-                              id(masterList._context()),
-                              masterVal.get(),
-                              slaveList._context().__class__.__name__,
-                              slaveList._name,
-                              id(slaveList._context()),
-                              slaveList.get()))
+                          '[%s] %s.%s[%s](%s) -> %s.%s[%s](%s)',
+                          i,
+                          masterList._context().__class__.__name__,
+                          masterList._name,
+                          id(masterList._context()),
+                          masterVal.get(),
+                          slaveList._context().__class__.__name__,
+                          slaveList._name,
+                          id(slaveList._context()),
+                          slaveList.get())
 
                 slaveList._ignoreListItems = True
 
@@ -795,16 +799,16 @@ def _sync(self, atts=False, attName=None, attValue=None):
             notifState = bpv.getNotificationState()
             bpv.disableNotification()
 
-            log.debug('Syncing bound property values ({}) '
-                      '{}.{} ({}) - {}.{} ({})'.format(
-                          'attributes: {} = {}'.format(attName, attValue)
-                          if atts else 'values',
-                          self._context.__class__.__name__,
-                          self._name,
-                          id(self._context()),
-                          bpv._context.__class__.__name__,
-                          bpv._name,
-                          id(bpv._context())))
+            log.debug('Syncing bound property values (%s) '
+                      '%s.%s (%s) - %s.%s (%s)',
+                      'attributes: {} = {}'.format(attName, attValue)
+                      if atts else 'values',
+                      self._context.__class__.__name__,
+                      self._name,
+                      id(self._context()),
+                      bpv._context.__class__.__name__,
+                      bpv._name,
+                      id(bpv._context()))
 
             # Normal PropertyValue object (i.e. not a PropertyValueList)
             if atts or \
@@ -892,11 +896,11 @@ def _callAllListeners(propVals, att, name=None, value=None):
                 pListeners, pArgs = pv.getParent().prepareListeners(False)
             else:
                 pListeners = []
-                pArgs      = None
+                pArgs      = []
 
             for listeners, args in [(cListeners, cArgs), (pListeners, pArgs)]:
 
-                for l in listeners:
+                for l, a in zip(listeners, args):
 
                     # The listener may have been removed/disabled
                     # due to another immediate listener
@@ -907,12 +911,12 @@ def _callAllListeners(propVals, att, name=None, value=None):
                     if l.immediate:
 
                         log.debug('Calling immediate mode '
-                                  'listener {}'.format(l.name))
-                        getFunc(l)(*args)
+                                  'listener %s', l.name)
+                        getFunc(l)(*a)
 
                     # Or add it to the queue
                     else:
-                        queued.append((l, args))
+                        queued.append((l, a))
 
     # Make sure the queue is freed
     finally:

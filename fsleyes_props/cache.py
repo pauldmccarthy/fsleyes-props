@@ -21,7 +21,7 @@ class CacheError(Exception):
     pass
 
 
-class PropCache(object):
+class PropCache:
     """The ``PropCache`` A little convenience class which can be used to
     track and cache the property values of a :class:`.HasProperties` instance.
 

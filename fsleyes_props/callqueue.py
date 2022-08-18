@@ -20,7 +20,7 @@ import fsl.utils.idle  as idle
 log = logging.getLogger(__name__)
 
 
-class Call(object):
+class Call:
     """A little class which is used to represent function calls that are
     on the queue.
     """
@@ -39,7 +39,7 @@ class Call(object):
         # to skip over the call.
 
 
-class CallQueue(object):
+class CallQueue:
     """A queue of functions to be called. Functions can be enqueued via
     the :meth:`call` or :meth:`callAll` methods.
     """

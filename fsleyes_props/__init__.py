@@ -17,7 +17,7 @@ Example usage
 
     >>> import fsleyes_props as props
 
-    >>> class PropObj(props.HasProperties):
+    >>> class PropObj(props.Props):
             myProperty = props.Boolean()
 
     >>> myPropObj = PropObj()
@@ -60,9 +60,9 @@ Package structure
 
 
 To use ``fsleyes_props``, your first step will be to define a subclass of
-:class:`.HasProperties`, which contains one or more :class:`.PropertyBase`
-class attributes (see the :mod:`.properties_types` module for the available
-types).
+:class:`.HasProperties` (a.k.a. :class:`Props`), which contains one or more
+:class:`.PropertyBase` class attributes (see the :mod:`.properties_types`
+module for the available types).
 
 
 Once you have an instance of your ``HasProperties`` class, you can then create
@@ -291,7 +291,7 @@ notification of properties to be suppressed in a ``with`` statement.
 """
 
 
-__version__ = '1.8.0.dev0'
+__version__ = '1.9.0.dev0'
 
 
 import sys
@@ -305,6 +305,7 @@ from .properties import (
     PropertyOwner,
     HasProperties,
     HasProps,
+    Props,
     DisabledError)
 
 from .properties_value import (

@@ -1196,6 +1196,8 @@ class Bounds(List):
                  real=True,
                  minDistance=None,
                  clamped=True,
+                 minval=None,
+                 maxval=None,
                  **kwargs):
         """Create a ``Bounds`` property.
 
@@ -1213,6 +1215,10 @@ class Bounds(List):
         :arg clamped:      If ``True`` (the default), the bound values are
                            clamped to their limits. See the :class:`Number`
                            class.
+
+        :arg minval:       Initial minimum value to use for all dimensions
+
+        :arg maxval:       Initial maximum value to use for all dimensions
         """
 
         default = kwargs.get('default', None)
@@ -1232,6 +1238,8 @@ class Bounds(List):
 
         kwargs['default']     = default
         kwargs['minDistance'] = minDistance
+        kwargs['minval']      = minval
+        kwargs['maxval']      = maxval
 
         self._real   = real
         self._ndims  = ndims
@@ -1255,8 +1263,9 @@ class Bounds(List):
         """
 
         default = self.getAttribute(None, 'default', None)
-
-        bvl = BoundsValueList(
+        minval  = self.getAttribute(None, 'minval',  None)
+        maxval  = self.getAttribute(None, 'maxval',  None)
+        bvl     = BoundsValueList(
             instance,
             name=self.getLabel(instance),
             values=default,
@@ -1266,6 +1275,14 @@ class Bounds(List):
             listValidateFunc=self.validate,
             listAttributes=self._defaultAttributes,
             itemAttributes=self._listType._defaultAttributes)
+
+        for i in range(self._ndims):
+            if minval is not None:
+                bvl.setMin(i, minval)
+                bvl.setLo( i, minval)
+            if maxval is not None:
+                bvl.setMax(i, maxval)
+                bvl.setHi( i, maxval)
 
         return bvl
 

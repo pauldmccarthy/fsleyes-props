@@ -31,7 +31,7 @@ from . import serialise
 log = logging.getLogger(__name__)
 
 
-class _InstanceData(object):
+class _InstanceData:
     """An ``_InstanceData`` object is created for every ``PropertyBase``
     object of a ``HasProperties`` instance. It stores references to the
     instance and the associated :class:`.PropertyValue` instance.
@@ -50,7 +50,7 @@ class DisabledError(Exception):
     pass
 
 
-class PropertyBase(object):
+class PropertyBase:
     """The base class for properties.
 
     For every ``HasProperties`` instance which has this ``PropertyBase``
@@ -528,7 +528,7 @@ class PropertyOwner(type):
         return super(PropertyOwner, cls).__new__(cls, name, bases, attrs)
 
 
-class HasProperties(object):
+class HasProperties:
     """Base class for classes which contain ``PropertyBase`` instances.  All
     classes which contain ``PropertyBase`` objects must subclass this
     class.
@@ -674,6 +674,16 @@ class HasProperties(object):
     def unbindProps(self, *args, **kwargs):
         """See :func:`.bindable.unbindProps`. """
         bindable.unbindProps(self, *args, **kwargs)
+
+
+    def bind(self, *args, **kwargs):
+        """Alias for :meth:`bindProps`. """
+        self.bindProps(*args, **kwargs)
+
+
+    def unbind(self, *args, **kwargs):
+        """Alias for :meth:`unbindProps`. """
+        self.unbindProps(*args, **kwargs)
 
 
     def isBound(self, *args, **kwargs):
@@ -928,6 +938,31 @@ class HasProperties(object):
         return self.getProp(propName).setAttribute(self, *args)
 
 
+    def setatt(self, *args, **kwargs):
+        """Alias for :meth:`setAttribute`. """
+        return self.setAttribute(*args, **kwargs)
+
+
+    def getatt(self, *args, **kwargs):
+        """Alias for :meth:`getAttribute`. """
+        return self.getAttribute(*args, **kwargs)
+
+
+    def listen(self, *args, **kwargs):
+        """Alias for :meth:`addListener`. """
+        self.addListener(*args, **kwargs)
+
+
+    def ilisten(self, *args, **kwargs):
+        """Calls ``addListener(immediate=True)``. """
+        self.addListener(*args, immediate=True, **kwargs)
+
+
+    def remove(self, *args, **kwargs):
+        """Alias for :meth:`removeListener`. """
+        self.removeListener(*args, **kwargs)
+
+
     def addListener(self, propName, *args, **kwargs):
         """Convenience method, adds the specified listener to the specified
         property. See :meth:`PropertyValue.addListener`.
@@ -1058,3 +1093,7 @@ class HasProperties(object):
 
 HasProps = HasProperties
 """``HasProps`` is simply an alias for :class:`HasProperties`. """
+
+
+Props = HasProperties
+"""``Props`` is simply an alias for :class:`HasProperties`. """

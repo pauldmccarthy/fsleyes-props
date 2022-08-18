@@ -27,8 +27,9 @@ fsleyes-props
     values of the attributes of a python object.
 
 
-To do this, you just need to subclass the ``HasProperties`` class,
-and add some ``PropertyBase`` types as class attributes.
+To do this, you just need to subclass the ``fsleyes)props.HasProperties``
+class (also available as ``fsleyes_props.Props``), and add some
+``PropertyBase`` types as class attributes.
 
 
 Installation
@@ -104,7 +105,7 @@ Example usage
 
     >>> import fsleyes_props as props
     >>>
-    >>> class PropObj(props.HasProperties):
+    >>> class PropObj(props.Props):
     >>>     myProperty = props.Boolean()
     >>>
     >>> myPropObj = PropObj()
@@ -114,27 +115,17 @@ Example usage
     >>> myPropObj.myProperty
     True
     >>>
-    >>> # access the props.Boolean instance:
-    >>> myPropObj.getProp('myProperty')
-    <props.prop.Boolean at 0x1045e2710>
-    >>>
-    >>> # access the underlying props.PropertyValue object
-    >>> # (there are caveats for List properties):
-    >>> myPropObj.getPropVal('myProperty')
-    <props.prop.PropertyValue instance at 0x1047ef518>
-    >>>
     >>> # Receive notification of property value changes
     >>> def myPropertyChanged(value, *args):
-    >>>     print('New property value: {}'.format(value))
+    >>>     print(f'New property value: {value}')
     >>>
-    >>> myPropObj.addListener(
-    >>>    'myProperty', 'myListener', myPropertyChanged)
+    >>> myPropObj.listen('myProperty', 'myListener', myPropertyChanged)
     >>>
     >>> myPropObj.myProperty = False
     New property value: False
     >>>
     >>> # Remove a previously added listener
-    >>> myPropObj.removeListener('myListener')
+    >>> myPropObj.remove('myListener')
 
 
 Contributing
