@@ -13,7 +13,13 @@ fsleyes_widgets.floatspin
 fsleyes_widgets.notebook
 fsleyes_widgets.rangeslider
 deprecation
+matplotlib
+matplotlib.pyplot
+matplotlib.cm
+matplotlib.colors
 numpy
+numpy.core
+numpy.core.multiarray
 numpy.linalg
 wx
 wx.adv
