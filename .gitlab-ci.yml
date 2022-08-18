@@ -146,7 +146,7 @@ test:3.9:
 
 test:3.10:
   stage: test
-  image: pauldmccarthy/fsleyes-py10-wxpy4-gtk3
+  image: pauldmccarthy/fsleyes-py310-wxpy4-gtk3
   <<: *test_template
 
 
