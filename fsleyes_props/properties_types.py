@@ -1228,12 +1228,16 @@ class Bounds(List):
 
         if default is None:
             default = [0.0, minDistance] * ndims
+            if minval is not None:
+                default[0::2] = [minval] * ndims
+            if maxval is not None:
+                default[1::2] = [maxval] * ndims
 
         if ndims < 1 or ndims > 4:
             raise ValueError('Only bounds of one to four '
                              'dimensions are supported')
 
-        elif len(default) != 2 * ndims:
+        if len(default) != 2 * ndims:
             raise ValueError('{} bound values are required'.format(2 * ndims))
 
         kwargs['default']     = default
@@ -1279,10 +1283,8 @@ class Bounds(List):
         for i in range(self._ndims):
             if minval is not None:
                 bvl.setMin(i, minval)
-                bvl.setLo( i, minval)
             if maxval is not None:
                 bvl.setMax(i, maxval)
-                bvl.setHi( i, maxval)
 
         return bvl
 
