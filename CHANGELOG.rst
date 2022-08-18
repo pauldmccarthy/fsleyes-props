@@ -2,6 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.8.1 (Thursday 18th August 2022)
+---------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Changed the initialisation logic for :class:`.Bounds` properties,
+  so that if a ``default`` and ``minval``/``maxval`` are specified,
+  the former is not overwritten by the latter.
+
+
 1.8.0 (Thursday 18th August 2022)
 ---------------------------------
 
