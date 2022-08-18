@@ -2,18 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
-1.8.0 (Under development)
--------------------------
+1.8.0 (Thursday 18th August 2022)
+---------------------------------
 
 
 Added
 ^^^^^
 
 
-* New :attr:`fsleyes_props.Props`, :meth:`.HasProperties.listen`, and
-  :meth:`.HasProperties.remove` aliases for :class:`.HasProperties`,
-  :meth:`.HasProperties.addListener`, and
-  :meth:`.HasProperties.removeListener`.
+* New :attr:`fsleyes_props.Props`, :meth:`.HasProperties.listen`,
+  :meth:`.HasProperties.ilisten`, :meth:`.HasProperties.remove`,
+  :meth:`.HasProperties.bind`, :meth:`.HasProperties.unbind`,
+  :meth:`.HasProperties.getatt`, and :meth:`.HasProperties.setatt`
+  aliases.
 
 
 Changed
