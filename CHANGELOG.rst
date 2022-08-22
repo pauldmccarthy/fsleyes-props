@@ -2,6 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.8.2 (Monday 22nd August 2022)
+-------------------------------
+
+
+Fixed
+^^^^^
+
+
+* Fixed a bug whereby property definitions from a base class would be used
+  when creating a :class:`.HasProperties` object, even if those properties
+  were overwritten in a sub class.
+
+
 1.8.1 (Thursday 18th August 2022)
 ---------------------------------
 

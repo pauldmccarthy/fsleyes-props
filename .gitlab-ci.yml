@@ -21,13 +21,10 @@
 #
 #    https://hub.docker.com/u/pauldmccarthy/
 #
-# The test and style stages are executed on all branches of upstream and
-# fork repositories.
+# The test and style stages are executed on all branches.
 #
-# The doc stage is executed on release branches of the upstream repository.
-#
-# The build and deploy stages are executed on tags on the upstream
-# repository, and the deploy stages must be manually instantiated.
+# The doc, build and deploy stages are executed on tags, and the deploy
+# stage must be manually instantiated.
 ###########################################################################
 
 
@@ -71,21 +68,6 @@ variables:
 # These anchors are used to restrict
 # when and where jobs are executed.
 ####################################
-
-
-.only_upstream: &only_upstream
-  only:
-    - branches@fsl/fsleyes/props
-
-
-.only_master: &only_master
-  only:
-    - master@fsl/fsleyes/props
-
-
-.only_release_branches: &only_release_branches
-  only:
-    - /^v.+$/@fsl/fsleyes/props
 
 
 .only_releases: &only_releases
@@ -180,7 +162,7 @@ style:
 ###########
 
 pages:
-  <<: *only_release_branches
+  <<: *only_releases
 
   tags:
    - docker

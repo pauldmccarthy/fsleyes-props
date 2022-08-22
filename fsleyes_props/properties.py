@@ -555,16 +555,18 @@ class HasProperties:
         # Helper to return *all* attributes of a
         # class, including those of its base classes
         def allAttrs(cls):
-            atts = list(cls.__dict__.items())
+            atts = dict(cls.__dict__.items())
             if hasattr(cls, '__bases__'):
                 for base in cls.__bases__:
-                    atts += list(allAttrs(base))
+                    batts = dict(allAttrs(base))
+                    batts = {n : v for n, v in batts.items() if n not in atts}
+                    atts.update(batts)
             return atts
 
         # Add each class level PropertyBase
         # object as a property of the new
         # HasProperties instance
-        for propName, propObj in allAttrs(cls):
+        for propName, propObj in allAttrs(cls).items():
 
             if not isinstance(propObj, PropertyBase):
                 continue
