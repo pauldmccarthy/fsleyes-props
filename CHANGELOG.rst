@@ -2,6 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+
+1.8.3 (Tuesday 7th February 2023)
+---------------------------------
+
+
+Fixed
+^^^^^
+
+
+* Fixed an issue in dependency specification.
+
+
+
 1.8.2 (Monday 22nd August 2022)
 -------------------------------
 
