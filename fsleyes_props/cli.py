@@ -483,7 +483,7 @@ def _ColourMap(parser,
         try:
 
             cmapKeys   = plt.colormaps()
-            cmapNames  = [mpl.colormaps[cm] for cm in cmapKeys]
+            cmapNames  = [mpl.colormaps[cm].name for cm in cmapKeys]
 
             lCmapNames = [s.lower() for s in cmapNames]
             lCmapKeys  = [s.lower() for s in cmapKeys]
