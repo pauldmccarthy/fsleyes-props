@@ -168,8 +168,8 @@ def _serialise_ColourMap(value, *a):
 
 
 def _deserialise_ColourMap(value, *a):
-    import matplotlib.cm as mplcm
-    return mplcm.get_cmap(value)
+    import matplotlib as mpl
+    return mpl.colormaps[value]
 
 
 def _serialise_Bounds(value, *a):

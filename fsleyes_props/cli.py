@@ -193,8 +193,8 @@ import logging
 import sys
 import argparse
 
+import matplotlib        as mpl
 import matplotlib.pyplot as plt
-import matplotlib.cm     as mplcm
 
 import fsleyes_props.properties       as props
 import fsleyes_props.properties_types as ptypes
@@ -483,7 +483,7 @@ def _ColourMap(parser,
         try:
 
             cmapKeys   = plt.colormaps()
-            cmapNames  = [mplcm.get_cmap(cm).name for cm in cmapKeys]
+            cmapNames  = [mpl.colormaps[cm] for cm in cmapKeys]
 
             lCmapNames = [s.lower() for s in cmapNames]
             lCmapKeys  = [s.lower() for s in cmapKeys]
@@ -494,7 +494,7 @@ def _ColourMap(parser,
 
             cmapName = cmapKeys[idx]
 
-            return mplcm.get_cmap(cmapName)
+            return mpl.colormaps[cmapName]
 
         except Exception:
             raise argparse.ArgumentTypeError(
