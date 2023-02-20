@@ -3,6 +3,18 @@ chronological order.
 
 
 
+1.9.0 (Monday 20th February 2023)
+---------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* ``fsleyes-props`` now requires ``matplotlib >= 3.5.0``, and has been
+  updated to use the new ``matplotlib.colormaps`` registry.
+
+
 1.8.3 (Tuesday 7th February 2023)
 ---------------------------------
 

@@ -564,7 +564,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
     See also the :func:`_makeColourMapBitmap` function.
     """
 
-    import matplotlib.cm as mplcm
+    import matplotlib as mpl
 
     # These are used by the inner-functions defined
     # below, and are dynamically updated when the
@@ -572,7 +572,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
     # storing each of them in a list, so the inner
     # functions will have access to updated versions.
     cmapKeys = [list(propObj.getColourMaps(hasProps))]
-    cmapObjs = [list(map(mplcm.get_cmap, cmapKeys[0]))]
+    cmapObjs = [[mpl.colormaps[k] for k in cmapKeys[0]]]
 
     # create the combobox
     cbox = BitmapComboBox(parent, style=wx.CB_READONLY | wx.CB_DROPDOWN)
@@ -610,7 +610,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
 
         selected    = cbox.GetSelection()
         cmapKeys[0] = list(propObj.getColourMaps(hasProps))
-        cmapObjs[0] = list(map(mplcm.get_cmap, cmapKeys[0]))
+        cmapObjs[0] = [mpl.colormaps[k] for k in cmapKeys[0]]
 
         cbox.Clear()
 

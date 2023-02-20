@@ -33,8 +33,8 @@ added as attributes of a :class:`.HasProperties` class definition.
 
 import os.path as op
 
+import matplotlib        as mpl
 import matplotlib.pyplot as plt
-import matplotlib.cm     as mplcm
 import matplotlib.colors as mplcolors
 import numpy             as np
 
@@ -901,9 +901,9 @@ class ColourMap(props.PropertyBase):
         """Overrides :meth:`.PropertyBase.cast`.
 
         If the provided value is a string, an attempt is made to convert it to
-        a colour map, via the :func:`matplotlib.cm.get_cmap` function. The
-        value may either be the registered colour map name, or its
-        ``Colormap.name`` attribute. The match is case-insensitive.
+        a colour map, via the ``matplotlib.colormaps`` registry. The value may
+        either be the registered colour map name, or its ``Colormap.name``
+        attribute. The match is case-insensitive.
         """
 
         if isinstance(value, str):
@@ -912,7 +912,7 @@ class ColourMap(props.PropertyBase):
             # the registered colourmap key, or the
             # colourmap name
             cmapKeys   = plt.colormaps()
-            cmapNames  = [mplcm.get_cmap(cm).name for cm in cmapKeys]
+            cmapNames  = [mpl.colormaps[cm].name for cm in cmapKeys]
 
             lCmapNames = [s.lower() for s in cmapNames]
             lCmapKeys  = [s.lower() for s in cmapKeys]
@@ -927,7 +927,7 @@ class ColourMap(props.PropertyBase):
                                  'are: {}'.format(value, ','.join(cmapKeys)))
 
             value = cmapKeys[idx]
-            value = mplcm.get_cmap(value)
+            value = mpl.colormaps[value]
 
         return value
 
