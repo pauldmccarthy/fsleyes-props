@@ -34,7 +34,6 @@ added as attributes of a :class:`.HasProperties` class definition.
 import os.path as op
 
 import matplotlib        as mpl
-import matplotlib.pyplot as plt
 import matplotlib.colors as mplcolors
 import numpy             as np
 
@@ -910,8 +909,12 @@ class ColourMap(props.PropertyBase):
 
             # Case insensitive match against either
             # the registered colourmap key, or the
-            # colourmap name
-            cmapKeys   = plt.colormaps()
+            # colourmap name. We allow any colour map
+            # registered with matplotlib, but colour
+            # maps added to this ColourMap property
+            # are preferentially considered.
+            cmapKeys   = list(self.getAttribute(instance, 'cmaps'))
+            cmapKeys  += [c for c in mpl.colormaps.keys() if c not in cmapKeys]
             cmapNames  = [mpl.colormaps[cm].name for cm in cmapKeys]
 
             lCmapNames = [s.lower() for s in cmapNames]
@@ -919,12 +922,18 @@ class ColourMap(props.PropertyBase):
             value      = value.lower()
             idx        = None
 
-            try:               idx = lCmapKeys .index(value)
-            except ValueError: idx = lCmapNames.index(value)
+            # Preferentially match against colour
+            # map name rather than key. This is a
+            # cheeky method of allowing us to
+            # override built-in matplotlib colour
+            # maps.
+            try:               idx = lCmapNames.index(value)
+            except ValueError: idx = lCmapKeys .index(value)
 
             if idx is None:
-                raise ValueError('Unknown colour map ({}) - valid choices '
-                                 'are: {}'.format(value, ','.join(cmapKeys)))
+                choices = ','.join(cmapKeys)
+                raise ValueError(f'Unknown colour map ({value}) - '
+                                 f'valid choices are: {choices}')
 
             value = cmapKeys[idx]
             value = mpl.colormaps[value]
