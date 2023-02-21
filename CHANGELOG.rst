@@ -2,6 +2,18 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.9.1 (Tuesday 21st February 2023)
+----------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Adjustments to the :class:`.ColourMap` property so that it prefers colour
+  maps that are specified with the ``ColourMap`` over built-in ``matplotlib``
+  colour maps.
+
 
 1.9.0 (Monday 20th February 2023)
 ---------------------------------
