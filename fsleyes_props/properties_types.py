@@ -34,7 +34,6 @@ added as attributes of a :class:`.HasProperties` class definition.
 import os.path as op
 
 import matplotlib        as mpl
-import matplotlib.pyplot as plt
 import matplotlib.colors as mplcolors
 import numpy             as np
 
@@ -915,7 +914,7 @@ class ColourMap(props.PropertyBase):
             # maps added to this ColourMap property
             # are preferentially considered.
             cmapKeys   = list(self.getAttribute(instance, 'cmaps'))
-            cmapKeys  += [c for c in plt.colormaps() if c not in cmapKeys]
+            cmapKeys  += [c for c in mpl.colormaps.keys() if c not in cmapKeys]
             cmapNames  = [mpl.colormaps[cm].name for cm in cmapKeys]
 
             lCmapNames = [s.lower() for s in cmapNames]
