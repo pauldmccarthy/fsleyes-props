@@ -2,6 +2,18 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.9.2 (Wednesday 15th March 2023)
+---------------------------------
+
+
+Added
+^^^^^
+
+
+* New :meth:`.HasProperties.wlisten` method, an alias for
+  ``addListener(weak=False)``.
+
+
 1.9.1 (Tuesday 21st February 2023)
 ----------------------------------
 
