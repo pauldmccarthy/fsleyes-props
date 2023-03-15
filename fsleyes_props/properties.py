@@ -960,6 +960,11 @@ class HasProperties:
         self.addListener(*args, immediate=True, **kwargs)
 
 
+    def wlisten(self, *args, **kwargs):
+        """Calls ``addListener(weak=False)``. """
+        self.addListener(*args, weak=False, **kwargs)
+
+
     def remove(self, *args, **kwargs):
         """Alias for :meth:`removeListener`. """
         self.removeListener(*args, **kwargs)
