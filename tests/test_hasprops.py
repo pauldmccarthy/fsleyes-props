@@ -9,6 +9,7 @@
 import fsleyes_props as props
 
 
+# fsl/fsleyes/props!63
 def test_self_reference():
 
     class Thing(props.HasProps):
