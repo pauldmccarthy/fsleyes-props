@@ -2,6 +2,18 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.9.3 (Monday 20th March 2023)
+------------------------------
+
+
+Fixed
+^^^^^
+
+
+* Fixed potential infinite loop if a property value is set to the
+  :class:`.HasProperties` instance.
+
+
 1.9.2 (Wednesday 15th March 2023)
 ---------------------------------
 
