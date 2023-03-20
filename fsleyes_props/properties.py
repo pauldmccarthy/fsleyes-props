@@ -1084,8 +1084,11 @@ class HasProperties:
         if len(propNames) == 0:
             return clsname
 
-        propVals = ['{}'.format(getattr(self, propName))
-                    for propName in propNames]
+        propVals = []
+        for propName in propNames:
+            val = getattr(self, propName)
+            if val is self: propVals.append('<self>')
+            else:           propVals.append(str(val))
 
         maxNameLength = max(map(len, propNames))
 
