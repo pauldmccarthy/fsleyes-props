@@ -2,6 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.9.5 (Thursday 6th July 2023)
+------------------------------
+
+
+Added
+^^^^^
+
+
+* Added the ability to set the label shown alongside a checkbox bound to a
+  :class:`.Boolean` property when creating a via :class:`.Widget`
+  specification. The label can be specified with the ``cblabel`` argument.
+
+
 1.9.4 (Thursday 6th July 2023)
 ------------------------------
 
