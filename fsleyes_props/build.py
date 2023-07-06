@@ -904,6 +904,15 @@ def _finaliseCallbacks(hasProps, propGui):
     # GUI state is valid
     def onShow(ev=None):
 
+        # If the top level GUI panel is not yet
+        # visible, reschedule this function to be
+        # called later
+        # onShow directly. Otherwise, schedule it
+        # to be called on the first paint.
+        if not propGui.topLevel.IsShownOnScreen():
+            wx.CallLater(250, onShow)
+            return
+
         # We only want this function
         # to be called once, so on the
         # first call, deregister the
@@ -948,14 +957,7 @@ def _finaliseCallbacks(hasProps, propGui):
 
     propGui.topLevel.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
 
-    # If the top level GUI panel is already
-    # visible (seems to happen on GTK), call
-    # onShow directly. Otherwise, schedule it
-    # to be called on the first paint.
-    if propGui.topLevel.IsShownOnScreen():
-        onShow()
-    else:
-        propGui.topLevel.Bind(wx.EVT_PAINT, onShow)
+    onShow()
 
 
 def buildGUI(parent,
