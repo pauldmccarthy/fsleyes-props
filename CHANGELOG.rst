@@ -2,6 +2,18 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.9.4 (Thursday 6th July 2023)
+------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Adjusted the :func:`.buildGUI` function so that initial widget states (as determined
+  by ``enabledWhen`` / ``visibleWhen``) are correctly set.
+
+
 1.9.3 (Monday 20th March 2023)
 ------------------------------
 
