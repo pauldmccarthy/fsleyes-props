@@ -54,7 +54,7 @@ def _Boolean(parent,
     """
 
     if icon is None:
-        widget, event, wget, wset = _booleanCheckBox(parent)
+        widget, event, wget, wset = _booleanCheckBox(parent, **kwargs)
 
     else:
 
@@ -79,9 +79,17 @@ def _Boolean(parent,
     return widget
 
 
-def _booleanCheckBox(parent):
-    """Create a ``wx.CheckBox`` to link to the :class:`.Boolean` property. """
-    widget = wx.CheckBox(parent)
+def _booleanCheckBox(parent, cblabel=None):
+    """Create a ``wx.CheckBox`` to link to the :class:`.Boolean` property.
+
+    :arg cblabel: Label to show alongside the checkbox. Named so because
+                  ``label`` is absorbed by the :class:`.ViewItem` class.
+    """
+
+    kwargs = {}
+    if cblabel is not None:
+        kwargs['label'] = cblabel
+    widget = wx.CheckBox(parent, **kwargs)
     event  = wx.EVT_CHECKBOX
     widget.SetMinSize(widget.GetBestSize())
     return widget, event, None, None
