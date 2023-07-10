@@ -497,7 +497,15 @@ class PropertyValue:
 
         self._attributes[name] = value
 
-        if oldVal == value: return
+        # Use the type-specific equalty function
+        # for the "default" attribute (see
+        # PropertyBase.__init__).
+        if name == 'default':
+            if self._equalityFunc(oldVal, value):
+                return
+        else:
+            if oldVal == value:
+                return
 
         log.debug('Attribute on %s.%s (%s) changed: %s = %s',
             self._context().__class__.__name__,
