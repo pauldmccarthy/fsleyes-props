@@ -44,3 +44,20 @@ def test_define_and_assign():
     t.mybounds     = [0, 1, 0, 1]
     t.mypoint      = [0, 1]
     t.myarray      = np.eye(4)
+
+
+# fsl/fsleyes/props!66
+def test_Array_default():
+    class Thing(props.SyncableHasProperties):
+        myarray = props.Array(default=np.eye(4))
+
+    tp = Thing()
+
+
+    tc = Thing(parent=tp)
+    assert np.all(tp.myarray == np.eye(4))
+    assert np.all(tc.myarray == np.eye(4))
+
+    tp.myarray = np.diag([1,2,3,4])
+
+    assert np,all(tp.myarray == np.diag([1,2,3,4]))
