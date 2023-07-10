@@ -2,6 +2,21 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.9.6 (Monday 10th July 2023)
+-----------------------------
+
+
+Changed
+^^^^^^^
+
+
+* The type-specific equality function is now used when the ``'default'``
+  attribute value is changed, instead of a naive equality (``==``) comparison.
+  This is primarily to allow the default value to be set to a ``numpy.array``
+  (e.g. for the :class:`.Array` type), for which a naive equality test would
+  result in an error.
+
+
 1.9.5 (Thursday 6th July 2023)
 ------------------------------
 

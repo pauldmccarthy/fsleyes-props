@@ -1619,14 +1619,6 @@ class Array(props.PropertyBase):
     def __init__(self, dtype=None, shape=None, resizable=True, **kwargs):
         """Create an ``Array`` property.
 
-        .. warning:: If you set a ``default`` value here (see
-                     :meth:`.PropertyBase.__init__`), *do not* use a ``numpy``
-                     array - use a regular python list. It will be converted
-                     in a ``numpy`` array internally. An equality test is made
-                     on the ``default`` attribute, so if you use a ``numpy``
-                     array, a :exc:`ValueError` will be raised, as ``numpy``
-                     performs equality tests on an element-wise basis.
-
         :arg dtype:     ``numpy`` data type.
 
         :arg shape:     Initial shape of the array.
