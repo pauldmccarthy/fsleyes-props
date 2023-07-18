@@ -2,6 +2,7 @@
 requires      = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
+
 [project]
 name            = "fsleyes-props"
 dynamic         = ["version"]
@@ -30,9 +31,11 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 
+
 [project.urls]
 "Repository"    = "https://git.fmrib.ox.ac.uk/fsl/fsleyes/props"
 "Documentation" = "https://open.win.ox.ac.uk/pages/fsl/fsleyes/props/"
+
 
 [project.optional-dependencies]
 doc = [
@@ -60,9 +63,10 @@ version = {attr = "fsleyes_props.__version__"}
 
 
 [tool.coverage.run]
-include = ["fsleyes_props"]
-omit    = ["fsleyes_props.tests"]
+include = ["fsleyes_props/*"]
+omit    = ["fsleyes_props/tests/*"]
+
 
 [tool.pytest.ini_options]
 testpaths = ["fsleyes_props/tests"]
-addopts   = "-v --cov"
+addopts   = "-v --cov=fsleyes_props"
