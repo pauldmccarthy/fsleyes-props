@@ -46,11 +46,6 @@ stages:
 #
 # These variables must be explicitly set as "secret" variables:
 #
-#   - SSH_PRIVATE_KEY_GIT            - private key for git login to remote host
-#                                      (UPSTREAM_URL)
-#
-#   - SSH_SERVER_HOSTKEYS            - List of trusted SSH hosts
-#
 #   - TWINE_USERNAME:                - Username to use when uploading to pypi
 #
 #   - TWINE_PASSWORD:                - Password to use when uploading to pypi
@@ -80,11 +75,6 @@ variables:
     - tags
 
 
-.setup_ssh: &setup_ssh
-  before_script:
-    - bash ./.ci/setup_ssh.sh
-
-
 .check_version: &check_version
   before_script:
     - bash ./.ci/check_version.sh
@@ -96,7 +86,6 @@ variables:
 
 
 .test: &test_template
-  <<: *setup_ssh
 
   # Releases are just tags on a release
   # branch, so we don't need to test them.
@@ -209,7 +198,6 @@ build-pypi-dist:
 
 deploy-pypi:
   <<: *only_releases
-  <<: *setup_ssh
   stage: deploy
   when:  manual
   image: python:3.10
