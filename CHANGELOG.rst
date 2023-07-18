@@ -2,6 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+
+1.10.0 (Tuesday 18th July 2023)
+-------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* :class:`.Array` property types can now be set to ``None``.
+* Replaced ``setup.py``-based build system with ``pyproject.toml``.
+
+
 1.9.6 (Monday 10th July 2023)
 -----------------------------
 
