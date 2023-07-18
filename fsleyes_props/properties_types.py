@@ -1572,7 +1572,8 @@ class ArrayProxy(propvals.PropertyValue):
     def get(self):
         """Overrides :meth:`.PropertyValue.get`. Returns this ``ArrayProxy``.
         """
-        return self
+        if self.getArray() is None: return None
+        else:                       return self
 
 
     def getArray(self):
@@ -1616,7 +1617,12 @@ class Array(props.PropertyBase):
     encapsulated within an :class:`ArrayProxy` instance.
     """
 
-    def __init__(self, dtype=None, shape=None, resizable=True, **kwargs):
+    def __init__(self,
+                 dtype=None,
+                 shape=None,
+                 resizable=True,
+                 nullable=True,
+                 **kwargs):
         """Create an ``Array`` property.
 
         :arg dtype:     ``numpy`` data type.
@@ -1628,6 +1634,9 @@ class Array(props.PropertyBase):
                         here. Different sized arrays will still be allowed, if
                         the ``allowInvalid`` parameter to
                         :meth:`.PropertyBase.__init__` is set to ``True``.
+
+        :arg nullable:  Defaults to ``True``. Allow the property to be set to
+                        ``None``.
         """
 
         if dtype is None: dtype = np.float64
@@ -1636,6 +1645,7 @@ class Array(props.PropertyBase):
         kwargs['dtype']     = dtype
         kwargs['shape']     = shape
         kwargs['resizable'] = resizable
+        kwargs['nullable']  = nullable
         kwargs['default']   = kwargs.get('default', np.zeros(shape, dtype))
 
         props.PropertyBase.__init__(self, **kwargs)
@@ -1664,7 +1674,13 @@ class Array(props.PropertyBase):
         ``numpy`` array (with the data type that was specified in
         :meth:`__init__`).
         """
-        dtype = attributes['dtype']
+
+        dtype    = attributes['dtype']
+        nullable = attributes['nullable']
+
+        if nullable and (value is None):
+            return None
+
         return np.array(value, dtype=dtype)
 
 
@@ -1677,7 +1693,11 @@ class Array(props.PropertyBase):
 
         dtype     = attributes['dtype']
         shape     = attributes['shape']
+        nullable  = attributes['nullable']
         resizable = attributes['resizable']
+
+        if nullable and (value is None):
+            return
 
         if value.dtype != dtype:
             raise ValueError('Invalid data type: {} (should be {})'.format(
