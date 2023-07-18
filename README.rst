@@ -2,7 +2,8 @@ fsleyes-props
 =============
 
 
-.. image:: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/badges/master/build.svg
+
+.. image:: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/badges/master/pipeline.svg
    :target: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/commits/master/
 
 .. image:: https://git.fmrib.ox.ac.uk/fsl/fsleyes/props/badges/master/coverage.svg
@@ -27,7 +28,7 @@ fsleyes-props
     values of the attributes of a python object.
 
 
-To do this, you just need to subclass the ``fsleyes)props.HasProperties``
+To do this, you just need to subclass the ``fsleyes_props.HasProperties``
 class (also available as ``fsleyes_props.Props``), and add some
 ``PropertyBase`` types as class attributes.
 
@@ -59,12 +60,16 @@ Dependencies
 
 
 All of the dependencies of ``fsleyes-props`` are listed in the
-`requirements.txt <requirements.txt>`_ file. ``fsleyes-props`` can be used
+`pyproject.toml <pyproject.toml>`_ file. ``fsleyes-props`` can be used
 without wxPython, but GUI functionality will not be available.
 
 
-Dependencies for running the tests and building documentation are listed in the
-`requirements-dev.txt <requirements-dev.txt>`_ file.
+Dependencies for running the tests and building documentation are listed as
+extra ``test`` and ``doc`` dependencies, and can be installed with ``pip``
+like so::
+
+    pip install fsleyes-props[doc,test]
+
 
 
 Documentation
@@ -77,10 +82,9 @@ https://open.win.ox.ac.uk/pages/fsl/fsleyes/props/.
 <http://http://sphinx-doc.org/>`_. You can build the API documentation by
 running::
 
-    pip install -r requirements-dev.txt
-    python setup.py doc
+    sphinx-build doc html
 
-The HTML documentation will be generated and saved in the ``doc/html/``
+The HTML documentation will be generated and saved in the ``html/``
 directory.
 
 
@@ -89,8 +93,7 @@ Tests
 
 Run the test suite via::
 
-    pip install -r requirements-dev.txt
-    python setup.py test
+    pytest
 
 
 Many of the tests assume that a display is accessible - if you are running on
