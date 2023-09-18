@@ -830,9 +830,22 @@ class ColourMap(props.PropertyBase):
     created for a ``ColourMap`` instance will only display the options returned
     by the :meth:`getColourMaps` method. See the :func:`widgets._ColourMap`
     function.
+
+    It is possible to specify a colour map name ``prefix`` when creating a
+    ``ColourMap`` property. When a prefix is set, assignments to the
+    property, e.g. ``obj.cmap = 'red'`` will cause a colour map named
+    ``{prefix}_red`` to be chosen over a colour map named ``red``, if the former
+    is registered with matplotlib.
+
+    This `prefix` option was added because, for historical reasons, FSLeyes
+    defines some colour maps with the same name as built-in matplotlib colour
+    maps. From matplotlib ~3.5 and newer, it is not possible to override
+    built-in colour maps, so these are registered as ``fsleyes_{name}``.
+    Furthermore, matplotlib 3.8 made it impossible to give a colour map a
+    name which is different to the key under which it is registered.
     """
 
-    def __init__(self, cmaps=None, **kwargs):
+    def __init__(self, cmaps=None, prefix=None, **kwargs):
         """Define a ``ColourMap`` property. """
 
         default = kwargs.get('default', None)
@@ -845,6 +858,8 @@ class ColourMap(props.PropertyBase):
 
         kwargs['default'] = default
         kwargs['cmaps']   = list(cmaps)
+
+        self.__prefix = prefix
 
         props.PropertyBase.__init__(self, **kwargs)
 
@@ -907,28 +922,35 @@ class ColourMap(props.PropertyBase):
 
         if isinstance(value, str):
 
-            # Case insensitive match against either
-            # the registered colourmap key, or the
-            # colourmap name. We allow any colour map
-            # registered with matplotlib, but colour
-            # maps added to this ColourMap property
-            # are preferentially considered.
-            cmapKeys   = list(self.getAttribute(instance, 'cmaps'))
-            cmapKeys  += [c for c in mpl.colormaps.keys() if c not in cmapKeys]
-            cmapNames  = [mpl.colormaps[cm].name for cm in cmapKeys]
+            # Case insensitive match against either the
+            # registered colourmap key. We accept any
+            # colour map registered with matplotlib, but
+            # colour maps added to this ColourMap
+            # property are preferentially considered.
+            cmapKeys = list(self.getAttribute(instance, 'cmaps'))
 
-            lCmapNames = [s.lower() for s in cmapNames]
-            lCmapKeys  = [s.lower() for s in cmapKeys]
-            value      = value.lower()
-            idx        = None
+            # If a prefix is set, we preferentially match
+            # against mpl colour maps named '{prefix}{value}'.
+            prefix  = self.__prefix
+            mplKeys = [c for c in mpl.colormaps.keys() if c not in cmapKeys]
+            if prefix is not None:
+                mplKeys = [k for k in mplKeys if     k.startswith(prefix)] + \
+                          [k for k in mplKeys if not k.startswith(prefix)]
 
-            # Preferentially match against colour
-            # map name rather than key. This is a
-            # cheeky method of allowing us to
-            # override built-in matplotlib colour
-            # maps.
-            try:               idx = lCmapNames.index(value)
-            except ValueError: idx = lCmapKeys .index(value)
+            cmapKeys += mplKeys
+            lCmapKeys = [s.lower() for s in cmapKeys]
+
+            # Preferentially match prefixed colour maps
+            value = value.lower()
+            if prefix is not None: candidates = [f'{prefix}{value}', value]
+            else:                  candidates = [value]
+
+            for candidate in candidates:
+                try:
+                    idx = lCmapKeys.index(candidate)
+                    break
+                except ValueError:
+                    pass
 
             if idx is None:
                 choices = ','.join(cmapKeys)

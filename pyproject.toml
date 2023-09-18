@@ -1,5 +1,5 @@
 [build-system]
-requires      = ["setuptools", "setuptools-scm"]
+requires      = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 
@@ -56,6 +56,10 @@ style = [
 
 [tool.setuptools.packages.find]
 include = ["fsleyes_props*"]
+
+
+[tool.setuptools.package-data]
+fsleyes_props = ["tests/testdata/*"]
 
 
 [tool.setuptools.dynamic]
