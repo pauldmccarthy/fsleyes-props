@@ -1,0 +1,3 @@
+include           CHANGELOG.rst
+include           COPYRIGHT
+recursive-include doc *
