@@ -2,6 +2,29 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.11.0 (Monday 18th September 2023)
+-----------------------------------
+
+
+Added
+^^^^^
+
+
+* New ``prefix`` option for :class:`.ColourMap` properties - when a prefix is
+  set, assignments to the property, e.g. ``obj.cmap = 'red'``, will cause a
+  colour map named ``{prefix}_red`` to be chosen over a colour map named
+  ``red``, if the former is registered with matplotlib.
+
+
+Changed
+^^^^^^^
+
+
+* The :class:`.ColourMap` property no longer supports looking up colour maps
+  by their name or registered key. This is because matplotlib 3.8 has made it
+  impossible to give a colour map a name different to the key under which it
+  registered.
+
 
 1.10.0 (Tuesday 18th July 2023)
 -------------------------------
