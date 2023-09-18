@@ -841,6 +841,8 @@ class ColourMap(props.PropertyBase):
     defines some colour maps with the same name as built-in matplotlib colour
     maps. From matplotlib ~3.5 and newer, it is not possible to override
     built-in colour maps, so these are registered as ``fsleyes_{name}``.
+    Furthermore, matplotlib 3.8 made it impossible to give a colour map a
+    name which is different to the key under which it is registered.
     """
 
     def __init__(self, cmaps=None, prefix=None, **kwargs):
