@@ -118,7 +118,8 @@ def _propBind(hasProps,
               evType,
               widgetGet=None,
               widgetSet=None,
-              widgetDestroy=None):
+              widgetDestroy=None,
+              onUser=None):
     """Binds a :class:`.PropertyValue` instance to a widget.
 
     Sets up event callback functions such that, on a change to the given
@@ -147,6 +148,10 @@ def _propBind(hasProps,
     :param widgetDestroy: Function which is called if/when the widget is
                           destroyed. Must accept one argument - the
                           :class:`wx.Event` object.
+
+    :param onUser:        Function which is called when the user interacts
+                          with the widget. Must accept one argument - the
+                          new property value.
     """
 
     if not isinstance(evType, Iterable): evType = [evType]
@@ -223,6 +228,9 @@ def _propBind(hasProps,
         # is bound.
         if guiObj:
             propVal.enableListener(listenerName)
+
+        if onUser is not None:
+            onUser(value)
 
 
     def _attUpdate(ctx, att, *a):

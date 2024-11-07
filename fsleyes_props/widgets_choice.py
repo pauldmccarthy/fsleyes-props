@@ -28,6 +28,7 @@ def _Choice(parent,
             icons=None,
             fixChoices=None,
             style=None,
+            onUser=None,
             **kwargs):
     """Creates and returns a widget allowing the user to modify the given
     :class:`.Choice` property value.
@@ -72,6 +73,8 @@ def _Choice(parent,
     :arg style:      Passed through to the :meth:`.BitmapRadioBox.__init__`
                      method. Not used if no ``icons`` were provided.
 
+    :arg onUser:     Passed through to :func:`._propBind`. Function which is
+                     called when the user interacts with the widget.
 
     See the :func:`.widgets._String` documentation for details on the other
     parameters.
@@ -233,6 +236,7 @@ def _Choice(parent,
                       event,
                       widgetGet=widgetGet,
                       widgetSet=widgetSet,
-                      widgetDestroy=onDestroy)
+                      widgetDestroy=onDestroy,
+                      onUser=onUser)
 
     return widget
