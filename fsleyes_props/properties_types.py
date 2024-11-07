@@ -402,7 +402,7 @@ class Choice(props.PropertyBase):
     def setDefault(self, default, instance=None):
         """Sets the default choice value. """
         if default not in self.getChoices(instance):
-            raise ValueError('{} is not a choice'.format(default))
+            raise ValueError(f'{default} is not a choice')
 
         self.setAttribute(instance, 'default', default)
 
@@ -543,7 +543,7 @@ class Choice(props.PropertyBase):
             for alt in altList:
                 if alt in alternates:
                     raise ValueError('Duplicate alternate value '
-                                     '(choice: {}): {}'.format(choice, alt))
+                                     f'(choice: {choice}): {alt}')
                 alternates[alt] = choice
 
         return alternates
@@ -624,10 +624,10 @@ class Choice(props.PropertyBase):
         altValue = alternates.get(value, None)
 
         if value not in choices and altValue not in choices:
-            raise ValueError('Invalid choice ({})'    .format(value))
+            raise ValueError(f'Invalid choice ({value})')
 
         if not enabled.get(value, False):
-            raise ValueError('Choice is disabled ({})'.format(value))
+            raise ValueError(f'Choice is disabled ({value})')
 
 
     def cast(self, instance, attributes, value):
@@ -638,7 +638,6 @@ class Choice(props.PropertyBase):
         """
         alternates = self.getAttribute(instance, 'alternates')
         return alternates.get(value, value)
-
 
 
 class FilePath(String):
