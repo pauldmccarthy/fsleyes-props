@@ -498,6 +498,10 @@ class Choice(props.PropertyBase):
         if len(choices) != len(alternates):
             raise ValueError('Alternates are required for every choice')
 
+        if (newChoice is not None) and (newChoice not in choices):
+            raise ValueError(f'New choice value {newChoice} is '
+                             f'not in new choices {choices}')
+
         self.__updateChoices(choices, alternates, instance, newChoice)
 
 
