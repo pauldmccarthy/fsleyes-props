@@ -118,7 +118,8 @@ def _propBind(hasProps,
               evType,
               widgetGet=None,
               widgetSet=None,
-              widgetDestroy=None):
+              widgetDestroy=None,
+              onUser=None):
     """Binds a :class:`.PropertyValue` instance to a widget.
 
     Sets up event callback functions such that, on a change to the given
@@ -147,12 +148,16 @@ def _propBind(hasProps,
     :param widgetDestroy: Function which is called if/when the widget is
                           destroyed. Must accept one argument - the
                           :class:`wx.Event` object.
+
+    :param onUser:        Function which is called when the user interacts
+                          with the widget. Must accept one argument - the
+                          new property value.
     """
 
     if not isinstance(evType, Iterable): evType = [evType]
 
-    listenerName    = 'WidgetBind_{}'   .format(id(guiObj))
-    listenerAttName = 'WidgetBindAtt_{}'.format(id(guiObj))
+    listenerName    = f'WidgetBind_{id(guiObj)}'
+    listenerAttName = f'WidgetBindAtt_{id(guiObj)}'
 
     if widgetGet is None:
         widgetGet = guiObj.GetValue
@@ -163,11 +168,11 @@ def _propBind(hasProps,
     else:
         handleNone = False
 
-    log.debug('Binding PropertyValue ({}.{} [{}]) to widget {} ({})'.format(
+    log.debug('Binding PropertyValue (%s.%s [%s]) to widget %s (%s)',
         hasProps.__class__.__name__,
         propVal._name,
         id(propVal),
-        guiObj.__class__.__name__, id(guiObj)))
+        guiObj.__class__.__name__, id(guiObj))
 
     def _guiUpdate(*a):
         """
@@ -181,13 +186,13 @@ def _propBind(hasProps,
         # most wx widgets complain if you try to set their value to None
         if handleNone and (value is None): value = ''
 
-        log.debug('Updating Widget {} ({}) from {}.{} ({}): {}'.format(
+        log.debug('Updating Widget %s (%s) from %s.%s (%s): %s',
             guiObj.__class__.__name__,
             id(guiObj),
             hasProps.__class__.__name__,
             propVal._name,
             id(hasProps),
-            value))
+            value)
 
         widgetSet(value)
 
@@ -201,13 +206,13 @@ def _propBind(hasProps,
 
         if propVal.get() == value: return
 
-        log.debug('Updating {}.{} ({}) from widget  {} ({}): {}'.format(
+        log.debug('Updating %s.%s (%s) from widget  %s (%s): %s',
             hasProps.__class__.__name__,
             propVal._name,
             id(hasProps),
             guiObj.__class__.__name__,
             id(guiObj),
-            value))
+            value)
 
         propVal.disableListener(listenerName)
         propVal.set(value)
@@ -223,6 +228,9 @@ def _propBind(hasProps,
         # is bound.
         if guiObj:
             propVal.enableListener(listenerName)
+
+        if onUser is not None:
+            onUser(value)
 
 
     def _attUpdate(ctx, att, *a):
@@ -244,13 +252,13 @@ def _propBind(hasProps,
         if ev.GetEventObject() is not guiObj:
             return
 
-        log.debug('Widget {} ({}) destroyed (removing '
-                  'listener {} from {}.{})'.format(
-                      guiObj.__class__.__name__,
-                      id(guiObj),
-                      listenerName,
-                      hasProps.__class__.__name__,
-                      propVal._name))
+        log.debug('Widget %s (%s) destroyed (removing '
+                  'listener %s from %s.%s)',
+                  guiObj.__class__.__name__,
+                  id(guiObj),
+                  listenerName,
+                  hasProps.__class__.__name__,
+                  propVal._name)
         propVal.removeListener(         listenerName)
         propVal.removeAttributeListener(listenerAttName)
 
@@ -267,8 +275,8 @@ def _propUnbind(hasProps, propObj, propVal, guiObj, evType):
     """
     if not isinstance(evType, Iterable): evType = [evType]
 
-    listenerName    = 'WidgetBind_{}'   .format(id(guiObj))
-    listenerAttName = 'WidgetBindAtt_{}'.format(id(guiObj))
+    listenerName    = f'WidgetBind_{id(guiObj)}'
+    listenerAttName = f'WidgetBindAtt_{id(guiObj)}'
 
     propVal.removeListener(         listenerName)
     propVal.removeAttributeListener(listenerAttName)
@@ -320,7 +328,7 @@ def _setupValidation(widget, hasProps, propObj, propVal):
     # associated with multiple variables, and we don't want
     # the widgets associated with those other variables to
     # change background.
-    lName = 'widgets_py_ChangeBG_{}'.format(id(widget))
+    lName = f'widgets_py_ChangeBG_{id(widget)}'
     propVal.addListener(lName, _changeBGOnValidate, weak=False)
 
     # And ensure that the listener is
@@ -665,7 +673,7 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
 
     # Make sure the combobox options are updated
     # when the property options change
-    lName = 'ColourMap_ComboBox_{}'.format(id(cbox))
+    lName = f'ColourMap_ComboBox_{id(cbox)}'
     propVal.addAttributeListener(lName, cmapsChanged, weak=False)
 
     def onDestroy(ev):
@@ -724,7 +732,7 @@ def _LinkBox(parent, hasProps, propObj, propVal, **kwargs):
             ev.Skip()
             hasProps.removeSyncChangeListener(propName, lName)
 
-        lName = 'widget_LinkBox_{}_{}'.format(propName, linkBox)
+        lName = f'widget_LinkBox_{propName}_{linkBox}'
 
         linkBox.Bind(wx.EVT_TOGGLEBUTTON,   onLinkBox)
         linkBox.Bind(wx.EVT_WINDOW_DESTROY, onDestroy)
@@ -768,16 +776,16 @@ def makeWidget(parent, hasProps, propName, **kwargs):
     propVal = propObj.getPropVal(hasProps)
 
     if propObj is None:
-        raise ValueError('Could not find property {}.{}'.format(
-            hasProps.__class__.__name__, propName))
+        raise ValueError(
+            f'Could not find property {hasProps.__class__.__name__}.{propName}')
 
     makeFunc = getattr(
         sys.modules[__name__],
-        '_{}'.format(propObj.__class__.__name__), None)
+        f'_{propObj.__class__.__name__}', None)
 
     if makeFunc is None:
         raise ValueError(
-            'Unknown property type: {}'.format(propObj.__class__.__name__))
+            f'Unknown property type: {propObj.__class__.__name__}')
 
     return makeFunc(parent, hasProps, propObj, propVal, **kwargs)
 
@@ -791,11 +799,11 @@ def makeListWidget(parent, hasProps, propName, index, **kwargs):
 
     makeFunc = getattr(
         sys.modules[__name__],
-        '_{}'.format(propObj.__class__.__name__), None)
+        f'_{propObj.__class__.__name__}', None)
 
     if makeFunc is None:
         raise ValueError(
-            'Unknown property type: {}'.format(propObj.__class__.__name__))
+            f'Unknown property type: {propObj.__class__.__name__}')
 
     return makeFunc(parent, hasProps, propObj, propVal, **kwargs)
 
@@ -809,11 +817,11 @@ def makeListWidgets(parent, hasProps, propName, **kwargs):
 
     makeFunc = getattr(
         sys.modules[__name__],
-        '_{}'.format(propObj.__class__.__name__), None)
+        f'_{propObj.__class__.__name__}', None)
 
     if makeFunc is None:
         raise ValueError(
-            'Unknown property type: {}'.format(propObj.__class__.__name__))
+            f'Unknown property type: {propObj.__class__.__name__}')
 
     widgets = []
 

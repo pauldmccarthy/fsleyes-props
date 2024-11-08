@@ -402,7 +402,7 @@ class Choice(props.PropertyBase):
     def setDefault(self, default, instance=None):
         """Sets the default choice value. """
         if default not in self.getChoices(instance):
-            raise ValueError('{} is not a choice'.format(default))
+            raise ValueError(f'{default} is not a choice')
 
         self.setAttribute(instance, 'default', default)
 
@@ -470,7 +470,11 @@ class Choice(props.PropertyBase):
         self.__updateChoices(choices, altLists, instance)
 
 
-    def setChoices(self, choices, alternates=None, instance=None):
+    def setChoices(self,
+                   choices,
+                   alternates=None,
+                   instance=None,
+                   newChoice=None):
         """Sets the list of possible choices (and their alternate values, if
         not None).
         """
@@ -494,7 +498,11 @@ class Choice(props.PropertyBase):
         if len(choices) != len(alternates):
             raise ValueError('Alternates are required for every choice')
 
-        self.__updateChoices(choices, alternates, instance)
+        if (newChoice is not None) and (newChoice not in choices):
+            raise ValueError(f'New choice value {newChoice} is '
+                             f'not in new choices {choices}')
+
+        self.__updateChoices(choices, alternates, instance, newChoice)
 
 
     def addChoice(self, choice, alternate=None, instance=None):
@@ -543,19 +551,25 @@ class Choice(props.PropertyBase):
             for alt in altList:
                 if alt in alternates:
                     raise ValueError('Duplicate alternate value '
-                                     '(choice: {}): {}'.format(choice, alt))
+                                     f'(choice: {choice}): {alt}')
                 alternates[alt] = choice
 
         return alternates
 
 
-    def __updateChoices(self, choices, alternates, instance=None):
+    def __updateChoices(self,
+                        choices,
+                        alternates,
+                        instance=None,
+                        newChoice=None):
         """Used by all of the public choice modifying methods. Updates
         all choices, labels, and altenrates.
 
         :param choices:    A list of choice values
 
         :param alternates: A dict of ``{choice :  [alternates]}`` mappings.
+
+        :param newChoice:  New value
         """
 
         propVal    = self.getPropVal(  instance)
@@ -590,7 +604,9 @@ class Choice(props.PropertyBase):
 
         if propVal is not None:
 
-            if oldChoice not in choices:
+            if newChoice is not None:
+                propVal.set(newChoice)
+            elif oldChoice not in choices:
                 if   default in choices: propVal.set(default)
                 elif len(choices) > 0:   propVal.set(choices[0])
                 else:                    propVal.set(None)
@@ -624,10 +640,10 @@ class Choice(props.PropertyBase):
         altValue = alternates.get(value, None)
 
         if value not in choices and altValue not in choices:
-            raise ValueError('Invalid choice ({})'    .format(value))
+            raise ValueError(f'Invalid choice ({value})')
 
         if not enabled.get(value, False):
-            raise ValueError('Choice is disabled ({})'.format(value))
+            raise ValueError(f'Choice is disabled ({value})')
 
 
     def cast(self, instance, attributes, value):
@@ -638,7 +654,6 @@ class Choice(props.PropertyBase):
         """
         alternates = self.getAttribute(instance, 'alternates')
         return alternates.get(value, value)
-
 
 
 class FilePath(String):

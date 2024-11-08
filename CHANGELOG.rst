@@ -2,6 +2,21 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+
+1.12.0 (Friday 8th November 2024)
+---------------------------------
+
+
+Added
+^^^^^
+
+
+* The :meth:`.Choice.setChoices` method now accepts a `newChoice` argument,
+  allowing the new choice value to be set when the choices are updated.
+* New `onUser` argument when creating a :class:`.Widget` for a `.Choice`
+  property, which is called whenever the user interacts with the widget.
+
+
 1.11.0 (Monday 18th September 2023)
 -----------------------------------
 

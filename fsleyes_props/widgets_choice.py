@@ -28,6 +28,7 @@ def _Choice(parent,
             icons=None,
             fixChoices=None,
             style=None,
+            onUser=None,
             **kwargs):
     """Creates and returns a widget allowing the user to modify the given
     :class:`.Choice` property value.
@@ -72,6 +73,8 @@ def _Choice(parent,
     :arg style:      Passed through to the :meth:`.BitmapRadioBox.__init__`
                      method. Not used if no ``icons`` were provided.
 
+    :arg onUser:     Passed through to :func:`._propBind`. Function which is
+                     called when the user interacts with the widget.
 
     See the :func:`.widgets._String` documentation for details on the other
     parameters.
@@ -119,7 +122,7 @@ def _Choice(parent,
     # When the property value changes,
     # update the widget value
     def widgetSet(value):
-        log.debug('Updating widget value: {}'.format(value))
+        log.debug('Updating widget value: %s', value)
         if len(choices[0]) > 0:
             return widget.SetSelection(choices[0].index(value))
         else:
@@ -161,13 +164,13 @@ def _Choice(parent,
                     curLabels.pop(ci)
 
         log.debug('Updating options for Widget '
-                  '{} ({}) from {}.{} ({}): {}'.format(
-                      widget.__class__.__name__,
-                      id(widget),
-                      hasProps.__class__.__name__,
-                      propVal._name,
-                      id(hasProps),
-                      curLabels))
+                  '%s (%s) from %s.%s (%s): %s',
+                  widget.__class__.__name__,
+                  id(widget),
+                  hasProps.__class__.__name__,
+                  propVal._name,
+                  id(hasProps),
+                  curLabels)
 
         if icons is None:
             widget.Set(list(curLabels))
@@ -214,7 +217,7 @@ def _Choice(parent,
         if len(choices[0]) > 0:
             widget.SetSelection(choices[0].index(propVal.get()))
 
-    listenerName = 'WidgetChoiceUpdate_{}'.format(id(widget))
+    listenerName = f'WidgetChoiceUpdate_{id(widget)}'
     propVal.addAttributeListener(listenerName, choicesChanged, weak=False)
 
     # Initialise the widget
@@ -223,7 +226,7 @@ def _Choice(parent,
     widget.SetMinSize(widget.GetBestSize())
 
     def onDestroy(ev):
-        log.debug('Removing attribute listener {}'.format(listenerName))
+        log.debug('Removing attribute listener %s', listenerName)
         propVal.removeAttributeListener(listenerName)
 
     widgets._propBind(hasProps,
@@ -233,6 +236,7 @@ def _Choice(parent,
                       event,
                       widgetGet=widgetGet,
                       widgetSet=widgetSet,
-                      widgetDestroy=onDestroy)
+                      widgetDestroy=onDestroy,
+                      onUser=onUser)
 
     return widget
