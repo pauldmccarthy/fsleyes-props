@@ -167,6 +167,10 @@ def bindProps(self,
     """Binds the properties specified by ``propName`` and ``otherPropName``
     such that changes to one are applied to the other.
 
+    The binding direction is from ``other`` to ``self``, i.e. in the first
+    instance, the value of ``self.propName`` will be set to that of
+    ``other.propName``.
+
     If the properties are :class:`.List` properties, the :func:`_bindListProps`
     function is called. Otherwise the :func:`_bindProps` function is called.
 

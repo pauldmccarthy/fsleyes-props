@@ -1,5 +1,5 @@
 [build-system]
-requires      = ["setuptools"]
+requires      = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 
@@ -8,7 +8,7 @@ name            = "fsleyes-props"
 dynamic         = ["version"]
 description     = "[wx]Python event programming framework"
 readme          = {file = "README.rst", content-type="text/x-rst"}
-license         = {text = "Apache License Version 2.0"}
+license-files   = ["LICENSE"]
 requires-python = ">=3.8"
 authors         = [{name = "Paul McCarthy", email = "pauldmccarthy@gmail.com"}]
 
@@ -19,18 +19,6 @@ dependencies = [
  "fsleyes-widgets >=0.6",
  "fslpy >=1.4"
 ]
-
-classifiers = [
-  "Development Status :: 3 - Alpha",
-  "Intended Audience :: Developers",
-  "License :: OSI Approved :: Apache Software License",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Topic :: Software Development :: Libraries :: Python Modules"
-]
-
 
 [project.urls]
 "Repository"    = "https://git.fmrib.ox.ac.uk/fsl/fsleyes/props"
@@ -62,10 +50,6 @@ include = ["fsleyes_props*"]
 fsleyes_props = ["tests/testdata/*"]
 
 
-[tool.setuptools.dynamic]
-version = {attr = "fsleyes_props.__version__"}
-
-
 [tool.coverage.run]
 include = ["fsleyes_props/*"]
 omit    = ["fsleyes_props/tests/*"]
@@ -74,3 +58,6 @@ omit    = ["fsleyes_props/tests/*"]
 [tool.pytest.ini_options]
 testpaths = ["fsleyes_props/tests"]
 addopts   = "-v --cov=fsleyes_props"
+
+
+[tool.setuptools_scm]
