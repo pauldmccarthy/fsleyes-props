@@ -690,7 +690,7 @@ class HasProperties:
 
     def isBound(self, *args, **kwargs):
         """See :func:`.bindable.isBound`. """
-        bindable.isBound(self, *args, **kwargs)
+        return bindable.isBound(self, *args, **kwargs)
 
 
     def addProperty(self, propName, propObj):
