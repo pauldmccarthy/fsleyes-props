@@ -2,6 +2,17 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+1.12.1 (Wednesday 23rd July 2025)
+---------------------------------
+
+
+Fixed
+^^^^^
+
+
+* Fixed a bug in :meth:`.HasProperties.isBound`, which was always returning
+  ``None``.
+
 
 1.12.0 (Friday 8th November 2024)
 ---------------------------------
