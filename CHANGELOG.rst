@@ -14,6 +14,15 @@ Fixed
   ``None``.
 
 
+Changed
+^^^^^^^
+
+
+* Migrated to `setuptools-scm
+  <https://setuptools-scm.readthedocs.io/en/stable/>`_ for version number
+  management.
+
+
 1.12.0 (Friday 8th November 2024)
 ---------------------------------
 
