@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ####################################################
 # The check_version script is run on release builds,
 # and makes sure that the version in the code is up
@@ -7,4 +7,14 @@
 
 set -e
 
-cat fsleyes_props/__init__.py | egrep "^__version__ += +'$CI_COMMIT_REF_NAME' *$"
+# source /test.venv/bin/activate
+# pip install  dist/*.whl
+
+exp=${CI_COMMIT_REF_NAME}
+got=$(python -c "import fsleyes_props as p;print(p.__version__)")
+
+if [[ ${exp} == ${got} ]]; then
+  exit 0
+else
+  exit 1
+fi
