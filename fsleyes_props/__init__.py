@@ -291,15 +291,9 @@ notification of properties to be suppressed in a ``with`` statement.
 """
 
 
-__version__ = '1.12.0'
-
-
 import sys
 import logging
-
-
-log = logging.getLogger(__name__)
-
+from importlib.metadata import version, PackageNotFoundError
 
 from .properties import (
     PropertyOwner,
@@ -367,6 +361,15 @@ from .suppress import (
 from .cache import (
     PropCache,
     CacheError)
+
+
+try:
+    __version__ = version("fsleyes-props")
+except PackageNotFoundError:
+    __version__ = '<unknown>'
+
+
+log = logging.getLogger(__name__)
 
 
 def initGUI():

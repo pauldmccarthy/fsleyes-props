@@ -1,5 +1,5 @@
 [build-system]
-requires      = ["setuptools"]
+requires      = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 
@@ -74,3 +74,6 @@ omit    = ["fsleyes_props/tests/*"]
 [tool.pytest.ini_options]
 testpaths = ["fsleyes_props/tests"]
 addopts   = "-v --cov=fsleyes_props"
+
+
+[tool.setuptools_scm]
