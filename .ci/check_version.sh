@@ -7,8 +7,8 @@
 
 set -e
 
-# source /test.venv/bin/activate
-# pip install  dist/*.whl
+source /test.venv/bin/activate
+pip install  dist/*.whl
 
 exp=${CI_COMMIT_REF_NAME}
 got=$(python -c "import fsleyes_props as p;print(p.__version__)")
