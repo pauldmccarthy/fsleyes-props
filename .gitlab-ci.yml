@@ -93,11 +93,6 @@ variables:
     - bash ./.ci/test_template.sh
 
 
-test:3.10:
-  stage: test
-  image: pauldmccarthy/fsleyes-py310-wxpy4-gtk3
-  <<: *test_template
-
 
 test:3.11:
   stage: test
@@ -114,10 +109,15 @@ test:3.13:
   image: pauldmccarthy/fsleyes-py313-wxpy4-gtk3
   <<: *test_template
 
+test:3.14:
+  stage: test
+  image: pauldmccarthy/fsleyes-py314-wxpy4-gtk3
+  <<: *test_template
+
 
 test:build-pypi-dist:
   stage: test
-  image: pauldmccarthy/fsleyes-py310-wxpy4-gtk3
+  image: pauldmccarthy/fsleyes-py312-wxpy4-gtk3
   <<: *except_releases
 
   tags:
@@ -134,7 +134,7 @@ test:build-pypi-dist:
 
 style:
   stage: style
-  image: pauldmccarthy/fsleyes-py310-wxpy4-gtk3
+  image: pauldmccarthy/fsleyes-py312-wxpy4-gtk3
   <<: *test_template
   variables:
     TEST_STYLE:  "true"
@@ -151,7 +151,7 @@ pages:
    - docker
 
   stage: doc
-  image: pauldmccarthy/fsleyes-py310-wxpy4-gtk3
+  image: pauldmccarthy/fsleyes-py312-wxpy4-gtk3
 
   script:
     - bash ./.ci/build_doc.sh
@@ -169,7 +169,7 @@ build-pypi-dist:
   <<: *only_releases
 
   stage: build
-  image: pauldmccarthy/fsleyes-py310-wxpy4-gtk3
+  image: pauldmccarthy/fsleyes-py312-wxpy4-gtk3
 
   tags:
     - docker
@@ -193,7 +193,7 @@ deploy-pypi:
   <<: *only_releases
   stage: deploy
   when:  manual
-  image: python:3.10
+  image: python:3.12
 
   tags:
     - docker

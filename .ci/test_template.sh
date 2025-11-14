@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /test.venv/bin/activate
+micromamba activate /test.env
 
 apt install -y locales
 locale-gen en_US.UTF-8
