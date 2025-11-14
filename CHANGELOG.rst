@@ -2,6 +2,19 @@ This document contains the ``fsleyes-props`` release history in reverse
 chronological order.
 
 
+
+1.12.3 (Friday 14th November 2025)
+----------------------------------
+
+
+Fixed
+^^^^^
+
+
+* Fixed a bug in the Colourmap widget creation code which would occur when the
+  selected colour map was not in the list of available colour maps.
+
+
 1.12.2 (Wednesday 23rd July 2025)
 ---------------------------------
 
