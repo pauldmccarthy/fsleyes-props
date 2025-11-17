@@ -2,11 +2,6 @@
 
 micromamba activate /test.env
 
-apt install -y locales
-locale-gen en_US.UTF-8
-locale-gen en_GB.UTF-8
-update-locale
-
 pip install ".[test,style]"
 
 # install latest versions of fslpy/widgets
