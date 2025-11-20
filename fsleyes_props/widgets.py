@@ -691,8 +691,11 @@ def _ColourMap(parent, hasProps, propObj, propVal, labels=None, **kwargs):
 
     # Set the initial combobox selection
     currentVal = propVal.get()
-    if currentVal is None: currentVal = 0
-    else:                  currentVal = cmapObjs[0].index(currentVal)
+
+    if currentVal is None or currentVal not in cmapObjs[0]:
+        currentVal = 0
+    else:
+        currentVal = cmapObjs[0].index(currentVal)
 
     cbox.SetSelection(currentVal)
 
