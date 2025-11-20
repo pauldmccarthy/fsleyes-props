@@ -7,7 +7,6 @@
 
 set -e
 
-micromamba activate /test.env
 pip install  dist/*.whl
 
 exp=${CI_COMMIT_REF_NAME}
