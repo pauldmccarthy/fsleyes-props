@@ -3,6 +3,21 @@ chronological order.
 
 
 
+
+1.13.0 (Under development)
+--------------------------
+
+
+Added
+^^^^^
+
+
+* Added the ability to create a non-interactive text widget bound to a
+  :class:`.String` property via the new new ``static`` option - this can be
+  used when creating a :class:`.Widget` specification, or when using the
+  :func:`.makeWidget` function.
+
+
 1.12.3 (Thursday 20th November 2025)
 ------------------------------------
 
