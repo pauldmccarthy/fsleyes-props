@@ -289,6 +289,8 @@ def _propUnbind(hasProps, propObj, propVal, guiObj, evType):
     :func:`_propBind` function, between the given :class:`.PropertyValue`
     instance, and the given :mod:`wx` widget.
     """
+
+    if evType is None:                   evType = []
     if not isinstance(evType, Iterable): evType = [evType]
 
     listenerName    = f'WidgetBind_{id(guiObj)}'
