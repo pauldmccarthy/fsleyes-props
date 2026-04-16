@@ -154,6 +154,7 @@ def _propBind(hasProps,
                           new property value.
     """
 
+    if evType is None:                   evType = []
     if not isinstance(evType, Iterable): evType = [evType]
 
     listenerName    = f'WidgetBind_{id(guiObj)}'
@@ -837,7 +838,7 @@ def makeListWidgets(parent, hasProps, propName, **kwargs):
 def bindWidget(widget,
                hasProps,
                propName,
-               evTypes,
+               evTypes=None,
                widgetGet=None,
                widgetSet=None):
     """Binds the given widget to the specified property. See the
@@ -854,7 +855,7 @@ def bindWidget(widget,
 def bindListWidgets(widgets,
                     hasProps,
                     propName,
-                    evTypes,
+                    evTypes=None,
                     widgetSets=None,
                     widgetGets=None):
     """Binds the given sequence of widgets to each of the values in the
@@ -879,7 +880,7 @@ def bindListWidgets(widgets,
                   wSet)
 
 
-def unbindWidget(widget, hasProps, propName, evTypes):
+def unbindWidget(widget, hasProps, propName, evTypes=None):
     """Unbinds the given widget from the specified property, assumed to have
     been previously bound via the :func:`bindWidget` function.
     """
