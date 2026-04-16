@@ -360,7 +360,7 @@ def _setupValidation(widget, hasProps, propObj, propVal):
     _changeBGOnValidate(None, propVal.isValid(), None)
 
 
-def _String(parent, hasProps, propObj, propVal, **kwargs):
+def _String(parent, hasProps, propObj, propVal, static=False, **kwargs):
     """Creates and returns a :class:`wx.TextCtrl` object, allowing the user to
     edit the given ``propVal`` (managed by a :class:`.String` instance).
 
@@ -373,30 +373,43 @@ def _String(parent, hasProps, propObj, propVal, **kwargs):
 
     :param propVal:  The :class:`.PropertyValue` instance.
 
+    :param static:   Defaults to ``False``. If ``True``, a non-interactive
+                     ``wx.StaticText`` control is used instead of an editable
+                     ``wx.TextCtrl``.
+
     :param kwargs:   Type-specific options.
     """
 
-    widget = wx.TextCtrl(parent)
+    widget = None
 
-    # Under linux/GTK, TextCtrl widgets
-    # absorb mouse wheel events,  so I'm
-    # adding a custom handler to prevent this.
-    if wx.Platform == '__WXGTK__':
-        def wheel(ev):
-            widget.GetParent().GetEventHandler().ProcessEvent(ev)
-        widget.Bind(wx.EVT_MOUSEWHEEL, wheel)
+    # Non-interactive text widget which
+    # just displays the value
+    if static:
+        widget = wx.StaticText(parent)
+        _propBind(hasProps, propObj, propVal, widget, None)
 
-    # Use a DC object to calculate a decent
-    # minimum size for the widget
-    dc       = wx.ClientDC(widget)
-    textSize = dc.GetTextExtent('w' * 17)
-    widgSize = widget.GetBestSize().Get()
+    else:
+        widget = wx.TextCtrl(parent)
 
-    widget.SetMinSize((max(textSize[0], widgSize[0]),
-                       max(textSize[1], widgSize[1])))
+        # Under linux/GTK, TextCtrl widgets
+        # absorb mouse wheel events,  so I'm
+        # adding a custom handler to prevent this.
+        if  wx.Platform == '__WXGTK__':
+            def wheel(ev):
+                widget.GetParent().GetEventHandler().ProcessEvent(ev)
+            widget.Bind(wx.EVT_MOUSEWHEEL, wheel)
 
-    _propBind(hasProps, propObj, propVal, widget, wx.EVT_TEXT)
-    _setupValidation(widget, hasProps, propObj, propVal)
+        # Use a DC object to calculate a decent
+        # minimum size for the widget
+        dc       = wx.ClientDC(widget)
+        textSize = dc.GetTextExtent('w' * 17)
+        widgSize = widget.GetBestSize().Get()
+
+        widget.SetMinSize((max(textSize[0], widgSize[0]),
+                           max(textSize[1], widgSize[1])))
+
+        _propBind(hasProps, propObj, propVal, widget, wx.EVT_TEXT)
+        _setupValidation(widget, hasProps, propObj, propVal)
 
     return widget
 
