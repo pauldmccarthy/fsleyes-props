@@ -161,13 +161,28 @@ def _propBind(hasProps,
     listenerAttName = f'WidgetBindAtt_{id(guiObj)}'
 
     if widgetGet is None:
-        widgetGet = guiObj.GetValue
-    if widgetSet is None:
+        candidates = ['GetValue', 'GetLabel']
+        for c in candidates:
+            widgetGet = getattr(guiObj, c, None)
+            if widgetGet is not None:
+                break
 
+    if widgetSet is None:
+        candidates = ['SetValue', 'SetLabel']
+        for c in candidates:
+            widgetSet = getattr(guiObj, c, None)
+            if widgetSet is not None:
+                break
         handleNone = True
-        widgetSet  = guiObj.SetValue
     else:
         handleNone = False
+
+    if widgetGet is None:
+        raise RuntimeError(f'Cannot identify value getter on widget {guiObj} '
+                           '- you can specify it with the widgetGet argument')
+    if widgetSet is None:
+        raise RuntimeError(f'Cannot identify value setter on widget {guiObj} '
+                           '- you can specify it with the widgetSet argument')
 
     log.debug('Binding PropertyValue (%s.%s [%s]) to widget %s (%s)',
         hasProps.__class__.__name__,
