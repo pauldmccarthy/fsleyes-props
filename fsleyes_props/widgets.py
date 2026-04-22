@@ -441,7 +441,7 @@ def _FilePath(parent, hasProps, propObj, propVal, **kwargs):
     value = propVal.get()
     if value is None: value = ''
 
-    panel   = wx.Panel(parent)
+    panel   = wx.Control(parent)
     textbox = wx.TextCtrl(panel)
     button  = wx.Button(panel, label='Choose')
 
