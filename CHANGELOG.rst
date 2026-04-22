@@ -4,8 +4,8 @@ chronological order.
 
 
 
-1.13.0 (Under development)
---------------------------
+1.13.0 (Monday 27th April 2026)
+-------------------------------
 
 
 Added
@@ -16,6 +16,15 @@ Added
   :class:`.String` property via the new new ``static`` option - this can be
   used when creating a :class:`.Widget` specification, or when using the
   :func:`.makeWidget` function.
+
+
+Changed
+^^^^^^^
+
+
+* Some widgets have been changed to inherit from ``wx.Control`` instead of
+  ``wx.Panel`` so they can be used with ``wx.ToolBar`` and
+  ``wx.aui.AuiToolBar``.
 
 
 1.12.3 (Thursday 20th November 2025)
