@@ -154,19 +154,35 @@ def _propBind(hasProps,
                           new property value.
     """
 
+    if evType is None:                   evType = []
     if not isinstance(evType, Iterable): evType = [evType]
 
     listenerName    = f'WidgetBind_{id(guiObj)}'
     listenerAttName = f'WidgetBindAtt_{id(guiObj)}'
 
     if widgetGet is None:
-        widgetGet = guiObj.GetValue
-    if widgetSet is None:
+        candidates = ['GetValue', 'GetLabel']
+        for c in candidates:
+            widgetGet = getattr(guiObj, c, None)
+            if widgetGet is not None:
+                break
 
+    if widgetSet is None:
+        candidates = ['SetValue', 'SetLabel']
+        for c in candidates:
+            widgetSet = getattr(guiObj, c, None)
+            if widgetSet is not None:
+                break
         handleNone = True
-        widgetSet  = guiObj.SetValue
     else:
         handleNone = False
+
+    if widgetGet is None:
+        raise RuntimeError(f'Cannot identify value getter on widget {guiObj} '
+                           '- you can specify it with the widgetGet argument')
+    if widgetSet is None:
+        raise RuntimeError(f'Cannot identify value setter on widget {guiObj} '
+                           '- you can specify it with the widgetSet argument')
 
     log.debug('Binding PropertyValue (%s.%s [%s]) to widget %s (%s)',
         hasProps.__class__.__name__,
@@ -273,6 +289,8 @@ def _propUnbind(hasProps, propObj, propVal, guiObj, evType):
     :func:`_propBind` function, between the given :class:`.PropertyValue`
     instance, and the given :mod:`wx` widget.
     """
+
+    if evType is None:                   evType = []
     if not isinstance(evType, Iterable): evType = [evType]
 
     listenerName    = f'WidgetBind_{id(guiObj)}'
@@ -344,7 +362,7 @@ def _setupValidation(widget, hasProps, propObj, propVal):
     _changeBGOnValidate(None, propVal.isValid(), None)
 
 
-def _String(parent, hasProps, propObj, propVal, **kwargs):
+def _String(parent, hasProps, propObj, propVal, static=False, **kwargs):
     """Creates and returns a :class:`wx.TextCtrl` object, allowing the user to
     edit the given ``propVal`` (managed by a :class:`.String` instance).
 
@@ -357,30 +375,43 @@ def _String(parent, hasProps, propObj, propVal, **kwargs):
 
     :param propVal:  The :class:`.PropertyValue` instance.
 
+    :param static:   Defaults to ``False``. If ``True``, a non-interactive
+                     ``wx.StaticText`` control is used instead of an editable
+                     ``wx.TextCtrl``.
+
     :param kwargs:   Type-specific options.
     """
 
-    widget = wx.TextCtrl(parent)
+    widget = None
 
-    # Under linux/GTK, TextCtrl widgets
-    # absorb mouse wheel events,  so I'm
-    # adding a custom handler to prevent this.
-    if wx.Platform == '__WXGTK__':
-        def wheel(ev):
-            widget.GetParent().GetEventHandler().ProcessEvent(ev)
-        widget.Bind(wx.EVT_MOUSEWHEEL, wheel)
+    # Non-interactive text widget which
+    # just displays the value
+    if static:
+        widget = wx.StaticText(parent)
+        _propBind(hasProps, propObj, propVal, widget, None)
 
-    # Use a DC object to calculate a decent
-    # minimum size for the widget
-    dc       = wx.ClientDC(widget)
-    textSize = dc.GetTextExtent('w' * 17)
-    widgSize = widget.GetBestSize().Get()
+    else:
+        widget = wx.TextCtrl(parent)
 
-    widget.SetMinSize((max(textSize[0], widgSize[0]),
-                       max(textSize[1], widgSize[1])))
+        # Under linux/GTK, TextCtrl widgets
+        # absorb mouse wheel events,  so I'm
+        # adding a custom handler to prevent this.
+        if  wx.Platform == '__WXGTK__':
+            def wheel(ev):
+                widget.GetParent().GetEventHandler().ProcessEvent(ev)
+            widget.Bind(wx.EVT_MOUSEWHEEL, wheel)
 
-    _propBind(hasProps, propObj, propVal, widget, wx.EVT_TEXT)
-    _setupValidation(widget, hasProps, propObj, propVal)
+        # Use a DC object to calculate a decent
+        # minimum size for the widget
+        dc       = wx.ClientDC(widget)
+        textSize = dc.GetTextExtent('w' * 17)
+        widgSize = widget.GetBestSize().Get()
+
+        widget.SetMinSize((max(textSize[0], widgSize[0]),
+                           max(textSize[1], widgSize[1])))
+
+        _propBind(hasProps, propObj, propVal, widget, wx.EVT_TEXT)
+        _setupValidation(widget, hasProps, propObj, propVal)
 
     return widget
 
@@ -410,7 +441,7 @@ def _FilePath(parent, hasProps, propObj, propVal, **kwargs):
     value = propVal.get()
     if value is None: value = ''
 
-    panel   = wx.Panel(parent)
+    panel   = wx.Control(parent)
     textbox = wx.TextCtrl(panel)
     button  = wx.Button(panel, label='Choose')
 
@@ -837,7 +868,7 @@ def makeListWidgets(parent, hasProps, propName, **kwargs):
 def bindWidget(widget,
                hasProps,
                propName,
-               evTypes,
+               evTypes=None,
                widgetGet=None,
                widgetSet=None):
     """Binds the given widget to the specified property. See the
@@ -854,7 +885,7 @@ def bindWidget(widget,
 def bindListWidgets(widgets,
                     hasProps,
                     propName,
-                    evTypes,
+                    evTypes=None,
                     widgetSets=None,
                     widgetGets=None):
     """Binds the given sequence of widgets to each of the values in the
@@ -879,7 +910,7 @@ def bindListWidgets(widgets,
                   wSet)
 
 
-def unbindWidget(widget, hasProps, propName, evTypes):
+def unbindWidget(widget, hasProps, propName, evTypes=None):
     """Unbinds the given widget from the specified property, assumed to have
     been previously bound via the :func:`bindWidget` function.
     """

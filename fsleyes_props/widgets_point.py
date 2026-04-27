@@ -41,7 +41,7 @@ def _Point(parent,
     See the :func:`.widgets._String` documentation for details on the other
     parameters.
     """
-    panel = wx.Panel(parent)
+    panel = wx.Control(parent)
     sizer = wx.BoxSizer(wx.VERTICAL)
     panel.SetSizer(sizer)
 

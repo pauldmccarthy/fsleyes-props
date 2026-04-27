@@ -5,7 +5,6 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
-import wx
 import numpy as np
 
 from . import (run_with_wx, addall, MockMouseEvent, realYield)

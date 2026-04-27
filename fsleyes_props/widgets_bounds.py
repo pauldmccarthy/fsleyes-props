@@ -72,7 +72,7 @@ def _Bounds(parent,
     real    = propObj._real
     clamped = propObj.getListType().getAttribute(None, 'clamped')
 
-    panel = wx.Panel(parent)
+    panel = wx.Control(parent)
     sizer = wx.BoxSizer(wx.VERTICAL)
     panel.SetSizer(sizer)
 
